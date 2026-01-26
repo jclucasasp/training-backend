@@ -1,0 +1,51 @@
+services:
+  mariadb:
+    image: 'mariadb:12.0-ubi10'
+    container_name: maria_db
+    restart: unless-stopped
+    environment:
+      - 'MARIADB_DATABASE=ar_db'
+      - 'MARIADB_PASSWORD=mariapassword'
+      - 'MARIADB_ROOT_PASSWORD=rootpassword'
+      - 'MARIADB_USER=maria'
+    ports:
+      - '3306:3306'
+    volumes:
+      - 'mariadb_data:/var/lib/mysql'
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 256M
+
+  adminer:
+    image: adminer:latest
+    container_name: adminer_panel
+    environment:
+      - ADMINER_DEFAULT_SERVER=mariadb
+    ports:
+      - "8081:8080" # Map host 8081 to Adminer's 8080
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: 64M
+
+  rabbitmq:
+    image: 'rabbitmq:4.0-management'
+    container_name: rabbit_mq
+    restart: unless-stopped
+    environment:
+      - 'RABBITMQ_DEFAULT_USER=guest'
+      - 'RABBITMQ_DEFAULT_PASS=guest'
+      - 'RABBITMQ_DEFAULT_VHOST=myvhost'
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    volumes:
+      - 'rabbitmq_data:/var/lib/rabitmq'
+
+volumes:
+  mariadb_data:
+  rabbitmq_data:
