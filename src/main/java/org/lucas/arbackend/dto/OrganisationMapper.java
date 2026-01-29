@@ -4,10 +4,10 @@ import lombok.*;
 import org.lucas.arbackend.dto.helper.OrganisationRequest;
 import org.lucas.arbackend.dto.helper.OrganisationResponse;
 import org.lucas.arbackend.entity.Organisation;
+import org.springframework.stereotype.Component;
 
-@AllArgsConstructor @NoArgsConstructor
-@Getter @Setter
-@Builder
+
+@Component
 public class OrganisationMapper {
 
     public Organisation toEntity(OrganisationRequest request) {
