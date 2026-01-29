@@ -5,7 +5,8 @@ CREATE TABLE Organisation (
                               org_password VARCHAR(255) NOT NULL,
                               org_created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                               org_ended_at DATETIME NULL,
-                              org_password_reset_date DATETIME NULL
+                              org_password_reset_date DATETIME NULL,
+                              org_updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
 CREATE TABLE Role (
