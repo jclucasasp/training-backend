@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.lucas.arbackend.dto.security.AccessRequest;
 import org.lucas.arbackend.dto.student.helper.StudentResponse;
 import org.lucas.arbackend.entity.Organisation;
-import org.lucas.arbackend.entity.student.Student;
 import org.lucas.arbackend.service.student.StudentService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;

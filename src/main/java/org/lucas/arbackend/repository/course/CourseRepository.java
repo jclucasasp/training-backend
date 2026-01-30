@@ -11,8 +11,7 @@ import java.util.Optional;
 public interface CourseRepository extends JpaRepository<Course, Long> {
     Optional<Course> findByName(String courseName);
 
-    // TODO: Run this sql in Adminer to make sure it is working
     // Enforces that only courses linked to the specific Org are returned
-    @Query("SELECT c FROM Course c JOIN OrgCourseRel ocr ON c.id = ocr.course.id WHERE ocr.org.id = :orgId")
+    @Query("SELECT c FROM Course c JOIN OrgCourseRel ocr ON c.id = ocr.course.id WHERE ocr.organisation.id = :orgId")
     List<Course> findAllByOrganisationId(@Param("orgId") Long orgId);
 }

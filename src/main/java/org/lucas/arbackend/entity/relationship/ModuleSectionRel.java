@@ -2,6 +2,7 @@ package org.lucas.arbackend.entity.relationship;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.lucas.arbackend.entity.course.Module;
 import org.lucas.arbackend.entity.course.Section;
 
 @Entity

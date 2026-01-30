@@ -3,6 +3,7 @@ package org.lucas.arbackend.entity.relationship;
 import jakarta.persistence.*;
 import lombok.*;
 import org.lucas.arbackend.entity.course.Course;
+import org.lucas.arbackend.entity.course.Module;
 
 @Entity
 @Table(name = "Course_Module_Rel")

@@ -2,6 +2,7 @@ package org.lucas.arbackend.entity.student;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.lucas.arbackend.entity.course.Module;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 

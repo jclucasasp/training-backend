@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface StudentEnrollmentRepository extends JpaRepository<StudentEnrollment, Long> {
     @EntityGraph(attributePaths = {"studnet", "course"})
-    List<StudentEnrollment> findbyStudent_StudentNumber(String studentNumber);
+    List<StudentEnrollment> findByStudent_StudentNumber(String studentNumber);
 }

@@ -4,11 +4,15 @@ import lombok.*;
 import org.lucas.arbackend.dto.helper.OrganisationRequest;
 import org.lucas.arbackend.dto.helper.OrganisationResponse;
 import org.lucas.arbackend.entity.Organisation;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 
 @Component
+@RequiredArgsConstructor
 public class OrganisationMapper {
+
+    private final PasswordEncoder encoder;
 
     public Organisation toEntity(OrganisationRequest request) {
         if (request == null) {
@@ -17,7 +21,7 @@ public class OrganisationMapper {
 
         return Organisation.builder()
                 .email(request.getEmail())
-                .password(request.getPassword())
+                .password(encoder.encode(request.getPassword()))
                 .build();
     }
 
