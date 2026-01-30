@@ -34,28 +34,7 @@ public class OrganisationController {
 
         log.info("Creating new organisation: {}", request);
 
-        Organisation org = Organisation.builder()
-                .email(request.getEmail())
-                .password(request.getPassword())
-                .build();
-        Organisation savedOrg = orgRepo.save(org);
-
-        Profile profile = Profile.builder()
-                .orgName(request.getOrgName())
-                .registrationNumber(request.getRegistrationNumber())
-                .vatNumber(request.getVatNumber())
-                .build();
-        Profile savedProfile = profileRepo.save(profile);
-
-        return ResponseEntity.ok(SignUpResponse.builder()
-                .orgId(savedOrg.getId())
-                .orgName(savedProfile.getOrgName())
-                .registrationNumber(savedProfile.getRegistrationNumber())
-                .vatNumber(savedProfile.getVatNumber())
-                .createAt(savedOrg.getCreatedAt())
-                .updatedAt(savedOrg.getUpdatedAt())
-                .endedAt(savedOrg.getEndedAt())
-                .build());
+       return ResponseEntity.ok(service.signUp(request));
     }
 
     @GetMapping

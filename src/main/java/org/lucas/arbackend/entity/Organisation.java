@@ -2,13 +2,16 @@ package org.lucas.arbackend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "organisation")
 @Getter @Setter
+@EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor @AllArgsConstructor
 @Builder
 public class Organisation {
@@ -26,7 +29,8 @@ public class Organisation {
     @Column(name = "org_updated_at")
     private LocalDateTime updatedAt;
 
-    @Column(name = "org_created_at")
+    @CreatedDate
+    @Column(name = "org_created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "org_ended_at")
@@ -35,4 +39,7 @@ public class Organisation {
     @LastModifiedDate
     @Column(name = "org_password_reset_date")
     private LocalDateTime passwordResetDate;
+
+    @OneToOne(mappedBy = "organisation", cascade = CascadeType.ALL)
+    Profile profile;
 }

@@ -7,6 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface StudentEnrollmentRepository extends JpaRepository<StudentEnrollment, Long> {
-    @EntityGraph(attributePaths = {"studnet", "course"})
+    @EntityGraph(attributePaths = {"student", "course"})
     List<StudentEnrollment> findByStudent_StudentNumber(String studentNumber);
 }

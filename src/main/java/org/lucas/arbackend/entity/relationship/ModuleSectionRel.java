@@ -6,7 +6,7 @@ import org.lucas.arbackend.entity.course.Module;
 import org.lucas.arbackend.entity.course.Section;
 
 @Entity
-@Table(name = "Module_Section_Rel")
+@Table(name = "module_section_rel")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class ModuleSectionRel {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

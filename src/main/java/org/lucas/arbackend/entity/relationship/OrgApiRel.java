@@ -6,7 +6,7 @@ import org.lucas.arbackend.entity.security.ApiKey;
 import org.lucas.arbackend.entity.Organisation;
 
 @Entity
-@Table(name = "Org_Api_Rel")
+@Table(name = "org_api_rel")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 @Builder
 public class OrgApiRel {

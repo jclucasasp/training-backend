@@ -7,7 +7,7 @@ import org.lucas.arbackend.entity.course.Asset;
 import org.lucas.arbackend.entity.course.Section;
 
 @Entity
-@Table(name = "Section_Asset_Rel")
+@Table(name = "section_asset_rel")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class SectionAssetRel {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

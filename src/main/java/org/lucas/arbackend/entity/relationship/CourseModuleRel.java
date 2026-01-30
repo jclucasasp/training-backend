@@ -6,7 +6,7 @@ import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.course.Module;
 
 @Entity
-@Table(name = "Course_Module_Rel")
+@Table(name = "course_module_rel")
 @Getter
 @Setter
 @NoArgsConstructor

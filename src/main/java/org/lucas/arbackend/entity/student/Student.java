@@ -10,7 +10,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "Student")
+@Table(name = "student")
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter

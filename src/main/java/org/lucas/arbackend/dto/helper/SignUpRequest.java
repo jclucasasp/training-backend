@@ -17,7 +17,7 @@ public class SignUpRequest {
 
     @NotNull (message = "Password is required")
     @Length (message = "Password must not be at least 8 characters long and can not exceed 20 characters", min = 8, max = 20)
-    private String Password;
+    private String password;
 
     // Profile Details
     @NotNull (message = "Organisation name is required")

@@ -6,7 +6,7 @@ import org.lucas.arbackend.entity.Organisation;
 import org.lucas.arbackend.entity.security.Role;
 
 @Entity
-@Table(name = "Role_Rel")
+@Table(name = "role_rel")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class RoleRel {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -26,7 +26,7 @@ public class ProfileMapper {
         }
 
         return ProfileResponse.builder()
-                .orgId(profile.getOrgId())
+                .orgId(profile.getOrganisation().getId())
                 .orgName(profile.getOrgName())
                 .registrationNumber(profile.getRegistrationNumber())
                 .vatNumber(profile.getVatNumber())
