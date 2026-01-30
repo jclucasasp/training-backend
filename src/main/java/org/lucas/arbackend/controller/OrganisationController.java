@@ -1,9 +1,9 @@
 package org.lucas.arbackend.controller;
 
-import org.lucas.arbackend.dto.OrganisationMapper;
 import org.lucas.arbackend.dto.helper.OrganisationRequest;
 import org.lucas.arbackend.dto.helper.OrganisationResponse;
-import org.lucas.arbackend.entity.Organisation;
+import org.lucas.arbackend.dto.helper.SignUpRequest;
+import org.lucas.arbackend.dto.helper.SignUpResponse;
 import org.lucas.arbackend.service.OrganisationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,10 +21,9 @@ public class OrganisationController {
     }
 
     @PostMapping
-    public ResponseEntity<OrganisationResponse> create(@RequestBody OrganisationRequest request) {
-        return ResponseEntity.ok(service.create(request));
+    public ResponseEntity<SignUpResponse> create(@RequestBody SignUpRequest request) {
+        return ResponseEntity.ok(service.signUp(request));
     }
-
 
     @GetMapping
     public List<OrganisationResponse> getAll() {

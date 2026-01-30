@@ -9,10 +9,12 @@ import org.hibernate.validator.constraints.Length;
 @Getter @Setter
 @Builder
 public class OrganisationRequest {
-    @NotNull(message = "Email is required")
-    @Email(message = "Email is not valid")
+    // Organisation Signup Details
+    @NotNull (message = "Email is required")
+    @Email (message = "Email is not valid")
     private String email;
-    @NotNull(message = "Password is required")
-    @Length(message = "Password must be at least 8 characters", min = 8)
+
+    @NotNull (message = "Password is required")
+    @Length (message = "Password must not be at least 8 characters long and can not exceed 20 characters", min = 8, max = 20)
     private String password;
 }

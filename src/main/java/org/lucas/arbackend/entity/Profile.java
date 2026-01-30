@@ -1,8 +1,7 @@
-package org.lucas.arbackend.entity.relationship;
+package org.lucas.arbackend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.lucas.arbackend.entity.Organisation;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -15,7 +14,7 @@ import java.time.LocalDateTime;
 public class Profile {
     @Id
     @Column(name = "p_org_id")
-    private Long id;
+    private Long orgId;
 
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId // Ensures Profile ID is the same as Organisation ID
@@ -23,7 +22,7 @@ public class Profile {
     private Organisation organisation;
 
     @Column(name = "p_org_name")
-    private String name;
+    private String orgName;
 
     @Column(name = "p_org_reg_number")
     private String registrationNumber;

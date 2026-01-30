@@ -10,7 +10,7 @@ INSERT INTO Role (r_id, r_admin, r_editor, r_user) VALUES
 
 -- Initial Organisation
 INSERT INTO Organisation (org_id, org_email, org_password) VALUES
-    (1, 'contact@acme-corp.com', 'hashed_password_here');
+    (1, 'contact@acme-corp.com', 'password');
 
 -- Link Org to Roles
 INSERT INTO Role_Rel (rr_id, rr_org_id, rr_role_id) VALUES (1, 1, 1);
