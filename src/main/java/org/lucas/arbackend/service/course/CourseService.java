@@ -2,54 +2,86 @@ package org.lucas.arbackend.service.course;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.lucas.arbackend.dto.course.CourseMapper;
-import org.lucas.arbackend.dto.course.helper.CourseRequest;
-import org.lucas.arbackend.dto.course.helper.CourseResponse;
+import org.lucas.arbackend.dto.course.CourseCreateRequest;
+import org.lucas.arbackend.dto.course.CourseResponse;
+import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.course.Course;
-import org.lucas.arbackend.entity.student.Student;
+import org.lucas.arbackend.entity.course.Difficulty;
+import org.lucas.arbackend.entity.course.Section;
+import org.lucas.arbackend.entity.course.Module;
 import org.lucas.arbackend.repository.course.CourseRepository;
-import org.lucas.arbackend.repository.student.StudentRepository;
+import org.lucas.arbackend.repository.organisation.OrganisationRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class CourseService {
 
-    private final CourseRepository courseRepository;
-    private final StudentRepository studentRepository;
-    private final CourseMapper mapper;
+   private final CourseRepository courseRepo;
+    private final OrganisationRepository orgRepo;
 
-    public CourseResponse createCourse(CourseRequest request) {
-        Course course = mapper.toEntity(request);
-        return mapper.toResponse(courseRepository.save(course));
-    }
+    public CourseResponse createCourse(Long orgId, CourseCreateRequest request) {
+        Organisation org = orgRepo.findById(orgId)
+                .orElseThrow(() -> new EntityNotFoundException("Organisation not found"));
 
-     public List<CourseResponse> getCoursesForStudent(String studentNumber) {
-        // Find the student to get their related org_id
-        Student student = studentRepository.findByStudentNumber(studentNumber)
-                .orElseThrow(() -> new EntityNotFoundException("Student not found"));
-
-        // Query courses filtered by that org_id
-        return courseRepository.findAllByOrganisationId(student.getOrganisation().getId())
-                .stream()
-                .map(mapper::toResponse)
-                .toList();
-    }
-
-    public CourseResponse updateCourse(Long id, CourseRequest request) {
-        Course course = courseRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Course not found"));
-
+        // Map DTO to Entity
+        Course course = new Course();
         course.setName(request.getName());
         course.setDescription(request.getDescription());
-        course.setDifficulty(request.getDifficulty());
+        course.setDifficulty(Difficulty.valueOf(request.getDifficulty()));
+        course.setTags(request.getTags());
+        course.setImageUrl(request.getImageUrl());
+        course.setOrganisation(org);
 
-        return mapper.toResponse(courseRepository.save(mapper.toEntity(request)));
+        // Map Modules & Sections
+        if (request.getModules() != null) {
+            List<Module> modules = request.getModules().stream().map(mReq -> {
+                Module module = new Module();
+                module.setName(mReq.getName());
+                module.setCourse(course); // Link back to parent
+
+                if (mReq.getSections() != null) {
+                    List<Section> sections = mReq.getSections().stream().map(sReq -> {
+                        Section section = new Section();
+                        section.setTitle(sReq.getTitle());
+                        section.setContent(sReq.getContent());
+                        section.setResourceUrl(sReq.getResourceUrl());
+                        section.setResourceMediaType(sReq.getResourceMediaType());
+                        section.setOrderIndex(sReq.getOrderIndex());
+                        section.setModule(module); // Link back to parent
+                        return section;
+                    }).collect(Collectors.toList());
+                    module.setSections(sections);
+                }
+                return module;
+            }).collect(Collectors.toList());
+            course.setModules(modules);
+        }
+
+        Course saved = courseRepo.save(course);
+        return mapToResponse(saved);
     }
 
-    public void deleteCourse(Long id) {
-        courseRepository.deleteById(id);
+    public Page<CourseResponse> getPaginatedCourses(Long orgId, Pageable pageable) {
+        return courseRepo.findByOrganisationIdAndEndedAtIsNull(orgId, pageable)
+                .map(this::mapToResponse);
+    }
+
+    // Helper mapper
+    private CourseResponse mapToResponse(Course course) {
+        return CourseResponse.builder()
+                .id(course.getId())
+                .name(course.getName())
+                .description(course.getDescription())
+                .difficulty(course.getDifficulty().name())
+                .imageUrl(course.getImageUrl())
+                .build();
     }
 }

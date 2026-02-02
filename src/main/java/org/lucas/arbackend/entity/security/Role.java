@@ -12,13 +12,10 @@ public class Role {
     @Column(name = "r_id")
     private Long id;
 
-    @Column(name = "r_admin")
-    private Boolean isAdmin;
+    @Column(name = "r_name")
+    private String name;
 
-    @Column(name = "r_editor")
-    private Boolean isEditor;
-
-    @Column(name = "r_user")
-    private Boolean isUser;
+    @Column(name = "r_description")
+    private String description;
 }
 

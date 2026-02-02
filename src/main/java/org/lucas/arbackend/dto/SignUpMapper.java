@@ -1,8 +1,8 @@
 package org.lucas.arbackend.dto;
 
 import org.lucas.arbackend.dto.helper.SignUpResponse;
-import org.lucas.arbackend.entity.Organisation;
-import org.lucas.arbackend.entity.Profile;
+import org.lucas.arbackend.entity.Organisation.Organisation;
+import org.lucas.arbackend.entity.Organisation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component

@@ -3,37 +3,30 @@ package org.lucas.arbackend.entity.student;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.lucas.arbackend.entity.Organisation;
-import org.springframework.data.annotation.CreatedDate;
+import org.lucas.arbackend.entity.BaseEntity;
+import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "student")
 @EntityListeners(AuditingEntityListener.class)
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class Student {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+public class Student extends BaseEntity {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "st_id")
     private Long id;
+
+    @Column(name = "st_name", nullable = true)
+    private String name;
+
+    @Column(name = "st_last_name", nullable = true)
+    private String lastName;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "st_org_id")
     private Organisation organisation;
 
-    @Column(name = "st_student_number", unique = true, nullable = false)
+    @Column(name = "st_student_number", nullable = false)
     private String studentNumber;
 
-    @CreatedDate
-    @Column(name = "st_created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "st_ended_at")
-    private LocalDateTime endedAt;
 }

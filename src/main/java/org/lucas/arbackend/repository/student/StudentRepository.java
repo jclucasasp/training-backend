@@ -1,6 +1,8 @@
 package org.lucas.arbackend.repository.student;
 
 import org.lucas.arbackend.entity.student.Student;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -11,12 +13,12 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
 
     // This tells JPA: "When you find a student by number,
     // fetch their Organisation and ApiKey in the same JOIN query."
-    @EntityGraph(attributePaths = {"organisation", "apiKey"})
-    Optional<Student> findByStudentNumber(String studentNumber);
+//    @EntityGraph(value = "student.org-apikey", type = EntityGraph.EntityGraphType.FETCH)
+//    Page<Student> findByStudentNumber(String studentNumber, Pageable pageable);
 
-    Collection<Student> findAllByOrganisationId(Long orgId);
+     // Paginated student lookup per Organisation
+    Page<Student> findByOrganisationId(Long orgId, Pageable pageable);
 
-    Optional<Student> findByIdAndOrganisationId(Long studentId, Long orgId);
-
-    Optional<Student> findByStudentNumberAndOrganisationId(String studentNumber, Long id);
+    // Fast lookup for student sign-in/redirect
+    Optional<Student> findByOrganisationIdAndStStudentNumber(Long orgId, String studentNumber);
 }

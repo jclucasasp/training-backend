@@ -2,52 +2,65 @@ package org.lucas.arbackend.service.student;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.lucas.arbackend.dto.student.StudentMapper;
-import org.lucas.arbackend.dto.student.helper.StudentRequest;
-import org.lucas.arbackend.dto.student.helper.StudentResponse;
-import org.lucas.arbackend.entity.Organisation;
-import org.lucas.arbackend.entity.relationship.OrgApiRel;
+import org.lucas.arbackend.dto.student.EnrollmentResponse;
+import org.lucas.arbackend.dto.student.StudentRegistrationRequest;
+import org.lucas.arbackend.entity.Organisation.Organisation;
+import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.student.Student;
-import org.lucas.arbackend.repository.OrganisationRepository;
-import org.lucas.arbackend.repository.relationship.OrgApiRelRepository;
+import org.lucas.arbackend.entity.student.StudentEnrollment;
+import org.lucas.arbackend.repository.course.CourseRepository;
+import org.lucas.arbackend.repository.organisation.OrganisationRepository;
+import org.lucas.arbackend.repository.student.StudentEnrollmentRepository;
 import org.lucas.arbackend.repository.student.StudentRepository;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class StudentService {
+
     private final StudentRepository studentRepo;
-    private final OrgApiRelRepository apiRelRepo;
-    private final StudentMapper mapper;
+    private final StudentEnrollmentRepository enrollmentRepo;
+    private final CourseRepository courseRepo;
+    private final OrganisationRepository orgRepo;
 
-    public List<StudentResponse> getAllByOrg(Long orgId) {
-        return studentRepo.findAllByOrganisationId(orgId).stream()
-                .map(mapper::toResponse).toList();
-    }
+    public EnrollmentResponse enrollStudent(Long orgId, Long courseId, StudentRegistrationRequest req) {
+        // 1. Find or Create Student (Upsert)
+        Student student = studentRepo.findByOrganisationIdAndStStudentNumber(orgId, req.getStudentNumber())
+                .orElseGet(() -> {
+                    Organisation org = orgRepo.findById(orgId).orElseThrow();
+                    Student newStudent = new Student();
+                    newStudent.setOrganisation(org);
+                    newStudent.setStudentNumber(req.getStudentNumber());
+                    newStudent.setName(req.getFirstName());
+                    newStudent.setLastName(req.getLastName());
+                    return studentRepo.save(newStudent);
+                });
 
-    public void deleteStudent (Long studentId, Long orgId) {
-        Student student = studentRepo.findByIdAndOrganisationId(studentId, orgId)
-                .orElseThrow(() -> new EntityNotFoundException("Student not found"));
-        studentRepo.delete(student);
-    }
+        // 2. Check if already enrolled
+        if (enrollmentRepo.existsByStudentIdAndCourseId(student.getId(), courseId)) {
+            throw new IllegalStateException("Student already enrolled");
+        }
 
-    public StudentResponse getOrCreateStudentAccess(String apiKey, String studentNumber) {
-        // Resolve API Key to Organisation
-        OrgApiRel rel = apiRelRepo.findByApiKeyValue(apiKey)
-                .orElseThrow(() -> new BadCredentialsException("Invalid API Key"));
+        // 3. Create Enrollment
+        Course course = courseRepo.findById(courseId)
+                .orElseThrow(() -> new EntityNotFoundException("Course not found"));
 
-        Organisation org = rel.getOrganisation();
+        StudentEnrollment enrollment = new StudentEnrollment();
+        enrollment.setStudent(student);
+        enrollment.setCourse(course);
+        enrollment.setEnrolledAt(LocalDateTime.now());
 
-        // Multi-tenant Find or Create
-        Student student = studentRepo.findByStudentNumberAndOrganisationId(studentNumber, org.getId())
-                .orElseGet(() -> studentRepo.save(Student.builder()
-                        .studentNumber(studentNumber)
-                        .organisation(org)
-                        .build()));
+        StudentEnrollment saved = enrollmentRepo.save(enrollment);
 
-        return mapper.toResponse(student);
+        return EnrollmentResponse.builder()
+                .enrollmentId(saved.getId())
+                .courseName(course.getName())
+                .enrolledAt(saved.getEnrolledAt())
+                .progressPercentage(0.0)
+                .build();
     }
 }

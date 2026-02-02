@@ -2,7 +2,7 @@ package org.lucas.arbackend.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.lucas.arbackend.entity.Organisation;
+import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.relationship.OrgApiRel;
 import org.lucas.arbackend.entity.security.ApiKey;
 import org.lucas.arbackend.repository.OrganisationRepository;

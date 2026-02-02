@@ -3,6 +3,7 @@ package org.lucas.arbackend.entity.student;
 import jakarta.persistence.*;
 import lombok.*;
 import org.lucas.arbackend.entity.course.Module;
+import org.lucas.arbackend.entity.course.Section;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -11,14 +12,9 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "student_progress")
 @EntityListeners(AuditingEntityListener.class)
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class StudentProgress {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "sp_id")
     private Long id;
 
@@ -27,8 +23,8 @@ public class StudentProgress {
     private StudentEnrollment enrollment;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sp_module_id")
-    private Module module;
+    @JoinColumn(name = "s_id")
+    private Section section;
 
     @Column(name = "sp_percentage")
     private Double percentage;

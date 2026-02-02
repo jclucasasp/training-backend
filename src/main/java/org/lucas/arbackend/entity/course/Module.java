@@ -2,21 +2,23 @@ package org.lucas.arbackend.entity.course;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.SQLRestriction;
+import org.lucas.arbackend.entity.BaseEntity;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "module")
+@SQLRestriction("ended_at IS NULL")
 @EntityListeners(AuditingEntityListener.class)
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class Module {
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+public class Module extends BaseEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "m_id")
     private Long id;
@@ -24,23 +26,15 @@ public class Module {
     @Column(name = "m_name", nullable = false)
     private String name;
 
-    @Column(name = "m_description", columnDefinition = "TEXT")
+    @Column(name = "m_description")
     private String description;
 
-    @Column(name = "m_duration")
-    private Integer duration;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "m_course_id")
+    private Course course;
 
-    @CreatedDate
-    @Column(name = "m_created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @LastModifiedDate
-    @Column(name = "m_updated_at")
-    private LocalDateTime updatedAt;
-
-    @Column(name = "m_ended_at")
-    private LocalDateTime endedAt;
-
-    @Column(name = "m_tags", columnDefinition = "TEXT")
-    private String tags;
+    @OneToMany(mappedBy = "module", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("orderIndex ASC")
+    @BatchSize(size = 50)
+    private List<Section> sections = new ArrayList<>();
 }
