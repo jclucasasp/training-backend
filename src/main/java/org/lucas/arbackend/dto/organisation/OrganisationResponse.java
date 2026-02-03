@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
-@Component
 @Data @Builder
 public class OrganisationResponse {
     private Long id;

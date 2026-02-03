@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Component
 @Data @Builder
 public class StudentEnrollRequest {
 

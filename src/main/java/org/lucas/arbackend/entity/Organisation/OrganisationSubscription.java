@@ -10,7 +10,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "organisation_subscription")
-@SQLRestriction("ended_at IS NULL")
+//@SQLRestriction("ended_at IS NULL")
 @EntityListeners(AuditingEntityListener.class)
 @Getter @Setter
 public class OrganisationSubscription extends BaseEntity {

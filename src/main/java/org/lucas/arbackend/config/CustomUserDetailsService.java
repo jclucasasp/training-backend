@@ -2,8 +2,9 @@ package org.lucas.arbackend.config;
 
 import lombok.RequiredArgsConstructor;
 import org.lucas.arbackend.entity.Organisation.Organisation;
-import org.lucas.arbackend.entity.Organisation.Staff;
-import org.lucas.arbackend.repository.OrganisationRepository;
+import org.lucas.arbackend.entity.Organisation.Staff;;
+import org.lucas.arbackend.repository.organisation.OrganisationRepository;
+import org.lucas.arbackend.repository.organisation.StaffRepository;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

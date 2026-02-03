@@ -18,6 +18,6 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     Page<Student> findAllByOrganisationId(Long orgId, Pageable pageable);
 
     // Fast lookup for student sign-in/redirect
-    Optional<Student> findByOrganisationIdAndStStudentNumber(Long orgId, String studentNumber);
+    Optional<Student> findByOrganisationIdAndStudentNumber(Long orgId, String studentNumber);
 
 }

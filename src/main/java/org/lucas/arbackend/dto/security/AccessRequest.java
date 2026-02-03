@@ -1,9 +1,10 @@
 package org.lucas.arbackend.dto.security;
 
 import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
 import lombok.Data;
 
-@Data
+@Data @Builder
 public class AccessRequest {
     @NotNull (message = "Must include an API key for access")
     private String apiKey;

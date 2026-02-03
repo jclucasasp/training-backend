@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Component
 @Data @Builder
 public class CourseCreateRequest {
     @NotNull(message = "Course name is required")

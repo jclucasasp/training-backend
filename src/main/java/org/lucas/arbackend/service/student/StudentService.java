@@ -46,18 +46,14 @@ public class StudentService {
     // ==========================================
     // 1. ENROLLMENT LOGIC (UPSERT Student)
     // ==========================================
-    public EnrollmentResponse enrollStudent(String apiKey, StudentEnrollRequest request) {
+    public EnrollmentResponse enrollStudent(Long orgId, StudentEnrollRequest request) {
 
-        // Verify API Key & Organisation
-        ApiKey key = apiRepo.findByKeyHash(passwordEncoder.encode(apiKey))
-                .orElseThrow(() -> new EntityNotFoundException("Invalid API Key"));
-
-        Long orgId = key.getOrgId();
-
-        Organisation org = orgRepo.findById(orgId).orElseThrow(() -> new EntityNotFoundException("Organisation not found"));
+        // Verify Organisation
+        Organisation org = orgRepo.findById(orgId)
+                .orElseThrow(() -> new EntityNotFoundException("Organisation not found"));
 
         // Find or Create student within this Org
-        Student student = studentRepo.findByOrganisationIdAndStStudentNumber(orgId, request.getStudentNumber())
+        Student student = studentRepo.findByOrganisationIdAndStudentNumber(orgId, request.getStudentNumber())
                 .orElseGet(() -> {
                     Student newStudent = new Student();
                     newStudent.setOrganisation(org);

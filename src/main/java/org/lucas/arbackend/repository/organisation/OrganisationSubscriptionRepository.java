@@ -11,6 +11,7 @@ import java.util.Optional;
 @Repository
 public interface OrganisationSubscriptionRepository extends JpaRepository<OrganisationSubscription, Long> {
     // Find the current active subscription for an org
-    @Query("SELECT os FROM OrganisationSubscription os WHERE os.orgId = :orgId AND os.status = true AND os.endDate > CURRENT_TIMESTAMP")
-    Optional<OrganisationSubscription> findActiveSubscription(@Param("orgId") Long orgId);
+    @Query("SELECT os FROM OrganisationSubscription os WHERE os.organisation.id = :orgId AND os.status = 1 AND os.endedAt > CURRENT_TIMESTAMP")
+    Optional<OrganisationSubscription> findActiveByOrganisationId(@Param("orgId") Long orgId);
+
 }

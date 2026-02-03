@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
-@Component
 @Data @Builder
 public class OrgSignupRequest {
     @Email(message = "Must be a valid email address")

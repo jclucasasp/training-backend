@@ -1,6 +1,7 @@
 package org.lucas.arbackend.entity.Organisation;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.SQLRestriction;
@@ -26,7 +27,12 @@ public class Staff extends BaseEntity {
     @JoinColumn(name = "stf_role_id")
     private Role role;
 
+    @Column(name = "stf_email")
     private String email;
+
+    @Column(name = "stf_password")
     private String password;
+
+    @Column(name = "stf_is_active")
     private boolean isActive = true;
 }

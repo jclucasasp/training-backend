@@ -23,8 +23,8 @@ public class StudentController {
      @Operation(summary = "Enroll Student in Course",
                description = "Verifies if the student exists in the Org; if not, creates them and starts enrollment.")
     @PostMapping("/org/{orgId}/enroll")
-    public ResponseEntity<EnrollmentResponse> enroll(@PathVariable String apiKey, @RequestBody StudentEnrollRequest request) {
-        return ResponseEntity.ok(studentService.enrollStudent(apiKey, request));
+    public ResponseEntity<EnrollmentResponse> enroll(@PathVariable Long orgId, @RequestBody StudentEnrollRequest request) {
+        return ResponseEntity.ok(studentService.enrollStudent(orgId, request));
     }
 
     @Operation(summary = "Get Student List", description = "Paginated list of all students registered under this tenant.")

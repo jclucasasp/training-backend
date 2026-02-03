@@ -2,15 +2,16 @@ package org.lucas.arbackend.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.lucas.arbackend.dto.security.ApiKeyResponse;
 import org.lucas.arbackend.entity.Organisation.Organisation;
-import org.lucas.arbackend.entity.relationship.OrgApiRel;
 import org.lucas.arbackend.entity.security.ApiKey;
-import org.lucas.arbackend.repository.OrganisationRepository;
-import org.lucas.arbackend.repository.relationship.OrgApiRelRepository;
+import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.security.ApiKeyRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -18,26 +19,33 @@ import java.util.UUID;
 public class ApiKeyService {
 
     private final ApiKeyRepository apiKeyRepo;
-
+    private final OrganisationRepository orgRepo;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public String generateKeyForOrg(Long orgId) {
+    public ApiKeyResponse generateKeyForOrg(Long orgId) {
+        // Check if the Organisation exists
         Organisation org = orgRepo.findById(orgId)
                 .orElseThrow(() -> new EntityNotFoundException("Organisation not found"));
 
-        // Generate unique key
-        ApiKey key = ApiKey.builder()
-                .hashKey(UUID.randomUUID().toString())
-                .build();
-        ApiKey savedKey = apiKeyRepo.save(key);
+        // Generate API Key
+        String rawKey = "sk_" + UUID.randomUUID().toString().replace("-", "") + UUID.randomUUID().toString().replace("-", "");
 
-        // Map to Organisation
-        OrgApiRel rel = OrgApiRel.builder()
-                .organisation(org)
-                .apiKey(savedKey)
-                .build();
-        relRepo.save(rel);
+        // 2. Hash it for storage
+        String hashedKey = passwordEncoder.encode(rawKey);
 
-        return savedKey.getHashKey();
+        // 3. Save metadata + hash
+        ApiKey apiKey = new ApiKey();
+        apiKey.setOrganisation(org);
+        apiKey.setHashKey(hashedKey); // We never store the raw key
+
+        apiKeyRepo.save(apiKey);
+
+        // 4. Return the RAW key to the user
+        return ApiKeyResponse.builder()
+                .rawKey(rawKey) // Critical: Frontend must display this immediately
+                .prefix(rawKey.substring(0, 8) + "...") // For UI listing later
+                .createdAt(LocalDateTime.now())
+                .build();
     }
 }

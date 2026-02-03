@@ -2,11 +2,11 @@ package org.lucas.arbackend.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.lucas.arbackend.dto.security.ApiKeyResponse;
 import org.lucas.arbackend.dto.organisation.OrgSignupRequest;
 import org.lucas.arbackend.dto.organisation.OrganisationResponse;
 import org.lucas.arbackend.dto.organisation.ProfileRequest;
-import org.lucas.arbackend.entity.BaseEntity;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.Organisation.OrganisationSubscription;
 import org.lucas.arbackend.entity.Organisation.Profile;
@@ -22,9 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
-import java.util.UUID;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 @Transactional
@@ -37,12 +36,15 @@ public class OrganisationService {
     private final ApiKeyRepository apiKeyRepo;
     private final PasswordEncoder passwordEncoder;
 
+    private final ApiKeyService apiKeyService;
+
+    // TODO: Implement a check to make sure a company can not generate more then one API key. Implement a new method to be able to end the old one and generate a new one.
     // ==========================================
     // 1. ATOMIC SIGN UP (Org + Profile + Sub)
     // ==========================================
     public OrganisationResponse signUp(OrgSignupRequest request) {
         // 1. Validation
-        if (orgRepo.findByOrgEmail(request.getEmail()).isPresent()) {
+        if (orgRepo.findByEmail(request.getEmail()).isPresent()) {
             throw new IllegalStateException("Email already registered");
         }
 
@@ -62,17 +64,7 @@ public class OrganisationService {
         profileRepo.save(profile);
 
         // Generate API Key
-        String rawKey = "sk_" + UUID.randomUUID().toString().replace("-", "") + UUID.randomUUID().toString().replace("-", "");
-
-        // 2. Hash it for storage
-        String hashedKey = passwordEncoder.encode(rawKey);
-
-        // 3. Save metadata + hash
-        ApiKey apiKey = new ApiKey();
-        apiKey.setOrganisation(org);
-        apiKey.setHashKey(hashedKey); // We never store the raw key
-
-        apiKeyRepo.save(apiKey);
+        ApiKeyResponse apiKeyResponse = apiKeyService.generateKeyForOrg(savedOrg.getId());
 
         // 4. Assign Initial Subscription (Default to ID 1 or specific plan)
         // TODO: Change this after testing
@@ -81,8 +73,8 @@ public class OrganisationService {
                 .orElseThrow(() -> new EntityNotFoundException("Plan not found"));
 
         OrganisationSubscription sub = new OrganisationSubscription();
-        sub.setId(savedOrg.getId());
-        sub.getSubscriptionPlan().setId(plan.getId());
+        sub.setOrganisation(org);
+        sub.setSubscriptionPlan(plan);
         // Simple logic: monthly sub
         sub.setEndedAt(LocalDateTime.now().plusMonths(1));
         sub.setStatus(1); // Active
@@ -94,7 +86,7 @@ public class OrganisationService {
                 .orgName(profile.getOrgName())
                 .registrationNumber(profile.getRegistrationNumber())
                 .vatNumber(profile.getVatNumber())
-                .apiKey(rawKey)
+                .apiKey(apiKeyResponse.getRawKey())
                 .orgSignedUpDate(org.getCreatedAt())
                 .orgLastUpdated(org.getUpdatedAt())
                 .orgDeletedDate(org.getEndedAt())
@@ -130,9 +122,10 @@ public class OrganisationService {
         Profile profile = profileRepo.findById(orgId).orElse(new Profile()); // Fallback
 
         // Check for active sub
-        Optional<OrganisationSubscription> activeSubscription = subRepo.findActiveSubscription(orgId);
-        boolean hasActiveSubscription = activeSubscription.isPresent();
-        String plan = hasActiveSubscription ? activeSubscription.get().getSubscriptionPlan().getPlan().toString() : null;
+        OrganisationSubscription sub = subRepo.findActiveByOrganisationId(orgId)
+                .orElseThrow(() -> new EntityNotFoundException("Organisation subscription not found"));
+
+        String plan = sub.getSubscriptionPlan().getPlan().toString();
 
         return OrganisationResponse.builder()
                 .id(org.getId())
@@ -140,41 +133,14 @@ public class OrganisationService {
                 .orgName(profile.getOrgName())
                 .registrationNumber(profile.getRegistrationNumber())
                 .vatNumber(profile.getVatNumber())
+                .apiKey(org.getApiKey().getHashKey())
                 .orgSignedUpDate(org.getCreatedAt())
                 .orgLastUpdated(org.getUpdatedAt())
                 .orgDeletedDate(org.getEndedAt())
-                .subscriptionStatus(hasActiveSubscription)
+                .subscriptionStatus(sub.getStatus() == 1)
                 .subscriptionPlan(plan)
-                .subscriptionStartDate(activeSubscription.map(BaseEntity::getCreatedAt).orElse(null))
-                .subscriptionEndDate(activeSubscription.map(BaseEntity::getEndedAt).orElse(null))
-                .build();
-    }
-
-    // ==========================================
-    // 3. SECURE API KEY GENERATION
-    // ==========================================
-    public ApiKeyResponse generateApiKey(Long orgId) {
-        // Make sure the Organisation exist
-        Organisation org = orgRepo.findById(orgId).orElseThrow(()-> new EntityNotFoundException("Organisation not found"));
-
-        // 1. Generate a raw random key (User sees this ONLY once)
-        String rawKey = "sk_" + UUID.randomUUID().toString().replace("-", "") + UUID.randomUUID().toString().replace("-", "");
-
-        // 2. Hash it for storage
-        String hashedKey = passwordEncoder.encode(rawKey);
-
-        // 3. Save metadata + hash
-        ApiKey apiKey = new ApiKey();
-        apiKey.setOrganisation(org); // Automatically assign the Organisation id
-        apiKey.setHashKey(hashedKey); // We never store the raw key
-
-        apiKeyRepo.save(apiKey);
-
-        // 4. Return the RAW key to the user
-        return ApiKeyResponse.builder()
-                .rawKey(rawKey) // Critical: Frontend must display this immediately
-                .prefix(rawKey.substring(0, 8) + "...") // For UI listing later
-                .createdAt(LocalDateTime.now())
+                .subscriptionStartDate(sub.getCreatedAt())
+                .subscriptionEndDate(sub.getEndedAt())
                 .build();
     }
 

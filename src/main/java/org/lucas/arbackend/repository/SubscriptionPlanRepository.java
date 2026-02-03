@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface SubscriptionPlanRepository extends JpaRepository<SubscriptionPlan, Long> {
-    List<SubscriptionPlan> findAllByActiveTrue();
+
 }

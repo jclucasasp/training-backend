@@ -16,7 +16,7 @@ public class Student extends BaseEntity {
     @Column(name = "st_id")
     private Long id;
 
-    @Column(name = "st_name", nullable = true)
+    @Column(name = "st_first_name", nullable = true)
     private String firstName;
 
     @Column(name = "st_last_name", nullable = true)

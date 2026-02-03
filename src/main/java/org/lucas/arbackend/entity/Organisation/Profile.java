@@ -1,5 +1,6 @@
 package org.lucas.arbackend.entity.Organisation;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLRestriction;
@@ -19,6 +20,7 @@ public class Profile extends BaseEntity {
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId // Ensures Profile ID is the same as Organisation ID
     @JoinColumn(name = "p_org_id")
+    @JsonBackReference // Prevents infinite recursion when serializing
     private Organisation organisation;
 
     @Column(name = "p_org_name")
