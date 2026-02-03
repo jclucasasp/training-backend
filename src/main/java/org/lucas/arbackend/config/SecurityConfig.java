@@ -1,5 +1,6 @@
 package org.lucas.arbackend.config;
 
+import org.lucas.arbackend.entity.security.RoleTypes;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -30,11 +31,14 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // Public signup/login
-                        .requestMatchers("/api/v1/organisations/signup", "/api/v1/auth/**").permitAll()
+                        .requestMatchers("/api/v1/organisations/signup",
+                            "/api/v1/auth/**", "/v3/api-docs/**",
+                            "/swagger-ui/**", "/swagger-ui.html")
+                        .permitAll()
 
                         // Strict Role Enforcement
-                        .requestMatchers("/api/v1/admin/**").hasRole("ORG_OWNER")
-                        .requestMatchers("/api/v1/courses/**").hasAnyRole("ORG_OWNER", "COURSE_EDITOR")
+                        .requestMatchers("/api/v1/admin/**").hasRole(RoleTypes.ORG_ADMIN.name())
+                        .requestMatchers("/api/v1/courses/**").hasAnyRole(RoleTypes.ORG_ADMIN.name(), RoleTypes.COURSE_EDITOR.name())
 
                         .anyRequest().authenticated()
                 )

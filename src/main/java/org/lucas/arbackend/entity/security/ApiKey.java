@@ -3,6 +3,7 @@ package org.lucas.arbackend.entity.security;
 import jakarta.persistence.*;
 import lombok.*;
 import org.lucas.arbackend.entity.BaseEntity;
+import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
@@ -10,10 +11,15 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @EntityListeners(AuditingEntityListener.class)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class ApiKey extends BaseEntity {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ak_id")
-    private Long id;
+    @Id
+    @Column(name = "ak_org_id")
+    private Long orgId;
 
-    @Column(name = "ak_value", unique = true, nullable = false)
-    private String value;
+    @OneToOne(fetch = FetchType.LAZY)
+    @MapsId // Ensures ApiKey ID is the same as Organisation ID
+    @JoinColumn(name = "ak_org_id")
+    private Organisation organisation;
+
+    @Column(name = "ak_key_hash", unique = true, nullable = false)
+    private String hashKey;
 }

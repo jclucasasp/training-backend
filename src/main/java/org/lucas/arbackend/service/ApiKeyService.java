@@ -18,8 +18,7 @@ import java.util.UUID;
 public class ApiKeyService {
 
     private final ApiKeyRepository apiKeyRepo;
-    private final OrgApiRelRepository relRepo;
-    private final OrganisationRepository orgRepo;
+
 
     @Transactional
     public String generateKeyForOrg(Long orgId) {
@@ -28,7 +27,7 @@ public class ApiKeyService {
 
         // Generate unique key
         ApiKey key = ApiKey.builder()
-                .value(UUID.randomUUID().toString())
+                .hashKey(UUID.randomUUID().toString())
                 .build();
         ApiKey savedKey = apiKeyRepo.save(key);
 
@@ -39,6 +38,6 @@ public class ApiKeyService {
                 .build();
         relRepo.save(rel);
 
-        return savedKey.getValue();
+        return savedKey.getHashKey();
     }
 }

@@ -8,7 +8,7 @@ SELECT
     s.st_student_number AS student_number,
     o.org_email AS organisation_email,
     c.c_name AS course_name,
-    c.c_difficulty AS difficulty,
+    c.c_difficulty AS difficultyTypes,
     m.m_name AS module_name,
     sec.s_description AS section_title,
     sp.sp_percentage AS progress_percentage,

@@ -11,7 +11,9 @@ import java.util.Optional;
 
 public interface CourseRepository extends JpaRepository<Course, Long> {
     // Optimized pagination for an Organisation's courses
-    Page<Course> findByOrganisationIdAndEndedAtIsNull(Long orgId, Pageable pageable);
+    Page<Course> findAllByOrganisationIdAndEndedAtIsNull(Long orgId, Pageable pageable);
+
+    Optional<Course> findByOrganisationId(Long orgId);
 
     // Optimized join fetch for the "Course Player" view
     @Query("SELECT c FROM Course c LEFT JOIN FETCH c.modules m LEFT JOIN FETCH m.sections WHERE c.id = :id")

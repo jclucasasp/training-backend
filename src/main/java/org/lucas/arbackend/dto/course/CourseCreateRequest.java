@@ -3,7 +3,7 @@ package org.lucas.arbackend.dto.course;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
-import org.lucas.arbackend.entity.course.Difficulty;
+import org.lucas.arbackend.entity.course.DifficultyTypes;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -18,7 +18,7 @@ public class CourseCreateRequest {
     private String description;
 
     @NotNull(message = "Course difficulty is required")
-    private Difficulty difficulty; // BEGINNER, INTERMEDIATE, ADVANCED
+    private DifficultyTypes difficultyTypes; // BEGINNER, INTERMEDIATE, ADVANCED
 
     @NotNull(message = "Course tags are required")
     private String tags;

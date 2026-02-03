@@ -4,14 +4,15 @@ import lombok.Builder;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Component
 @Data @Builder
 public class EnrollmentResponse {
     private Long enrollmentId;
+    private String studentNumber;
     private String courseName;
-    private Double progressPercentage;
     private LocalDateTime enrolledAt;
-    private LocalDateTime completedAt;
+    private BigDecimal currentTotalProgress;
 }

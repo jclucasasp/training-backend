@@ -1,23 +1,27 @@
 package org.lucas.arbackend.dto.student;
 
-
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
-import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Component // Standard for production to allow @Autowired
+@Component
 @Data @Builder
-public class StudentRegistrationRequest {
-    @NotNull(message = "Student email is required")
+public class StudentEnrollRequest {
+
+    @NotNull(message = "Student number is required")
     private String studentNumber;
 
-    @NotNull(message = "Student email is required")
+    @NotNull(message = "First name is required")
     private String firstName;
 
-    @NotNull(message = "Student email is required")
+    @NotNull(message = "Last name is required")
     private String lastName;
+
+    @NotNull(message = "API Key is required")
+    private String hashedKey;
 }
+

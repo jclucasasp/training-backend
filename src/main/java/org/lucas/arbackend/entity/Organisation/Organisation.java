@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.BaseEntity;
+import org.lucas.arbackend.entity.security.ApiKey;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
@@ -23,6 +24,9 @@ public class Organisation extends BaseEntity {
 
     @Column(name = "org_password", nullable = false)
     private String password;
+
+    @OneToOne(mappedBy = "organisation", cascade = CascadeType.ALL)
+    ApiKey apiKey;
 
     @OneToOne(mappedBy = "organisation", cascade = CascadeType.ALL)
     Profile profile;

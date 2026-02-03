@@ -14,8 +14,9 @@ public class SubscriptionPlan {
     @Column(name = "sp_id")
     private Long id;
 
-    @Column(name = "sp_name")
-    private String name;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "sp_plan")
+    private PlanTypes plan;
 
     @Column(name = "sp_price")
     private Double price;

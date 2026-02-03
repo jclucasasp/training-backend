@@ -27,6 +27,6 @@ public class OrgSignupRequest {
     @NotNull(message = "VAT number is required")
     private String vatNumber;
 
-    private Long initialPlanId; // Optional, defaults to Free/Basic
+    private Long initialPlanId; // Optional, defaults to Monthly Plan
 }
 

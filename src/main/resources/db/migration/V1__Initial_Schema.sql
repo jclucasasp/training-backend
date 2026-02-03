@@ -3,16 +3,21 @@
 -- ==========================================
 CREATE TABLE subscription_plan (
                                    sp_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                                   sp_name VARCHAR(50) NOT NULL, -- e.g., 'Monthly', 'Yearly'
+                                   sp_plan ENUM('MONTHLY', 'YEARLY'),
                                    sp_price DECIMAL(10, 2) NOT NULL,
                                    sp_course_limit INT DEFAULT 5,
                                    sp_is_active TINYINT(1) DEFAULT 1
 ) ENGINE=InnoDB;
 
+-- Insert default Subscription plans
+INSERT INTO subscription_plan (sp_plan, sp_price, sp_course_limit, sp_is_active) VALUES
+('MONTHLY', 10.00, 5, 1),
+('YEARLY', 100.00, 10, 1);
+
 -- 1.1 Roles (Lookup Table)
 CREATE TABLE role (
     r_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    r_name VARCHAR(50) NOT NULL UNIQUE, -- e.g., 'ADMIN', 'EDITOR', 'VIEWER'
+    r_name ENUM('ORG_ADMIN', 'COURSE_EDITOR', 'SUPPORT'),
     r_description VARCHAR(255)
 ) ENGINE=InnoDB;
 
@@ -21,7 +26,6 @@ INSERT INTO role (r_name, r_description) VALUES
 ('ORG_ADMIN', 'Full control over the organisation'),
 ('COURSE_EDITOR', 'Can manage courses and modules but not billing'),
 ('SUPPORT', 'Can view student progress but not edit content');
-
 
 
 -- ==========================================
@@ -82,10 +86,8 @@ CREATE TABLE staff (
 -- 3. AUTHENTICATION (API Keys)
 -- ==========================================
 CREATE TABLE api_key (
-                         ak_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                         ak_org_id BIGINT NOT NULL,
+                         ak_org_id BIGINT PRIMARY KEY,
                          ak_key_hash VARCHAR(255) UNIQUE NOT NULL, -- The hashed key for comparison
-                         ak_name VARCHAR(100), -- e.g., 'Student Portal Key'
                          ak_created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                          ak_updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
                          ak_ended_at DATETIME NULL, -- Soft-delete: if not null, the key is inactive

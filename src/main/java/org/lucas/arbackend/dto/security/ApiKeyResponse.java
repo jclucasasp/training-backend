@@ -1,4 +1,4 @@
-package org.lucas.arbackend.dto.organisation;
+package org.lucas.arbackend.dto.security;
 
 import lombok.Builder;
 import lombok.Data;

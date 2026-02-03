@@ -6,7 +6,7 @@ import org.lucas.arbackend.dto.course.CourseCreateRequest;
 import org.lucas.arbackend.dto.course.CourseResponse;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.course.Course;
-import org.lucas.arbackend.entity.course.Difficulty;
+import org.lucas.arbackend.entity.course.DifficultyTypes;
 import org.lucas.arbackend.entity.course.Section;
 import org.lucas.arbackend.entity.course.Module;
 import org.lucas.arbackend.repository.course.CourseRepository;
@@ -35,7 +35,7 @@ public class CourseService {
         Course course = new Course();
         course.setName(request.getName());
         course.setDescription(request.getDescription());
-        course.setDifficulty(Difficulty.valueOf(request.getDifficulty()));
+        course.setDifficultyTypes(DifficultyTypes.valueOf(request.getDifficultyTypes()));
         course.setTags(request.getTags());
         course.setImageUrl(request.getImageUrl());
         course.setOrganisation(org);
@@ -70,7 +70,7 @@ public class CourseService {
     }
 
     public Page<CourseResponse> getPaginatedCourses(Long orgId, Pageable pageable) {
-        return courseRepo.findByOrganisationIdAndEndedAtIsNull(orgId, pageable)
+        return courseRepo.findAllByOrganisationIdAndEndedAtIsNull(orgId, pageable)
                 .map(this::mapToResponse);
     }
 
@@ -80,7 +80,7 @@ public class CourseService {
                 .id(course.getId())
                 .name(course.getName())
                 .description(course.getDescription())
-                .difficulty(course.getDifficulty().name())
+                .difficulty(course.getDifficultyTypes().name())
                 .imageUrl(course.getImageUrl())
                 .build();
     }

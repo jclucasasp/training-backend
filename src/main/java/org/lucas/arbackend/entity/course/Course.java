@@ -31,7 +31,7 @@ public class Course extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "c_difficulty")
-    private Difficulty difficulty;
+    private DifficultyTypes difficultyTypes;
 
     @Column(name = "c_tags")
     private String tags;
