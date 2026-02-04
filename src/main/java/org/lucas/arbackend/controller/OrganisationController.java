@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -16,6 +17,7 @@ import org.lucas.arbackend.dto.organisation.OrganisationResponse;
 import org.lucas.arbackend.dto.organisation.ProfileRequest;
 import org.lucas.arbackend.service.ApiKeyService;
 import org.lucas.arbackend.service.OrganisationService;
+import org.lucas.arbackend.util.TenantContext;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,8 +27,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Log4j2
 @RequestMapping("api/v1/organisations")
+@Tag(name = "1. Organisations", description = "Create, update, and retrieve organisation details.")
 public class OrganisationController {
-    // TODO: When using JWT use claims to get the current tenant ID from the TenetContext class
     private final OrganisationService orgService;
     private final ApiKeyService apiKeyService;
 
@@ -48,17 +50,17 @@ public class OrganisationController {
         @ApiResponse(responseCode = "200", description = "Details retrieved successfully"),
         @ApiResponse(responseCode = "404", description = "Organisation not found")
     })
-    @GetMapping("/{orgId}")
-    public ResponseEntity<OrganisationResponse> getDetails(
-            @Parameter(description = "The unique ID of the organisation", example = "1")
-            @PathVariable Long orgId) {
+    @GetMapping("/details")
+    public ResponseEntity<OrganisationResponse> getDetails() {
+        Long orgId = TenantContext.getCurrentTenant();
         return ResponseEntity.ok(orgService.getOrganisationDetails(orgId));
     }
 
     @Operation(summary = "Update Profile",
                description = "Updates the business registration number, VAT number, and display name.")
-    @PutMapping("/{orgId}/profile")
-    public ResponseEntity<Void> updateProfile(@PathVariable Long orgId, @Valid @RequestBody ProfileRequest request) {
+    @PutMapping("/profile")
+    public ResponseEntity<Void> updateProfile(@Valid @RequestBody ProfileRequest request) {
+        Long orgId = TenantContext.getCurrentTenant();
         orgService.updateProfile(orgId, request);
         return ResponseEntity.noContent().build();
     }

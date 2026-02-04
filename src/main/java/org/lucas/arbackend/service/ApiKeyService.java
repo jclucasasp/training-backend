@@ -37,6 +37,7 @@ public class ApiKeyService {
         // 3. Save metadata + hash
         ApiKey apiKey = new ApiKey();
         apiKey.setOrganisation(org);
+        apiKey.setPrefix(rawKey.substring(0, 12));
         apiKey.setHashKey(hashedKey); // We never store the raw key
 
         apiKeyRepo.save(apiKey);
@@ -44,7 +45,7 @@ public class ApiKeyService {
         // 4. Return the RAW key to the user
         return ApiKeyResponse.builder()
                 .rawKey(rawKey) // Critical: Frontend must display this immediately
-                .prefix(rawKey.substring(0, 8) + "...") // For UI listing later
+                .prefix(rawKey.substring(0, 12) + "...") // For UI listing later
                 .createdAt(LocalDateTime.now())
                 .build();
     }

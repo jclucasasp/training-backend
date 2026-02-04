@@ -29,15 +29,13 @@ import org.springframework.context.annotation.Configuration;
         ),
         // Applies security globally to all paths by default (optional)
         security = {
-                @SecurityRequirement(name = "bearerAuth")
+                @SecurityRequirement(name = "X-API-KEY")
         }
 )
 @SecurityScheme(
-        name = "bearerAuth",
-        description = "JWT auth description",
-        scheme = "bearer",
-        type = SecuritySchemeType.HTTP,
-        bearerFormat = "JWT",
+        name = "X-API-KEY",
+        description = "API auth description",
+        type = SecuritySchemeType.APIKEY,
         in = SecuritySchemeIn.HEADER
 )
 public class OpenApiConfig {

@@ -31,14 +31,4 @@ public class CourseController {
         return ResponseEntity.ok(courseService.getPaginatedCourses(orgId, pageable));
     }
 
-    @Operation(summary = "Create Full Course Tree",
-               description = "Creates a course with nested modules and sections in a single request.")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "Course and modules created"),
-        @ApiResponse(responseCode = "403", description = "Course limit reached for this subscription plan")
-    })
-    @PostMapping("/{orgId}")
-    public ResponseEntity<CourseResponse> createCourse(@PathVariable Long orgId, @RequestBody CourseCreateRequest request) {
-        return ResponseEntity.ok(courseService.createCourse(orgId, request));
-    }
 }

@@ -66,6 +66,10 @@ public class OrganisationService {
         // Generate API Key
         ApiKeyResponse apiKeyResponse = apiKeyService.generateKeyForOrg(savedOrg.getId());
 
+        if (apiKeyResponse.getRawKey().isBlank()) {
+            throw new IllegalStateException("API Key could not be generated");
+        }
+
         // 4. Assign Initial Subscription (Default to ID 1 or specific plan)
         // TODO: Change this after testing
         Long planId = request.getInitialPlanId() != null ? request.getInitialPlanId() : 1L;
@@ -133,7 +137,6 @@ public class OrganisationService {
                 .orgName(profile.getOrgName())
                 .registrationNumber(profile.getRegistrationNumber())
                 .vatNumber(profile.getVatNumber())
-                .apiKey(org.getApiKey().getHashKey())
                 .orgSignedUpDate(org.getCreatedAt())
                 .orgLastUpdated(org.getUpdatedAt())
                 .orgDeletedDate(org.getEndedAt())

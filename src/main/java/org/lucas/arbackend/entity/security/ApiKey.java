@@ -20,6 +20,9 @@ public class ApiKey extends BaseEntity {
     @JoinColumn(name = "ak_org_id")
     private Organisation organisation;
 
+    @Column(name = "ak_prefix", nullable = false, length = 12)
+    private String prefix;
+
     @Column(name = "ak_key_hash", unique = true, nullable = false)
     private String hashKey;
 }

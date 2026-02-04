@@ -17,7 +17,7 @@ INSERT INTO subscription_plan (sp_plan, sp_price, sp_course_limit, sp_is_active)
 -- 1.1 Roles (Lookup Table)
 CREATE TABLE role (
     r_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    r_name ENUM('ORG_ADMIN', 'COURSE_EDITOR', 'SUPPORT'),
+    r_name ENUM('ORG_ADMIN', 'COURSE_EDITOR', 'SUPPORT', 'STUDENT'),
     r_description VARCHAR(255)
 ) ENGINE=InnoDB;
 
@@ -25,7 +25,8 @@ CREATE TABLE role (
 INSERT INTO role (r_name, r_description) VALUES
 ('ORG_ADMIN', 'Full control over the organisation'),
 ('COURSE_EDITOR', 'Can manage courses and modules but not billing'),
-('SUPPORT', 'Can view student progress but not edit content');
+('SUPPORT', 'Can view student progress but not edit content'),
+('STUDENT', 'Can view courses and update progress');
 
 
 -- ==========================================
@@ -35,6 +36,7 @@ CREATE TABLE organisation (
                               org_id BIGINT AUTO_INCREMENT PRIMARY KEY,
                               org_email VARCHAR(255) UNIQUE NOT NULL,
                               org_password VARCHAR(255) NOT NULL,
+                              org_role_id TINYINT(1) DEFAULT 1,
                               created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                               updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
                               ended_at DATETIME NULL,
@@ -89,13 +91,15 @@ CREATE TABLE staff (
 -- ==========================================
 CREATE TABLE api_key (
                          ak_org_id BIGINT PRIMARY KEY,
+                         ak_prefix VARCHAR(12) NOT NULL, -- The first 12 characters of the API Key
                          ak_key_hash VARCHAR(255) UNIQUE NOT NULL, -- The hashed key for comparison
                          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                          updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
                          ended_at DATETIME NULL,
                          CONSTRAINT fk_api_org FOREIGN KEY (ak_org_id) REFERENCES organisation(org_id),
                          -- Fast lookup for auth filter
-                         INDEX idx_api_auth (ak_key_hash, ended_at, ak_org_id)
+                         INDEX idx_api_auth (ak_key_hash, ended_at, ak_org_id),
+                         INDEX idx_api_prefix (ak_prefix)
 ) ENGINE=InnoDB;
 
 -- ==========================================

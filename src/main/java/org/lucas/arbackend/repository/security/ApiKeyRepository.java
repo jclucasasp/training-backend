@@ -13,4 +13,6 @@ public interface ApiKeyRepository extends JpaRepository<ApiKey, Long> {
     Optional<ApiKey> findByHashKey(String hash);
 
     List<ApiKey> findByOrgId(Long orgId);
+
+    Optional<ApiKey> findByPrefix(String prefix);
 }

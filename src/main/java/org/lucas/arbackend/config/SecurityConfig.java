@@ -1,5 +1,6 @@
 package org.lucas.arbackend.config;
 
+import lombok.RequiredArgsConstructor;
 import org.lucas.arbackend.entity.security.RoleTypes;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,9 +21,10 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
-// TODO: enable once jwt has been added to maven
-//    private final JwtAuthenticationFilter jwtAuthFilter;
+
+    private final TenantFilter tenantFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
@@ -31,34 +33,28 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // Public signup/login
-                        .requestMatchers("/api/v1/organisations/**",
-                            "/api/v1/auth/**", "/v3/api-docs/**",
-                            "/swagger-ui/**", "/swagger-ui.html")
+                        .requestMatchers(
+                                "/api/v1/organisations/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/webjars/**",
+                                "/swagger-resources/**"
+                        )
                         .permitAll()
 
-                        // Strict Role Enforcement
-                        .requestMatchers("/api/v1/admin/**").hasRole(RoleTypes.ORG_ADMIN.name())
-                        .requestMatchers("/api/v1/courses/**").hasAnyRole(RoleTypes.ORG_ADMIN.name(), RoleTypes.COURSE_EDITOR.name())
+                        // Admin & Staff Endpoints (Must be logged in)
+                        .requestMatchers("/api/v1/admin/staff/**").hasRole(RoleTypes.ORG_ADMIN.name())
+                        .requestMatchers("/api/v1/admin/course/**").hasAnyRole(RoleTypes.ORG_ADMIN.name(), RoleTypes.COURSE_EDITOR.name())
+                        // Student Endpoints (Must have API Key via Filter)
+                        .requestMatchers("/api/v1/courses/**").hasRole(RoleTypes.STUDENT.name())
 
                         .anyRequest().authenticated()
                 )
-                // TODO: enable once jwt has been added to maven
-                // Add JWT filter before the standard username/password filter
-//                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-                // TODO: Disable once jwt has been added to maven
-                .httpBasic(withDefaults()); // Change to .oauth2ResourceServer() if using JWT later
+                .httpBasic(withDefaults()) // Organisation & Staff login
+                .addFilterBefore(tenantFilter, UsernamePasswordAuthenticationFilter.class);
 
         return httpSecurity.build();
     }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
-    }
-
-    // TODO: enable once jwt has been added to maven
-//    @Bean
-//    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-//        return config.getAuthenticationManager();
-//    }
 }
