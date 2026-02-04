@@ -7,6 +7,7 @@ import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.security.ApiKey;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.security.ApiKeyRepository;
+import org.lucas.arbackend.util.TenantContext;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,9 @@ public class ApiKeyService {
 
     @Transactional
     public ApiKeyResponse generateKeyForOrg(Long orgId) {
+
+//        Long orgId = TenantContext.getCurrentTenant();
+
         // Check if the Organisation exists
         Organisation org = orgRepo.findById(orgId)
                 .orElseThrow(() -> new EntityNotFoundException("Organisation not found"));

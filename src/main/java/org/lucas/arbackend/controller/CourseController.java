@@ -24,11 +24,10 @@ public class CourseController {
 
     @Operation(summary = "List Org Courses (Paginated)",
                description = "Returns a list of active courses. Use 'page' and 'size' parameters for optimization.")
-    @GetMapping("/org/{orgId}")
+    @GetMapping()
     public ResponseEntity<Page<CourseResponse>> getCourses(
-            @PathVariable Long orgId,
-            @Parameter(description = "Pagination parameters (page, size, sort)") Pageable pageable) {
-        return ResponseEntity.ok(courseService.getPaginatedCourses(orgId, pageable));
+            Pageable pageable) {
+        return ResponseEntity.ok(courseService.getPaginatedCourses(pageable));
     }
 
 }

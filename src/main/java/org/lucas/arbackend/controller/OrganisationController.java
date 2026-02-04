@@ -52,8 +52,7 @@ public class OrganisationController {
     })
     @GetMapping("/details")
     public ResponseEntity<OrganisationResponse> getDetails() {
-        Long orgId = TenantContext.getCurrentTenant();
-        return ResponseEntity.ok(orgService.getOrganisationDetails(orgId));
+        return ResponseEntity.ok(orgService.getOrganisationDetails());
     }
 
     @Operation(summary = "Update Profile",
@@ -67,8 +66,9 @@ public class OrganisationController {
 
     @Operation(summary = "Generate API Key",
                description = "Generates a new secure API key. The raw key is returned ONLY ONCE for security.")
-    @PostMapping("/{orgId}/api-keys")
-    public ResponseEntity<ApiKeyResponse> createApiKey(@PathVariable Long orgId) {
+    @PostMapping("/api-keys")
+    public ResponseEntity<ApiKeyResponse> createApiKey() {
+        Long orgId = TenantContext.getCurrentTenant();
         return ResponseEntity.ok(apiKeyService.generateKeyForOrg(orgId));
     }
 }

@@ -1,6 +1,7 @@
 package org.lucas.arbackend.repository.organisation;
 
 import org.lucas.arbackend.entity.Organisation.OrganisationSubscription;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,6 +12,7 @@ import java.util.Optional;
 @Repository
 public interface OrganisationSubscriptionRepository extends JpaRepository<OrganisationSubscription, Long> {
     // Find the current active subscription for an org
+    @Cacheable(value = "active_subscriptions", key = "#orgId", unless = "#result == null")
     @Query("SELECT os FROM OrganisationSubscription os WHERE os.organisation.id = :orgId AND os.status = 1 AND os.endedAt > CURRENT_TIMESTAMP")
     Optional<OrganisationSubscription> findActiveByOrganisationId(@Param("orgId") Long orgId);
 

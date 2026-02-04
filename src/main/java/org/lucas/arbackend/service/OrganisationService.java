@@ -17,9 +17,13 @@ import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.OrganisationSubscriptionRepository;
 import org.lucas.arbackend.repository.organisation.ProfileRepository;
 import org.lucas.arbackend.repository.security.ApiKeyRepository;
+import org.lucas.arbackend.util.TenantContext;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 
@@ -35,6 +39,7 @@ public class OrganisationService {
     private final OrganisationSubscriptionRepository subRepo;
     private final ApiKeyRepository apiKeyRepo;
     private final PasswordEncoder passwordEncoder;
+    private final CacheService cacheService;
 
     private final ApiKeyService apiKeyService;
 
@@ -119,7 +124,14 @@ public class OrganisationService {
     }
 
     @Transactional(readOnly = true)
-    public OrganisationResponse getOrganisationDetails(Long orgId) {
+    public OrganisationResponse getOrganisationDetails() {
+
+        Long orgId = TenantContext.getCurrentTenant();
+
+        if (orgId == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No organisation found for id: [" + orgId + "]");
+        }
+
         Organisation org = orgRepo.findById(orgId)
                 .orElseThrow(() -> new EntityNotFoundException("Organisation not found"));
 
@@ -146,7 +158,7 @@ public class OrganisationService {
                 .subscriptionEndDate(sub.getEndedAt())
                 .build();
     }
-
+    @Transactional
     public void revokeApiKey(Long orgId, Long keyId) {
         ApiKey key = apiKeyRepo.findById(keyId)
                 .orElseThrow(() -> new EntityNotFoundException("Key not found"));
@@ -157,6 +169,8 @@ public class OrganisationService {
 
         key.setEndedAt(LocalDateTime.now()); // Soft delete
         apiKeyRepo.save(key);
+
+        cacheService.evictApiKey(key.getPrefix());
     }
 
 }

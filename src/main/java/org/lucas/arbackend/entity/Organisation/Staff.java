@@ -11,7 +11,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "staff")
-@SQLRestriction("stf_endded_at IS NULL")
 @EntityListeners(AuditingEntityListener.class)
 @Getter @Setter
 public class Staff extends BaseEntity {

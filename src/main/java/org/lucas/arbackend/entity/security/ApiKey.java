@@ -15,7 +15,7 @@ public class ApiKey extends BaseEntity {
     @Column(name = "ak_org_id")
     private Long orgId;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.EAGER)
     @MapsId // Ensures ApiKey ID is the same as Organisation ID
     @JoinColumn(name = "ak_org_id")
     private Organisation organisation;

@@ -10,9 +10,14 @@ import org.lucas.arbackend.entity.security.Role;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.StaffRepository;
 import org.lucas.arbackend.repository.security.RoleRepository;
+import org.lucas.arbackend.util.TenantContext;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @Transactional
@@ -24,7 +29,14 @@ public class StaffService {
     private final OrganisationRepository orgRepo;
     private final PasswordEncoder passwordEncoder;
 
-    public StaffResponse createStaff(Long orgId, CreateStaffRequest request) {
+    public StaffResponse createStaff(CreateStaffRequest request) {
+
+        Long orgId = TenantContext.getCurrentTenant();
+
+        if (orgId == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No organisation found for id: [" + orgId + "]");
+        }
+
         Organisation org = orgRepo.findById(orgId)
                 .orElseThrow(() -> new EntityNotFoundException("Organisation not found"));
 

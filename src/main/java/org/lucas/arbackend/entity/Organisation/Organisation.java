@@ -1,5 +1,6 @@
 package org.lucas.arbackend.entity.Organisation;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLRestriction;
@@ -27,6 +28,7 @@ public class Organisation extends BaseEntity {
     private String password;
 
     @OneToOne(mappedBy = "organisation", cascade = CascadeType.ALL)
+    @JsonIgnore
     private ApiKey apiKey;
 
     @OneToOne(cascade = CascadeType.ALL)

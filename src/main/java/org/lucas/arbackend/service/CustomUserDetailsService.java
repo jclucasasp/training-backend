@@ -1,13 +1,13 @@
-package org.lucas.arbackend.config;
+package org.lucas.arbackend.service;
 
 import lombok.RequiredArgsConstructor;
 import org.lucas.arbackend.entity.Organisation.Organisation;
-import org.lucas.arbackend.entity.Organisation.Staff;;
+import org.lucas.arbackend.entity.Organisation.Staff;
 import org.lucas.arbackend.entity.security.RoleTypes;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.StaffRepository;
-import org.lucas.arbackend.util.StaffUserDetails;
-import org.springframework.security.core.userdetails.User;
+import org.lucas.arbackend.util.CustomUserDetails;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -22,21 +22,23 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final StaffRepository staffRepo;
 
     @Override
+    @Cacheable(value = "staff_users", key = "#email", unless = "#result == null")
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         // 1. Try to find an Organisation Owner
         Optional<Organisation> org = orgRepo.findByEmail(email);
         if (org.isPresent()) {
-            return User.builder()
-                    .username(org.get().getEmail())
-                    .password(org.get().getPassword())
-                    .roles(RoleTypes.ORG_ADMIN.name())
-                    .build();
+            return new CustomUserDetails(
+                    org.get().getEmail(),
+                    org.get().getPassword(),
+                    org.get().getId(),
+                    RoleTypes.ORG_ADMIN.name()
+                    );
         }
 
         // 2. Try to find a Staff member
         Optional<Staff> staff = staffRepo.findByEmail(email);
         if (staff.isPresent()) {
-            return new StaffUserDetails(
+            return new CustomUserDetails(
                     staff.get().getEmail(),
                     staff.get().getPassword(),
                     staff.get().getOrganisation().getId(),

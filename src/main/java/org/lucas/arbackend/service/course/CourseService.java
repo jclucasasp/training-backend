@@ -11,6 +11,7 @@ import org.lucas.arbackend.entity.course.Section;
 import org.lucas.arbackend.entity.course.Module;
 import org.lucas.arbackend.repository.course.CourseRepository;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
+import org.lucas.arbackend.util.TenantContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -27,7 +28,10 @@ public class CourseService {
    private final CourseRepository courseRepo;
     private final OrganisationRepository orgRepo;
 
-    public CourseResponse createCourse(Long orgId, CourseCreateRequest request) {
+    public CourseResponse createCourse(CourseCreateRequest request) {
+
+        Long orgId = TenantContext.getCurrentTenant();
+
         Organisation org = orgRepo.findById(orgId)
                 .orElseThrow(() -> new EntityNotFoundException("Organisation not found"));
 
@@ -69,7 +73,10 @@ public class CourseService {
         return mapToResponse(saved);
     }
 
-    public Page<CourseResponse> getPaginatedCourses(Long orgId, Pageable pageable) {
+    public Page<CourseResponse> getPaginatedCourses(Pageable pageable) {
+
+        Long orgId = TenantContext.getCurrentTenant();
+
         return courseRepo.findAllByOrganisationIdAndEndedAtIsNull(orgId, pageable)
                 .map(this::mapToResponse);
     }

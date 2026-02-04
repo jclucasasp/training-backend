@@ -46,6 +46,20 @@ services:
     volumes:
       - 'rabbitmq_data:/var/lib/rabitmq'
 
+  redis:
+    image: 'redis:8.4-alpine'
+    container_name: redis_cache
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - 'redis_data:/data'
+    deploy:
+      resources:
+        limits:
+          cpus: "0.20"
+
 volumes:
   mariadb_data:
   rabbitmq_data:
+  redis_data:

@@ -10,7 +10,7 @@ import org.jspecify.annotations.NonNull;
 import org.lucas.arbackend.entity.security.ApiKey;
 import org.lucas.arbackend.entity.security.RoleTypes;
 import org.lucas.arbackend.repository.security.ApiKeyRepository;
-import org.lucas.arbackend.util.StaffUserDetails;
+import org.lucas.arbackend.util.CustomUserDetails;
 import org.lucas.arbackend.util.TenantContext;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -62,7 +62,7 @@ public class TenantFilter extends OncePerRequestFilter {
             else if (SecurityContextHolder.getContext().getAuthentication() != null) {
                 Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-                if (principal instanceof StaffUserDetails user) {
+                if (principal instanceof CustomUserDetails user) {
                     TenantContext.setCurrentTenant(user.getOrgId());
                 }
             }
@@ -82,6 +82,8 @@ public class TenantFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         return request.getRequestURI().startsWith("/v3/api-docs")
                 || request.getRequestURI().startsWith("/swagger-ui")
+                || request.getRequestURI().startsWith("/api/v1/auth")
+                || request.getRequestURI().startsWith("/api/v1/organisations")
                 || request.getRequestURI().startsWith("/api/v1/health");
     }
 

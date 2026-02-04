@@ -26,9 +26,9 @@ public class AdminController {
 
     @Operation(summary = "Add Staff Member",
                description = "Creates a staff account with a specific role from the RoleTypes enum.")
-    @PostMapping("/staff/{orgId}")
-    public ResponseEntity<StaffResponse> addStaff(@PathVariable Long orgId, @Valid @RequestBody CreateStaffRequest request) {
-        return ResponseEntity.ok(staffService.createStaff(orgId, request));
+    @PostMapping("/staff/create")
+    public ResponseEntity<StaffResponse> addStaff(@Valid @RequestBody CreateStaffRequest request) {
+        return ResponseEntity.ok(staffService.createStaff(request));
     }
 
     @Operation(summary = "Create Full Course Tree",
@@ -38,8 +38,8 @@ public class AdminController {
             @ApiResponse(responseCode = "403", description = "Course limit reached for this subscription plan")
     })
 
-    @PostMapping("/course/{orgId}/create")
-    public ResponseEntity<CourseResponse> createCourse(@PathVariable Long orgId, @RequestBody CourseCreateRequest request) {
-        return ResponseEntity.ok(courseService.createCourse(orgId, request));
+    @PostMapping("/course/create")
+    public ResponseEntity<CourseResponse> createCourse(@RequestBody CourseCreateRequest request) {
+        return ResponseEntity.ok(courseService.createCourse(request));
     }
 }

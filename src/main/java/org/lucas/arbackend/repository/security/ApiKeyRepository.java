@@ -1,6 +1,7 @@
 package org.lucas.arbackend.repository.security;
 
 import org.lucas.arbackend.entity.security.ApiKey;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,5 +15,6 @@ public interface ApiKeyRepository extends JpaRepository<ApiKey, Long> {
 
     List<ApiKey> findByOrgId(Long orgId);
 
+    @Cacheable(value = "api_keys", key = "#prefix", unless = "#result == null")
     Optional<ApiKey> findByPrefix(String prefix);
 }
