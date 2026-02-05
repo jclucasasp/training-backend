@@ -29,7 +29,8 @@ import org.springframework.context.annotation.Configuration;
         ),
         // Applies security globally to all paths by default (optional)
         security = {
-                @SecurityRequirement(name = "X-API-KEY")
+                @SecurityRequirement(name = "X-API-KEY"),
+                @SecurityRequirement(name = "BasicAuth")
         }
 )
 @SecurityScheme(
@@ -37,6 +38,11 @@ import org.springframework.context.annotation.Configuration;
         description = "API auth description",
         type = SecuritySchemeType.APIKEY,
         in = SecuritySchemeIn.HEADER
+)
+@SecurityScheme(
+        name = "BasicAuth",
+        type = SecuritySchemeType.HTTP,
+        scheme = "basic"
 )
 public class OpenApiConfig {
 }
