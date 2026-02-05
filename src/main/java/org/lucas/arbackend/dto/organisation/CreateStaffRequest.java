@@ -9,6 +9,8 @@ import org.springframework.stereotype.Component;
 @Data @Builder
 public class CreateStaffRequest {
 
+    public boolean isActive;
+
     @Email(message = "Must be a valid email address")
     @NotNull(message = "Staff email is required")
     private String email;
@@ -18,6 +20,5 @@ public class CreateStaffRequest {
 
     @NotNull(message = "Staff role is required")
     private String role;
-
 }
 

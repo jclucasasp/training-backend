@@ -12,6 +12,8 @@ import org.lucas.arbackend.dto.organisation.CreateStaffRequest;
 import org.lucas.arbackend.dto.organisation.StaffResponse;
 import org.lucas.arbackend.service.course.CourseService;
 import org.lucas.arbackend.service.staff.StaffService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,11 +37,38 @@ public class AdminController {
             description = "Creates a course with nested modules and sections in a single request.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Course and modules created"),
-            @ApiResponse(responseCode = "403", description = "Course limit reached for this subscription plan")
+            @ApiResponse(responseCode = "403", description = "Course limit reached for this subscription plan"),
+            @ApiResponse(responseCode = "400", description = "Bad request")
     })
 
     @PostMapping("/course/create")
     public ResponseEntity<CourseResponse> createCourse(@RequestBody CourseCreateRequest request) {
         return ResponseEntity.ok(courseService.createCourse(request));
+    }
+
+    @Operation(summary = "Get All Staff",
+    description = "Fetches all staff members for the current organisation.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Staff retrieved successfully"),
+            @ApiResponse(responseCode = "401", description = "You do not have the correct access for that"),
+            @ApiResponse(responseCode = "400", description = "Bad request")
+    })
+
+    @GetMapping("/staff/all")
+    public ResponseEntity<Page<StaffResponse>> getAllStaff(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(staffService.getAllStaff(Pageable.ofSize(size).withPage(page)));
+    }
+
+    @Operation(summary = "Update Staff Member",
+            description = "Updates the details of a staff member.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Staff updated successfully"),
+            @ApiResponse(responseCode = "401", description = "You do not have the correct access for that"),
+            @ApiResponse(responseCode = "400", description = "Bad request")
+    })
+
+    @PutMapping("/staff/update")
+    public ResponseEntity<StaffResponse> updateStaff(@RequestParam Long staffId, @Valid @RequestBody CreateStaffRequest request) {
+        return ResponseEntity.ok(staffService.updateStaff(staffId, request));
     }
 }

@@ -11,7 +11,10 @@ import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.StaffRepository;
 import org.lucas.arbackend.repository.security.RoleRepository;
 import org.lucas.arbackend.util.TenantContext;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -57,6 +60,55 @@ public class StaffService {
                 .email(saved.getEmail())
                 .role(saved.getRole().getName())
                 .isActive(saved.isActive())
+                .build();
+    }
+
+    public Page<StaffResponse> getAllStaff (Pageable pageable) {
+        Long orgId = TenantContext.getCurrentTenant();
+
+        if (orgId == null) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No organisation found for id: [" + orgId + "]");
+        }
+
+        return staffRepo.findAllByOrganisationIdAndEndedAtIsNull(orgId, pageable)
+                .map(staff -> StaffResponse.builder()
+                        .id(staff.getId())
+                        .email(staff.getEmail())
+                        .role(staff.getRole().getName())
+                        .isActive(staff.isActive())
+                        .build()
+                );
+    }
+
+    public StaffResponse updateStaff (Long staffId, CreateStaffRequest request) {
+        Long orgId = TenantContext.getCurrentTenant();
+
+        if (orgId == null) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No organisation found for id: [" + orgId + "]");
+        }
+
+        Staff staff = staffRepo.findById(staffId)
+                .orElseThrow(() -> new EntityNotFoundException("Staff not found"));
+
+        if (!staff.getOrganisation().getId().equals(orgId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not allowed to update this staff member");
+        }
+
+        Role role = roleRepo.findByName(request.getRole())
+                .orElseThrow(() -> new EntityNotFoundException("Invalid Role"));
+
+        staff.setEmail(request.getEmail().isBlank() ? staff.getEmail() : request.getEmail());
+        staff.setPassword(request.getPassword().isBlank() ? staff.getPassword() : passwordEncoder.encode(request.getPassword()));
+        staff.setRole(request.getRole().isBlank() ? staff.getRole() : role);
+        staff.setActive(request.isActive());
+
+        staffRepo.save(staff);
+
+        return StaffResponse.builder()
+                .id(staff.getId())
+                .email(staff.getEmail())
+                .role(staff.getRole().getName())
+                .isActive(staff.isActive())
                 .build();
     }
 }

@@ -62,7 +62,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .httpBasic(withDefaults()) // Organisation & Staff login
-                .addFilterBefore(tenantFilter, AuthorizationFilter.class);
+                .addFilterAfter(tenantFilter, BasicAuthenticationFilter.class);
 
         return httpSecurity.build();
     }
