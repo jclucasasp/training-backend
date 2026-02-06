@@ -15,7 +15,6 @@ import java.util.List;
 
 @Entity
 @Table(name = "module")
-@SQLRestriction("ended_at IS NULL")
 @EntityListeners(AuditingEntityListener.class)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Module extends BaseEntity {
@@ -33,7 +32,7 @@ public class Module extends BaseEntity {
     @JoinColumn(name = "m_course_id")
     private Course course;
 
-    @OneToMany(mappedBy = "module", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "module",fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orderIndex ASC")
     @BatchSize(size = 50)
     private List<Section> sections = new ArrayList<>();

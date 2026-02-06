@@ -1,4 +1,4 @@
-package org.lucas.arbackend.exception.handler;
+package org.lucas.arbackend.exception;
 
 import lombok.Builder;
 import lombok.Data;

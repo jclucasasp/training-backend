@@ -21,4 +21,7 @@ public class SectionRequest {
 
     private String resourceUrl;
     private String resourceMediaType;
+
+    @NotNull(message = "Keywords for faster searching, eg Javascript, Anatomy, etc")
+    private String tags;
 }

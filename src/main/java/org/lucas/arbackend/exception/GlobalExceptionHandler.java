@@ -1,10 +1,11 @@
-package org.lucas.arbackend.exception.handler;
+package org.lucas.arbackend.exception;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -14,7 +15,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 
 @Slf4j
 @RestControllerAdvice
@@ -73,6 +73,19 @@ public class GlobalExceptionHandler {
                 .errorCode(HttpStatus.UNAUTHORIZED)
                 .build();
         return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(PropertyReferenceException.class)
+    public ResponseEntity<ErrorDetailsResponse> handlePropertyReference(PropertyReferenceException ex, WebRequest request) {
+        log.error("Property Reference Exception: ", ex);
+
+        ErrorDetailsResponse response = ErrorDetailsResponse.builder()
+                .timeStamp(LocalDateTime.now())
+                .message(ex.getMessage())
+                .details(request.getDescription(false))
+                .errorCode(HttpStatus.BAD_REQUEST)
+                .build();
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
 
