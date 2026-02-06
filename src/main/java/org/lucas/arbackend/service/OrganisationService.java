@@ -18,12 +18,10 @@ import org.lucas.arbackend.repository.organisation.OrganisationSubscriptionRepos
 import org.lucas.arbackend.repository.organisation.ProfileRepository;
 import org.lucas.arbackend.repository.security.ApiKeyRepository;
 import org.lucas.arbackend.util.TenantContext;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 
@@ -72,7 +70,7 @@ public class OrganisationService {
         ApiKeyResponse apiKeyResponse = apiKeyService.generateKeyForOrg(savedOrg.getId());
 
         if (apiKeyResponse.getRawKey().isBlank()) {
-            throw new IllegalStateException("API Key could not be generated");
+            throw new RuntimeException("API Key could not be generated");
         }
 
         // 4. Assign Initial Subscription (Default to ID 1 or specific plan)
@@ -129,7 +127,7 @@ public class OrganisationService {
         Long orgId = TenantContext.getCurrentTenant();
 
         if (orgId == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No organisation found for id: [" + orgId + "]");
+            throw new IllegalStateException("No Organisation id found");
         }
 
         Organisation org = orgRepo.findById(orgId)
@@ -164,7 +162,7 @@ public class OrganisationService {
                 .orElseThrow(() -> new EntityNotFoundException("Key not found"));
 
         if (!key.getOrgId().equals(orgId)) {
-            throw new SecurityException("Unauthorized access to API key");
+            throw new AccessDeniedException("Unauthorized access to API key");
         }
 
         key.setEndedAt(LocalDateTime.now()); // Soft delete
