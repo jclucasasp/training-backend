@@ -42,6 +42,7 @@ public class OrganisationService {
 
     private final ApiKeyService apiKeyService;
 
+    // TODO: Add the address and contact details as well as the soft delete (look at the CourseService for an example)
     // TODO: Implement a check to make sure a company can not generate more then one API key. Implement a new method to be able to end the old one and generate a new one.
     // ==========================================
     // 1. ATOMIC SIGN UP (Org + Profile + Sub)

@@ -1,15 +1,17 @@
 package org.lucas.arbackend.entity.Organisation;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.BaseEntity;
 import org.lucas.arbackend.entity.security.ApiKey;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "profile")
+@SQLDelete(sql = "UPDATE profile SET ended_at = CURRENT_TIMESTAMP WHERE p_org_id = ?")
+@SQLRestriction("ended_at IS NULL")
 @EntityListeners(AuditingEntityListener.class)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Profile extends BaseEntity {
@@ -33,6 +35,15 @@ public class Profile extends BaseEntity {
     private String vatNumber;
 
     @OneToOne(mappedBy = "profile", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
-    @JsonIgnore
+    private OrgAddress address;
+
+    @Column(name = "p_org_contact_number")
+    private Integer contactNumber;
+
+    @Column(name = "p_org_contact_person")
+    private String contactPerson;
+
+    @OneToOne(mappedBy = "profile", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+//    @JsonBackReference
     private ApiKey apiKey;
 }

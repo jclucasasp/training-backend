@@ -64,14 +64,25 @@ CREATE TABLE IF NOT EXISTS profile (
                          p_org_name VARCHAR(255) NOT NULL,
                          p_org_reg_number VARCHAR(100),
                          p_org_vat_number VARCHAR(100),
-                         p_org_api_key VARCHAR(255),
+                         p_org_contact_number Integer,
+                         p_org_contact_person VARCHAR(255),
                          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                          updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
                          ended_at DATETIME NULL,
-                         CONSTRAINT fk_profile_org FOREIGN KEY (p_org_id) REFERENCES organisation(org_id),
-                         CONSTRAINT fk_api_key FOREIGN KEY (p_org_api_key) REFERENCES api_key(ak_key_hash)
+                         CONSTRAINT fk_profile_org FOREIGN KEY (p_org_id) REFERENCES organisation(org_id)
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS address
+(
+    a_org_id         BIGINT PRIMARY KEY, -- The Org ID is the same as the Profile ID
+    a_street         VARCHAR(255) NOT NULL,
+    a_suburb         VARCHAR(255),       -- Optional
+    a_city           VARCHAR(255) NOT NULL,
+    a_state          VARCHAR(255) NOT NULL,
+    a_zip            VARCHAR(255) NOT NULL,
+    CONSTRAINT fk_address_profile FOREIGN KEY (a_org_id) REFERENCES profile(p_org_id)
+
+) ENGINE=InnoDB;
 
 -- 2.1 Staff (The 'Proxy' Users)
 CREATE TABLE IF NOT EXISTS staff (
@@ -80,7 +91,6 @@ CREATE TABLE IF NOT EXISTS staff (
     stf_role_id BIGINT NOT NULL,
     stf_email VARCHAR(255) NOT NULL,
     stf_password VARCHAR(255) NOT NULL,
-    stf_is_active TINYINT(1) DEFAULT 1,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
     ended_at DATETIME NULL,
@@ -99,7 +109,7 @@ CREATE TABLE IF NOT EXISTS api_key (
                          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                          updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
                          ended_at DATETIME NULL,
-                         CONSTRAINT fk_api_org FOREIGN KEY (ak_org_id) REFERENCES organisation(org_id),
+                         CONSTRAINT fk_api_key_profile FOREIGN KEY (ak_org_id) REFERENCES profile(p_org_id),
                          -- Fast lookup for auth filter
                          INDEX idx_api_auth (ak_key_hash, ended_at, ak_org_id),
                          INDEX idx_api_prefix (ak_prefix)
@@ -183,6 +193,9 @@ CREATE TABLE IF NOT EXISTS student_enrollment (
                                     se_course_id BIGINT NOT NULL,
                                     se_enrolled_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                                     se_completed_at DATETIME NULL,
+                                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                    updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
+                                    ended_at DATETIME NULL,
                                     CONSTRAINT fk_se_student FOREIGN KEY (se_student_id) REFERENCES student(st_id),
                                     CONSTRAINT fk_se_course FOREIGN KEY (se_course_id) REFERENCES course(c_id)
 ) ENGINE=InnoDB;
@@ -193,6 +206,9 @@ CREATE TABLE IF NOT EXISTS student_progress (
                                   sp_section_id BIGINT NULL,
                                   sp_percentage DECIMAL(5,2),
                                   sp_updated_at DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+                                  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                  updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
+                                  ended_at DATETIME NULL,
                                   CONSTRAINT fk_sp_enrollment FOREIGN KEY (sp_student_enrollment_id) REFERENCES student_enrollment(se_id),
                                   CONSTRAINT fk_sp_section FOREIGN KEY (sp_section_id) REFERENCES section(s_id)
 ) ENGINE=InnoDB;

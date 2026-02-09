@@ -3,6 +3,8 @@ package org.lucas.arbackend.entity.course;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.BaseEntity;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -22,8 +24,9 @@ subgraphs = { @NamedSubgraph(name = "sections",
 })
 })
 @Table(name = "course")
+@SQLDelete(sql = "UPDATE course SET ended_at = CURRENT_TIMESTAMP WHERE c_id = ?")
+@SQLRestriction("ended_at IS NULL")
 @EntityListeners(AuditingEntityListener.class)
-//@SQLRestriction("ended_at IS NULL")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Course extends BaseEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,7 +53,6 @@ public class Course extends BaseEntity {
     @JoinColumn(name = "c_org_id")
     private Organisation organisation;
 
-    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
-    @BatchSize(size = 20)
+    @OneToMany(mappedBy = "course", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     private Set<Module> modules = new HashSet<>();
 }

@@ -2,12 +2,16 @@ package org.lucas.arbackend.entity.security;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.BaseEntity;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "api_key")
+@SQLDelete(sql = "UPDATE api_key SET ended_at = CURRENT_TIMESTAMP WHERE ak_org_id = ?")
+@SQLRestriction("ended_at IS NULL")
 @EntityListeners(AuditingEntityListener.class)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class ApiKey extends BaseEntity {

@@ -35,7 +35,4 @@ public class Staff extends BaseEntity {
 
     @Column(name = "stf_password")
     private String password;
-
-    @Column(name = "stf_is_active")
-    private boolean isActive = true;
 }

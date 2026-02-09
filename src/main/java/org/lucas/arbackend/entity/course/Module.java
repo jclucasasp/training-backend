@@ -3,6 +3,7 @@ package org.lucas.arbackend.entity.course;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.BaseEntity;
 import org.springframework.data.annotation.CreatedDate;
@@ -17,6 +18,8 @@ import java.util.Set;
 
 @Entity
 @Table(name = "module")
+@SQLDelete(sql = "UPDATE module SET ended_at = CURRENT_TIMESTAMP WHERE m_id = ?")
+@SQLRestriction("ended_at IS NULL")
 @EntityListeners(AuditingEntityListener.class)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Module extends BaseEntity {
@@ -34,8 +37,7 @@ public class Module extends BaseEntity {
     @JoinColumn(name = "m_course_id")
     private Course course;
 
-    @OneToMany(mappedBy = "module",fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "module",fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @OrderBy("orderIndex ASC")
-    @BatchSize(size = 50)
     private Set<Section> sections = new HashSet<>();
 }

@@ -2,6 +2,7 @@ package org.lucas.arbackend.entity.course;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.BaseEntity;
 import org.springframework.data.annotation.CreatedDate;
@@ -12,6 +13,8 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "section")
+@SQLDelete(sql = "UPDATE section SET ended_at = CURRENT_TIMESTAMP WHERE s_id = ?")
+@SQLRestriction("ended_at IS NULL")
 @EntityListeners(AuditingEntityListener.class)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Section extends BaseEntity {
