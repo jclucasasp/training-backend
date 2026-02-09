@@ -25,7 +25,7 @@ public class OrganisationSubscription extends BaseEntity {
     @JsonIgnore
     private Organisation organisation;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.EAGER, orphanRemoval = true)
     @JoinColumn(name = "os_plan_id")
     private SubscriptionPlan subscriptionPlan;
 

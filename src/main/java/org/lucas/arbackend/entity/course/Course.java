@@ -3,17 +3,27 @@ package org.lucas.arbackend.entity.course;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
-import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.BaseEntity;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import java.util.ArrayList;
-import java.util.List;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
+@NamedEntityGraph(name = "Course.withModulesAndSections",
+        attributeNodes = {
+        @NamedAttributeNode("modules"),
+        @NamedAttributeNode(value = "modules", subgraph = "sections")
+},
+subgraphs = { @NamedSubgraph(name = "sections",
+        attributeNodes = {
+        @NamedAttributeNode("sections")
+})
+})
 @Table(name = "course")
 @EntityListeners(AuditingEntityListener.class)
-@SQLRestriction("ended_at IS NULL")
+//@SQLRestriction("ended_at IS NULL")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Course extends BaseEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,5 +52,5 @@ public class Course extends BaseEntity {
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
     @BatchSize(size = 20)
-    private List<Module> modules = new ArrayList<>();
+    private Set<Module> modules = new HashSet<>();
 }

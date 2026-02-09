@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.lucas.arbackend.entity.course.DifficultyTypes;
+import org.lucas.arbackend.entity.course.Module;
 
 import java.util.List;
 
@@ -31,5 +32,5 @@ public class CourseUpdateRequest {
     @Size(max = 500, message = "Image URL must not exceed 500 characters")
     private String imageUrl;
 
-    private List<ModuleRequest> modules;
+    private List<Module> modules;
 }

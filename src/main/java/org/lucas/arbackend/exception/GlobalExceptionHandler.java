@@ -44,7 +44,7 @@ public class GlobalExceptionHandler {
                 .details(request.getDescription(false))
                 .errorCode(HttpStatus.FAILED_DEPENDENCY)
                 .build();
-        return new ResponseEntity<>(response, HttpStatus.FAILED_DEPENDENCY);
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

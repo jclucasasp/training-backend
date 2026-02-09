@@ -37,7 +37,7 @@ public class OrganisationController {
         @ApiResponse(responseCode = "200", description = "Organisation created successfully",
             content = @Content(schema = @Schema(implementation = OrganisationResponse.class))),
         @ApiResponse(responseCode = "400", description = "Invalid input data or validation error"),
-        @ApiResponse(responseCode = "409", description = "Email address already registered")
+        @ApiResponse(responseCode = "424", description = "Email address already registered")
     })
     @PostMapping("/signup")
     public ResponseEntity<OrganisationResponse> signUp(@Valid @RequestBody OrgSignupRequest request) {
@@ -57,7 +57,7 @@ public class OrganisationController {
 
     @Operation(summary = "Update Profile",
                description = "Updates the business registration number, VAT number, and display name.")
-    @PutMapping("/profile")
+    @PutMapping("/update")
     public ResponseEntity<Void> updateProfile(@Valid @RequestBody ProfileRequest request) {
         Long orgId = TenantContext.getCurrentTenant();
         orgService.updateProfile(orgId, request);

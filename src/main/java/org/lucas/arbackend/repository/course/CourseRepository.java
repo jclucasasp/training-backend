@@ -12,14 +12,13 @@ import java.util.Optional;
 
 public interface CourseRepository extends JpaRepository<Course, Long> {
     // Optimized pagination for an Organisation's courses
-    @EntityGraph(attributePaths = {"modules"})
+    @EntityGraph(value = "Course.withModulesAndSections", type = EntityGraph.EntityGraphType.LOAD)
     Page<Course> findAllByOrganisationIdAndEndedAtIsNull(Long orgId, Pageable pageable);
 
+    @EntityGraph(value = "Course.withModulesAndSections", type = EntityGraph.EntityGraphType.LOAD)
     Optional<Course> findByIdAndOrganisationIdAndEndedAtIsNull(Long id, Long orgId);
 
-    Optional<Course> findByOrganisationId(Long orgId);
+    @EntityGraph(value = "Course.withModulesAndSections", type = EntityGraph.EntityGraphType.LOAD)
+    Optional<Course> findByOrganisationIdAndEndedAtIsNull(Long orgId);
 
-    // Optimized join fetch for the "Course Player" view
-    @Query("SELECT c FROM Course c LEFT JOIN FETCH c.modules m LEFT JOIN FETCH m.sections WHERE c.id = :id")
-    Optional<Course> findFullCourseTree(@Param("id") Long id);
 }

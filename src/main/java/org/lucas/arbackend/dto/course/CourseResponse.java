@@ -5,6 +5,7 @@ import lombok.Data;
 import org.lucas.arbackend.entity.course.Module;
 
 import java.util.List;
+import java.util.Set;
 
 @Data @Builder
 public class CourseResponse {
@@ -14,6 +15,5 @@ public class CourseResponse {
     private String difficulty;
     private String imageUrl;
     private String tags;
-//    private List<Module> modules;
-    // We don't include modules in the list view to keep it light
+    private Set<ModuleResponse> modules;
 }

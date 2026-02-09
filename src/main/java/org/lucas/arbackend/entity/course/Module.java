@@ -11,7 +11,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "module")
@@ -35,5 +37,5 @@ public class Module extends BaseEntity {
     @OneToMany(mappedBy = "module",fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orderIndex ASC")
     @BatchSize(size = 50)
-    private List<Section> sections = new ArrayList<>();
+    private Set<Section> sections = new HashSet<>();
 }

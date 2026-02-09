@@ -10,6 +10,7 @@ import org.lucas.arbackend.dto.organisation.ProfileRequest;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.Organisation.OrganisationSubscription;
 import org.lucas.arbackend.entity.Organisation.Profile;
+import org.lucas.arbackend.entity.PlanTypes;
 import org.lucas.arbackend.entity.SubscriptionPlan;
 import org.lucas.arbackend.entity.security.ApiKey;
 import org.lucas.arbackend.repository.SubscriptionPlanRepository;
@@ -82,8 +83,11 @@ public class OrganisationService {
         OrganisationSubscription sub = new OrganisationSubscription();
         sub.setOrganisation(org);
         sub.setSubscriptionPlan(plan);
-        // Simple logic: monthly sub
-        sub.setEndedAt(LocalDateTime.now().plusMonths(1));
+
+        // TODO: Change to a switch if more plans get added
+        sub.setEndedAt(plan.getPlan().toString().equals(PlanTypes.MONTHLY.name()) ?
+                LocalDateTime.now().plusMonths(1) : LocalDateTime.now().plusMonths(12));
+
         sub.setStatus(1); // Active
         subRepo.save(sub);
 
@@ -108,6 +112,7 @@ public class OrganisationService {
     // ==========================================
     // 2. PROFILE MANAGEMENT
     // ==========================================
+    // TODO: Implement a function to update the OrganisationSubscription entity
     public void updateProfile(Long orgId, ProfileRequest req) {
         Profile profile = profileRepo.findById(orgId)
                 .orElseThrow(() -> new EntityNotFoundException("Profile not found"));
@@ -121,6 +126,7 @@ public class OrganisationService {
         profileRepo.save(profile);
     }
 
+    // This tells the database that it will just be a lookup which speed things up by not doing dirty checking or object snapshots, flushing
     @Transactional(readOnly = true)
     public OrganisationResponse getOrganisationDetails() {
 

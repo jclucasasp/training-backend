@@ -1,6 +1,7 @@
 -- ==========================================
 -- 1. SUBSCRIPTION SYSTEM
 -- ==========================================
+DROP TABLE IF EXISTS subscription_plan;
 CREATE TABLE subscription_plan (
                                    sp_id BIGINT AUTO_INCREMENT PRIMARY KEY,
                                    sp_plan ENUM('MONTHLY', 'YEARLY'),
@@ -15,6 +16,7 @@ INSERT INTO subscription_plan (sp_plan, sp_price, sp_course_limit, sp_is_active)
 ('YEARLY', 100.00, 10, 1);
 
 -- 1.1 Roles (Lookup Table)
+DROP TABLE IF EXISTS role;
 CREATE TABLE role (
     r_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     r_name ENUM('ORG_ADMIN', 'COURSE_EDITOR', 'SUPPORT', 'STUDENT'),
@@ -32,7 +34,7 @@ INSERT INTO role (r_name, r_description) VALUES
 -- ==========================================
 -- 2. TENANT CORE (Organisation & Profile)
 -- ==========================================
-CREATE TABLE organisation (
+CREATE TABLE IF NOT EXISTS organisation (
                               org_id BIGINT AUTO_INCREMENT PRIMARY KEY,
                               org_email VARCHAR(255) UNIQUE NOT NULL,
                               org_password VARCHAR(255) NOT NULL,
@@ -45,7 +47,7 @@ CREATE TABLE organisation (
                               INDEX idx_org_email (org_email)
 ) ENGINE=InnoDB;
 
-CREATE TABLE organisation_subscription (
+CREATE TABLE IF NOT EXISTS organisation_subscription (
                                            os_id BIGINT AUTO_INCREMENT PRIMARY KEY,
                                            os_org_id BIGINT NOT NULL,
                                            os_plan_id BIGINT NOT NULL,
@@ -58,7 +60,7 @@ CREATE TABLE organisation_subscription (
                                            INDEX idx_os_org_active (os_org_id, os_status)
 ) ENGINE=InnoDB;
 
-CREATE TABLE profile (
+CREATE TABLE IF NOT EXISTS profile (
                          p_org_id BIGINT PRIMARY KEY,
                          p_org_name VARCHAR(255) NOT NULL,
                          p_org_reg_number VARCHAR(100),
@@ -71,7 +73,7 @@ CREATE TABLE profile (
 
 
 -- 2.1 Staff (The 'Proxy' Users)
-CREATE TABLE staff (
+CREATE TABLE IF NOT EXISTS staff (
     stf_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     stf_org_id BIGINT NOT NULL,
     stf_role_id BIGINT NOT NULL,
@@ -89,7 +91,7 @@ CREATE TABLE staff (
 -- ==========================================
 -- 3. AUTHENTICATION (API Keys)
 -- ==========================================
-CREATE TABLE api_key (
+CREATE TABLE IF NOT EXISTS api_key (
                          ak_org_id BIGINT PRIMARY KEY,
                          ak_prefix VARCHAR(12) NOT NULL, -- The first 12 characters of the API Key
                          ak_key_hash VARCHAR(255) UNIQUE NOT NULL, -- The hashed key for comparison
@@ -105,7 +107,7 @@ CREATE TABLE api_key (
 -- ==========================================
 -- 4. COURSE HIERARCHY (Multi-Tenant)
 -- ==========================================
-CREATE TABLE course (
+CREATE TABLE IF NOT EXISTS course (
                         c_id BIGINT AUTO_INCREMENT PRIMARY KEY,
                         c_org_id BIGINT NOT NULL,
                         c_name VARCHAR(255) NOT NULL,
@@ -123,7 +125,7 @@ CREATE TABLE course (
 ) ENGINE=InnoDB;
 
 -- Enforcing 1 Module per Course via UNIQUE constraint
-CREATE TABLE module (
+CREATE TABLE IF NOT EXISTS module (
                         m_id BIGINT AUTO_INCREMENT PRIMARY KEY,
                         m_course_id BIGINT
                             NOT NULL,
@@ -138,7 +140,7 @@ CREATE TABLE module (
                         INDEX idx_module_status (ended_at, m_id)
 ) ENGINE=InnoDB;
 
-CREATE TABLE section (
+CREATE TABLE IF NOT EXISTS section (
                          s_id BIGINT AUTO_INCREMENT PRIMARY KEY,
                          s_module_id BIGINT NOT NULL,
                          s_title VARCHAR(255) NOT NULL,
@@ -160,7 +162,7 @@ CREATE TABLE section (
 -- ==========================================
 -- 5. STUDENTS (Tenant Bound)
 -- ==========================================
-CREATE TABLE student (
+CREATE TABLE IF NOT EXISTS student (
                          st_id BIGINT AUTO_INCREMENT PRIMARY KEY,
                          st_org_id BIGINT NOT NULL,
                          st_student_number VARCHAR(100) NOT NULL,
@@ -174,7 +176,7 @@ CREATE TABLE student (
                          UNIQUE INDEX idx_student_tenant_auth (st_org_id, st_student_number)
 ) ENGINE=InnoDB;
 
-CREATE TABLE student_enrollment (
+CREATE TABLE IF NOT EXISTS student_enrollment (
                                     se_id BIGINT AUTO_INCREMENT PRIMARY KEY,
                                     se_student_id BIGINT NOT NULL,
                                     se_course_id BIGINT NOT NULL,
@@ -184,7 +186,7 @@ CREATE TABLE student_enrollment (
                                     CONSTRAINT fk_se_course FOREIGN KEY (se_course_id) REFERENCES course(c_id)
 ) ENGINE=InnoDB;
 
-CREATE TABLE student_progress (
+CREATE TABLE IF NOT EXISTS student_progress (
                                   sp_id BIGINT AUTO_INCREMENT PRIMARY KEY,
                                   sp_student_enrollment_id BIGINT NULL,
                                   sp_section_id BIGINT NULL,

@@ -9,7 +9,6 @@ import org.lucas.arbackend.dto.student.StudentResponse;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.course.Section;
-import org.lucas.arbackend.entity.security.ApiKey;
 import org.lucas.arbackend.entity.student.Student;
 import org.lucas.arbackend.entity.student.StudentEnrollment;
 import org.lucas.arbackend.entity.student.StudentProgress;
@@ -64,7 +63,7 @@ public class StudentService {
                 });
 
         // Check if course exists
-        Course course = courseRepo.findByOrganisationId(orgId)
+        Course course = courseRepo.findByOrganisationIdAndEndedAtIsNull(orgId)
                 .orElseThrow(() -> new EntityNotFoundException("Course not found"));
 
         // Create Enrollment
