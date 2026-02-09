@@ -1,15 +1,15 @@
 package org.lucas.arbackend.entity.Organisation;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.BaseEntity;
+import org.lucas.arbackend.entity.security.ApiKey;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "profile")
-//@SQLRestriction("ended_at IS NULL")
 @EntityListeners(AuditingEntityListener.class)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Profile extends BaseEntity {
@@ -20,7 +20,7 @@ public class Profile extends BaseEntity {
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId // Ensures Profile ID is the same as Organisation ID
     @JoinColumn(name = "p_org_id")
-    @JsonBackReference // Prevents infinite recursion when serializing
+//    @JsonBackReference // Prevents infinite recursion when serializing
     private Organisation organisation;
 
     @Column(name = "p_org_name")
@@ -31,4 +31,8 @@ public class Profile extends BaseEntity {
 
     @Column(name = "p_org_vat_number")
     private String vatNumber;
+
+    @OneToOne(mappedBy = "profile", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @JsonIgnore
+    private ApiKey apiKey;
 }

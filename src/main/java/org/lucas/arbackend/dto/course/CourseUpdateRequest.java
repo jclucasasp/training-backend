@@ -10,6 +10,7 @@ import org.lucas.arbackend.entity.course.DifficultyTypes;
 import org.lucas.arbackend.entity.course.Module;
 
 import java.util.List;
+import java.util.Set;
 
 @Data
 @Builder
@@ -32,5 +33,5 @@ public class CourseUpdateRequest {
     @Size(max = 500, message = "Image URL must not exceed 500 characters")
     private String imageUrl;
 
-    private List<Module> modules;
+    private Set<Module> modules;
 }

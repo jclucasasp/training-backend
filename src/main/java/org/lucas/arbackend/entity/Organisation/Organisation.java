@@ -11,7 +11,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "organisation")
-@SQLRestriction("ended_at IS NULL")
 @Getter @Setter
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor @AllArgsConstructor
@@ -27,14 +26,10 @@ public class Organisation extends BaseEntity {
     @Column(name = "org_password", nullable = false)
     private String password;
 
-    @OneToOne(mappedBy = "organisation", cascade = CascadeType.ALL)
-    @JsonIgnore
-    private ApiKey apiKey;
-
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "organisation", fetch = FetchType.EAGER)
     @JoinColumn(name = "org_role_id")
     private Role role;
 
-    @OneToOne(mappedBy = "organisation", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "organisation", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     private Profile profile;
 }

@@ -106,7 +106,7 @@ public class CourseService {
         return mapToResponse(saved);
     }
 
-    private void updateModules(Course course, List<Module> moduleRequests) {
+    private void updateModules(Course course, Set<Module> moduleRequests) {
         // Create a map of existing modules for quick lookup by ID
         Map<Long, Module> existingModulesMap = course.getModules().stream()
                 .collect(Collectors.toMap(Module::getId, Function.identity()));

@@ -4,13 +4,17 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.annotations.SoftDelete;
+import org.hibernate.annotations.SoftDeleteType;
 import org.lucas.arbackend.entity.BaseEntity;
 import org.lucas.arbackend.entity.security.Role;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "staff")
+@SQLDelete(sql = "UPDATE staff SET ended_at = CURRENT_TIMESTAMP WHERE stf_id = ?")
 @EntityListeners(AuditingEntityListener.class)
 @Getter @Setter
 public class Staff extends BaseEntity {

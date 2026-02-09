@@ -48,8 +48,7 @@ CREATE TABLE IF NOT EXISTS organisation (
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS organisation_subscription (
-                                           os_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                                           os_org_id BIGINT NOT NULL,
+                                           os_org_id BIGINT NOT NULL PRIMARY KEY ,
                                            os_plan_id BIGINT NOT NULL,
                                            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                                            updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
@@ -65,10 +64,12 @@ CREATE TABLE IF NOT EXISTS profile (
                          p_org_name VARCHAR(255) NOT NULL,
                          p_org_reg_number VARCHAR(100),
                          p_org_vat_number VARCHAR(100),
+                         p_org_api_key VARCHAR(255),
                          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                          updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
                          ended_at DATETIME NULL,
-                         CONSTRAINT fk_profile_org FOREIGN KEY (p_org_id) REFERENCES organisation(org_id)
+                         CONSTRAINT fk_profile_org FOREIGN KEY (p_org_id) REFERENCES organisation(org_id),
+                         CONSTRAINT fk_api_key FOREIGN KEY (p_org_api_key) REFERENCES api_key(ak_key_hash)
 ) ENGINE=InnoDB;
 
 
