@@ -46,4 +46,5 @@ public class Profile extends BaseEntity {
     @OneToOne(mappedBy = "profile", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
 //    @JsonBackReference
     private ApiKey apiKey;
+
 }

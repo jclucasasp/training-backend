@@ -6,6 +6,7 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.BaseEntity;
 import org.lucas.arbackend.entity.Organisation.Organisation;
+import org.lucas.arbackend.entity.Organisation.Profile;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
@@ -22,7 +23,7 @@ public class ApiKey extends BaseEntity {
     @OneToOne(fetch = FetchType.EAGER)
     @MapsId // Ensures ApiKey ID is the same as Organisation ID
     @JoinColumn(name = "ak_org_id")
-    private Organisation organisation;
+    private Profile profile;
 
     @Column(name = "ak_prefix", nullable = false, length = 12)
     private String prefix;

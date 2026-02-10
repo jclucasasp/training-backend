@@ -55,10 +55,10 @@ public class TenantFilter extends OncePerRequestFilter {
                 }
 
                 // Set the current tenant for this request
-                log.info("Using header to set tenant context to: {}", apiKey.getOrganisation().getId());
-                TenantContext.setCurrentTenant(apiKey.getOrganisation().getId());
+                log.info("Using header to set tenant context to: {}", apiKey.getOrgId());
+                TenantContext.setCurrentTenant(apiKey.getOrgId());
 
-                CustomUserDetails studentPrincipal = new CustomUserDetails("API_KEY_".concat(apiKey.getPrefix()), "", apiKey.getOrganisation().getId(), RoleTypes.STUDENT.name());
+                CustomUserDetails studentPrincipal = new CustomUserDetails("API_KEY_".concat(apiKey.getPrefix()), "", apiKey.getOrgId(), RoleTypes.STUDENT.name());
                 // Manually authenticate the Student for this request
                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                         studentPrincipal, null, studentPrincipal.getAuthorities());

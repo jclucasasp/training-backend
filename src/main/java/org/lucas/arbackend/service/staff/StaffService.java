@@ -51,7 +51,6 @@ public class StaffService {
         staff.setEmail(request.getEmail());
         staff.setPassword(passwordEncoder.encode(request.getPassword()));
         staff.setRole(role);
-        staff.setActive(true);
 
         Staff saved = staffRepo.save(staff);
 
@@ -59,7 +58,6 @@ public class StaffService {
                 .id(saved.getId())
                 .email(saved.getEmail())
                 .role(saved.getRole().getName())
-                .isActive(saved.isActive())
                 .build();
     }
 
@@ -75,7 +73,6 @@ public class StaffService {
                         .id(staff.getId())
                         .email(staff.getEmail())
                         .role(staff.getRole().getName())
-                        .isActive(staff.isActive())
                         .build()
                 );
     }
@@ -100,7 +97,6 @@ public class StaffService {
         staff.setEmail(request.getEmail().isBlank() ? staff.getEmail() : request.getEmail());
         staff.setPassword(request.getPassword().isBlank() ? staff.getPassword() : passwordEncoder.encode(request.getPassword()));
         staff.setRole(request.getRole().isBlank() ? staff.getRole() : role);
-        staff.setActive(request.isActive());
 
         staffRepo.save(staff);
 
@@ -108,7 +104,6 @@ public class StaffService {
                 .id(staff.getId())
                 .email(staff.getEmail())
                 .role(staff.getRole().getName())
-                .isActive(staff.isActive())
                 .build();
     }
 }

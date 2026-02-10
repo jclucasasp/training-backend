@@ -4,8 +4,10 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.lucas.arbackend.dto.security.ApiKeyResponse;
 import org.lucas.arbackend.entity.Organisation.Organisation;
+import org.lucas.arbackend.entity.Organisation.Profile;
 import org.lucas.arbackend.entity.security.ApiKey;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
+import org.lucas.arbackend.repository.organisation.ProfileRepository;
 import org.lucas.arbackend.repository.security.ApiKeyRepository;
 import org.lucas.arbackend.util.TenantContext;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,7 +22,7 @@ import java.util.UUID;
 public class ApiKeyService {
 
     private final ApiKeyRepository apiKeyRepo;
-    private final OrganisationRepository orgRepo;
+    private final ProfileRepository profileRepo;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
@@ -29,8 +31,8 @@ public class ApiKeyService {
 //        Long orgId = TenantContext.getCurrentTenant();
 
         // Check if the Organisation exists
-        Organisation org = orgRepo.findById(orgId)
-                .orElseThrow(() -> new EntityNotFoundException("Organisation not found"));
+        Profile profile = profileRepo.findById(orgId)
+                .orElseThrow(() -> new EntityNotFoundException("Organisation Profile not found"));
 
         // Generate API Key
         String rawKey = "sk_" + UUID.randomUUID().toString().replace("-", "") + UUID.randomUUID().toString().replace("-", "");
@@ -40,7 +42,7 @@ public class ApiKeyService {
 
         // 3. Save metadata + hash
         ApiKey apiKey = new ApiKey();
-        apiKey.setOrganisation(org);
+        apiKey.setProfile(profile);
         apiKey.setPrefix(rawKey.substring(0, 12));
         apiKey.setHashKey(hashedKey); // We never store the raw key
 

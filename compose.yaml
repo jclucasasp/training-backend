@@ -1,6 +1,6 @@
 services:
   mariadb:
-    image: 'mariadb:12.0-ubi10'
+    image: 'mariadb:lts-ubi9'
     container_name: maria_db
     restart: unless-stopped
     environment:

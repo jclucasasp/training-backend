@@ -9,6 +9,22 @@ import org.lucas.arbackend.entity.security.Role;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
+@NamedEntityGraph(name = "Organisation.withDetails",
+attributeNodes = {
+        @NamedAttributeNode(value = "profile"),
+        @NamedAttributeNode(value = "subscription"),
+        @NamedAttributeNode(value = "profile", subgraph = "profile-subgraph")
+}, subgraphs = {
+        @NamedSubgraph(name = "profile-subgraph",
+                attributeNodes = {
+                        @NamedAttributeNode("address"),
+                        @NamedAttributeNode("apiKey")
+                }),
+        @NamedSubgraph(name = "subscription",
+                attributeNodes = {
+                        @NamedAttributeNode("subscriptionPlan")
+                })
+})
 @Table(name = "organisation")
 @Getter @Setter
 @SQLDelete(sql = "UPDATE organisation SET ended_at = CURRENT_TIMESTAMP WHERE org_id = ?")
@@ -36,4 +52,8 @@ public class Organisation extends BaseEntity {
 
     @OneToOne(mappedBy = "organisation", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     private Profile profile;
+
+    @OneToOne(mappedBy = "organisation", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    private OrganisationSubscription subscription;
+
 }

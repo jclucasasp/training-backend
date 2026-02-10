@@ -13,6 +13,15 @@ public class OrganisationResponse {
     private String orgName;
     private String registrationNumber;
     private String vatNumber;
+    // Address
+    private String contactPerson;
+    private Integer contactNumber;
+    private String streetAddress;
+    private String suburb;
+    private String city;
+    private String state;
+    private Integer zip;
+
     private String apiKey;
     private LocalDateTime orgSignedUpDate;
     private LocalDateTime orgLastUpdated;

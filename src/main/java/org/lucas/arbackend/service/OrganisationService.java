@@ -7,12 +7,14 @@ import org.lucas.arbackend.dto.security.ApiKeyResponse;
 import org.lucas.arbackend.dto.organisation.OrgSignupRequest;
 import org.lucas.arbackend.dto.organisation.OrganisationResponse;
 import org.lucas.arbackend.dto.organisation.ProfileRequest;
+import org.lucas.arbackend.entity.Organisation.OrgAddress;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.Organisation.OrganisationSubscription;
 import org.lucas.arbackend.entity.Organisation.Profile;
 import org.lucas.arbackend.entity.PlanTypes;
 import org.lucas.arbackend.entity.SubscriptionPlan;
 import org.lucas.arbackend.entity.security.ApiKey;
+import org.lucas.arbackend.repository.OrgAddressRepository;
 import org.lucas.arbackend.repository.SubscriptionPlanRepository;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.OrganisationSubscriptionRepository;
@@ -34,6 +36,7 @@ public class OrganisationService {
 
     private final OrganisationRepository orgRepo;
     private final ProfileRepository profileRepo;
+    private final OrgAddressRepository addressRepo;
     private final SubscriptionPlanRepository planRepo;
     private final OrganisationSubscriptionRepository subRepo;
     private final ApiKeyRepository apiKeyRepo;
@@ -42,7 +45,7 @@ public class OrganisationService {
 
     private final ApiKeyService apiKeyService;
 
-    // TODO: Add the address and contact details as well as the soft delete (look at the CourseService for an example)
+    // TODO: Add soft delete (look at the CourseService for an example)
     // TODO: Implement a check to make sure a company can not generate more then one API key. Implement a new method to be able to end the old one and generate a new one.
     // ==========================================
     // 1. ATOMIC SIGN UP (Org + Profile + Sub)
@@ -66,7 +69,20 @@ public class OrganisationService {
         profile.setOrgName(request.getOrgName());
         profile.setRegistrationNumber(request.getRegistrationNumber());
         profile.setVatNumber(request.getVatNumber());
+        profile.setContactPerson(request.getContactPerson());
+        profile.setContactNumber(request.getContactNumber());
+
+        OrgAddress address = new OrgAddress();
+        address.setStreet(request.getStreet());
+        address.setSuburb(request.getSuburb());
+        address.setCity(request.getCity());
+        address.setState(request.getState());
+        address.setZip(request.getZip());
+
         profileRepo.save(profile);
+
+        address.setProfile(profile);
+        addressRepo.save(address);
 
         // Generate API Key
         ApiKeyResponse apiKeyResponse = apiKeyService.generateKeyForOrg(savedOrg.getId());
@@ -98,6 +114,12 @@ public class OrganisationService {
                 .orgName(profile.getOrgName())
                 .registrationNumber(profile.getRegistrationNumber())
                 .vatNumber(profile.getVatNumber())
+                .contactPerson(profile.getContactPerson())
+                .contactNumber(profile.getContactNumber())
+                .streetAddress(address.getStreet())
+                .suburb(address.getSuburb())
+                .city(address.getCity())
+                .zip(address.getZip())
                 .apiKey(apiKeyResponse.getRawKey())
                 .orgSignedUpDate(org.getCreatedAt())
                 .orgLastUpdated(org.getUpdatedAt())
@@ -140,28 +162,37 @@ public class OrganisationService {
         Organisation org = orgRepo.findById(orgId)
                 .orElseThrow(() -> new EntityNotFoundException("Organisation not found"));
 
-        Profile profile = profileRepo.findById(orgId).orElse(new Profile()); // Fallback
+        Profile profile = org.getProfile();
 
-        // Check for active sub
-        OrganisationSubscription sub = subRepo.findActiveByOrganisationId(orgId)
-                .orElseThrow(() -> new EntityNotFoundException("Organisation subscription not found"));
+        OrgAddress address = profile != null ? org.getProfile().getAddress() : null;
 
-        String plan = sub.getSubscriptionPlan().getPlan().toString();
+        OrganisationSubscription subscription = profile != null ? org.getSubscription() : null;
 
-        return OrganisationResponse.builder()
-                .id(org.getId())
-                .email(org.getEmail())
-                .orgName(profile.getOrgName())
-                .registrationNumber(profile.getRegistrationNumber())
-                .vatNumber(profile.getVatNumber())
-                .orgSignedUpDate(org.getCreatedAt())
-                .orgLastUpdated(org.getUpdatedAt())
-                .orgDeletedDate(org.getEndedAt())
-                .subscriptionStatus(sub.getStatus() == 1)
-                .subscriptionPlan(plan)
-                .subscriptionStartDate(sub.getCreatedAt())
-                .subscriptionEndDate(sub.getEndedAt())
-                .build();
+    if (subscription == null) {
+        throw new EntityNotFoundException("Organisation subscription not found");
+    }
+
+    return OrganisationResponse.builder()
+            .id(org.getId())
+            .email(org.getEmail())
+            .orgName(profile.getOrgName())
+            .registrationNumber(profile.getRegistrationNumber())
+            .vatNumber(profile.getVatNumber())
+            .contactPerson(profile.getContactPerson())
+            .contactNumber(profile.getContactNumber())
+            .streetAddress(address.getStreet())
+            .suburb(address.getSuburb())
+            .city(address.getCity())
+            .zip(address.getZip())
+            .apiKey(profile.getApiKey().getHashKey())
+            .orgSignedUpDate(org.getCreatedAt())
+            .orgLastUpdated(org.getUpdatedAt())
+            .orgDeletedDate(org.getEndedAt())
+            .subscriptionStatus(true)
+            .subscriptionPlan(subscription.getSubscriptionPlan().getPlan().toString())
+            .subscriptionStartDate(subscription.getCreatedAt())
+            .subscriptionEndDate(subscription.getEndedAt())
+            .build();
     }
     @Transactional
     public void revokeApiKey(Long orgId, Long keyId) {

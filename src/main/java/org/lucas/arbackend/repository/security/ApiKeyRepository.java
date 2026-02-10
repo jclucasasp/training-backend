@@ -11,10 +11,6 @@ import java.util.Optional;
 @Repository
 public interface ApiKeyRepository extends JpaRepository<ApiKey, Long> {
 
-    Optional<ApiKey> findByHashKey(String hash);
-
-    List<ApiKey> findByOrgId(Long orgId);
-
     @Cacheable(value = "api_keys", key = "#prefix", unless = "#result == null")
     Optional<ApiKey> findByPrefix(String prefix);
 }
