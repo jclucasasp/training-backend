@@ -1,5 +1,6 @@
 package org.lucas.arbackend.entity.security;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
@@ -23,6 +24,7 @@ public class ApiKey extends BaseEntity {
     @OneToOne(fetch = FetchType.EAGER)
     @MapsId // Ensures ApiKey ID is the same as Organisation ID
     @JoinColumn(name = "ak_org_id")
+    @JsonIgnore
     private Profile profile;
 
     @Column(name = "ak_prefix", nullable = false, length = 12)

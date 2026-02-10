@@ -1,7 +1,6 @@
 package org.lucas.arbackend.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -12,16 +11,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 import org.lucas.arbackend.dto.security.ApiKeyResponse;
-import org.lucas.arbackend.dto.organisation.OrgSignupRequest;
+import org.lucas.arbackend.dto.organisation.OrgDetailsRequest;
 import org.lucas.arbackend.dto.organisation.OrganisationResponse;
-import org.lucas.arbackend.dto.organisation.ProfileRequest;
 import org.lucas.arbackend.service.ApiKeyService;
 import org.lucas.arbackend.service.OrganisationService;
 import org.lucas.arbackend.util.TenantContext;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -40,14 +36,15 @@ public class OrganisationController {
         @ApiResponse(responseCode = "424", description = "Email address already registered")
     })
     @PostMapping("/signup")
-    public ResponseEntity<OrganisationResponse> signUp(@Valid @RequestBody OrgSignupRequest request) {
-        return ResponseEntity.ok(orgService.signUp(request));
+    public ResponseEntity<OrganisationResponse> signUp(@Valid @RequestBody OrgDetailsRequest request) {
+        return ResponseEntity.ok(orgService.signup(request));
     }
 
     @Operation(summary = "Get Organisation Details",
                description = "Retrieves the business profile and active subscription status using the Org ID.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Details retrieved successfully"),
+        @ApiResponse(responseCode = "401", description = "You do not have the correct access for that"),
         @ApiResponse(responseCode = "404", description = "Organisation not found")
     })
     @GetMapping("/details")
@@ -58,9 +55,14 @@ public class OrganisationController {
     @Operation(summary = "Update Profile",
                description = "Updates the business registration number, VAT number, and display name.")
     @PutMapping("/update")
-    public ResponseEntity<Void> updateProfile(@Valid @RequestBody ProfileRequest request) {
-        Long orgId = TenantContext.getCurrentTenant();
-        orgService.updateProfile(orgId, request);
+    public ResponseEntity<Void> updateProfile(@Valid @RequestBody OrgDetailsRequest request) {
+        orgService.updateProfile(request);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<Void> deleteOrganisation() {
+        orgService.softDeleteOrg();
         return ResponseEntity.noContent().build();
     }
 

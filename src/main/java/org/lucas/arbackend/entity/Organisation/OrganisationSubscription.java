@@ -1,5 +1,6 @@
 package org.lucas.arbackend.entity.Organisation;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -24,6 +25,7 @@ public class OrganisationSubscription extends BaseEntity {
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
     @JoinColumn(name = "os_org_id")
+    @JsonIgnore
     private Organisation organisation;
 
     @OneToOne(fetch = FetchType.EAGER)

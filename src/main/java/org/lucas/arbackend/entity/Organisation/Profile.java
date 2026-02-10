@@ -1,5 +1,6 @@
 package org.lucas.arbackend.entity.Organisation;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
@@ -22,7 +23,7 @@ public class Profile extends BaseEntity {
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId // Ensures Profile ID is the same as Organisation ID
     @JoinColumn(name = "p_org_id")
-//    @JsonBackReference // Prevents infinite recursion when serializing
+    @JsonIgnore
     private Organisation organisation;
 
     @Column(name = "p_org_name")
@@ -34,7 +35,7 @@ public class Profile extends BaseEntity {
     @Column(name = "p_org_vat_number")
     private String vatNumber;
 
-    @OneToOne(mappedBy = "profile", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToOne(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
     private OrgAddress address;
 
     @Column(name = "p_org_contact_number")
@@ -43,8 +44,7 @@ public class Profile extends BaseEntity {
     @Column(name = "p_org_contact_person")
     private String contactPerson;
 
-    @OneToOne(mappedBy = "profile", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
-//    @JsonBackReference
+    @OneToOne(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
     private ApiKey apiKey;
 
 }

@@ -23,7 +23,7 @@ public class StudentProgress extends BaseEntity {
     @Column(name = "sp_id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "sp_student_enrollment_id")
     private StudentEnrollment enrollment;
 

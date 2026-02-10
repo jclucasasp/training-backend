@@ -80,6 +80,9 @@ CREATE TABLE IF NOT EXISTS address
     a_city           VARCHAR(255) NOT NULL,
     a_state          VARCHAR(255) NOT NULL,
     a_zip            VARCHAR(255) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
+    ended_at DATETIME NULL,
     CONSTRAINT fk_address_profile FOREIGN KEY (a_org_id) REFERENCES profile(p_org_id)
 
 ) ENGINE=InnoDB;

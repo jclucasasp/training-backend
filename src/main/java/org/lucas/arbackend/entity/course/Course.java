@@ -2,7 +2,6 @@ package org.lucas.arbackend.entity.course;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.BaseEntity;
@@ -53,6 +52,6 @@ public class Course extends BaseEntity {
     @JoinColumn(name = "c_org_id")
     private Organisation organisation;
 
-    @OneToMany(mappedBy = "course", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Module> modules = new HashSet<>();
 }

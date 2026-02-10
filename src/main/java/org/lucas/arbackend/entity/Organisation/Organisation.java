@@ -50,10 +50,10 @@ public class Organisation extends BaseEntity {
     @JoinColumn(name = "org_role_id")
     private Role role;
 
-    @OneToOne(mappedBy = "organisation", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToOne(mappedBy = "organisation", cascade = CascadeType.ALL, orphanRemoval = true)
     private Profile profile;
 
-    @OneToOne(mappedBy = "organisation", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToOne(mappedBy = "organisation", cascade = CascadeType.ALL, orphanRemoval = true)
     private OrganisationSubscription subscription;
 
 }

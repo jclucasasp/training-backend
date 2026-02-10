@@ -1,5 +1,6 @@
 package org.lucas.arbackend.entity.Organisation;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,6 +24,7 @@ public class OrgAddress extends BaseEntity {
     @OneToOne(fetch = FetchType.EAGER)
     @MapsId
     @JoinColumn(name = "a_org_id")
+    @JsonIgnore
     private Profile profile;
 
     @Column(name = "a_street", nullable = false)

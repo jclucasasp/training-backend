@@ -1,6 +1,7 @@
 package org.lucas.arbackend.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.Organisation.Staff;
 import org.lucas.arbackend.entity.security.RoleTypes;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
@@ -22,8 +24,10 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final StaffRepository staffRepo;
 
     @Override
-    @Cacheable(value = "staff_users", key = "#email", unless = "#result == null")
+    @Cacheable(value = "org_users", key = "#email", unless = "#result == null")
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+
+        log.info("Attempting to cache a user by email : [{}]",email);
         // 1. Try to find an Organisation Owner
         Optional<Organisation> org = orgRepo.findByEmail(email);
         if (org.isPresent()) {

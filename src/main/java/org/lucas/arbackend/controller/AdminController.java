@@ -12,6 +12,7 @@ import org.lucas.arbackend.dto.course.CourseResponse;
 import org.lucas.arbackend.dto.course.CourseUpdateRequest;
 import org.lucas.arbackend.dto.organisation.CreateStaffRequest;
 import org.lucas.arbackend.dto.organisation.StaffResponse;
+import org.lucas.arbackend.service.OrganisationService;
 import org.lucas.arbackend.service.course.CourseService;
 import org.lucas.arbackend.service.staff.StaffService;
 import org.springframework.data.domain.Page;
@@ -28,6 +29,8 @@ public class AdminController {
 
     private final StaffService staffService;
     private final CourseService courseService;
+
+    // TODO: Implement deletion for Organisation, Course, Module, Section and Student
 
     @Operation(summary = "Add Staff Member",
                description = "Creates a staff account with a specific role from the RoleTypes enum.")
@@ -89,5 +92,13 @@ public class AdminController {
     @PutMapping("/staff/update")
     public ResponseEntity<StaffResponse> updateStaff(@RequestParam Long staffId, @Valid @RequestBody CreateStaffRequest request) {
         return ResponseEntity.ok(staffService.updateStaff(staffId, request));
+    }
+
+    @DeleteMapping("/staff/delete/{staffId}")
+    public ResponseEntity<Void> deleteStaff(@PathVariable Long staffId) {
+
+        staffService.softDeleteStaff(staffId);
+
+        return ResponseEntity.ok().build();
     }
 }

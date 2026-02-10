@@ -1,9 +1,11 @@
 package org.lucas.arbackend.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CacheService {
@@ -31,6 +33,14 @@ public class CacheService {
         var cache = cacheManager.getCache("api_keys");
         if (cache != null) {
             cache.evict(prefix);
+        }
+    }
+
+    public void setCache(String cacheName, String key, Object value) {
+        var cache = cacheManager.getCache(cacheName);
+        if (cache != null) {
+            log.info("Pre Caching new user in redis: [{}]", key);
+            cache.put(key, value);
         }
     }
 }

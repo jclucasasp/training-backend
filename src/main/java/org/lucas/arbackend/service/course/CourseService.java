@@ -196,16 +196,9 @@ public class CourseService {
     }
 
     private void softDeleteCourse(Long courseId, Long orgId) {
+
         Course course = courseRepo.findByIdAndOrganisationIdAndEndedAtIsNull(courseId, orgId)
                 .orElseThrow(() -> new EntityNotFoundException("Course not found"));
-
-        course.setEndedAt(LocalDateTime.now());
-
-        course.getModules().forEach(m -> {
-            m.setEndedAt(LocalDateTime.now());
-                    m.getSections().forEach(s ->
-                        s.setEndedAt(LocalDateTime.now()));
-                });
 
         courseRepo.delete(course);
     }

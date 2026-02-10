@@ -1,5 +1,6 @@
 package org.lucas.arbackend.entity.Organisation;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import lombok.Getter;
@@ -24,6 +25,7 @@ public class Staff extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "stf_org_id")
+    @JsonIgnore
     private Organisation organisation;
 
     @ManyToOne(fetch = FetchType.EAGER) // Roles are usually small, EAGER is fine here

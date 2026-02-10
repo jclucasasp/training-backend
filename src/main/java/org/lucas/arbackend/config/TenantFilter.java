@@ -1,5 +1,6 @@
 package org.lucas.arbackend.config;
 
+import io.swagger.v3.oas.models.PathItem;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,9 +14,12 @@ import org.lucas.arbackend.entity.security.RoleTypes;
 import org.lucas.arbackend.repository.security.ApiKeyRepository;
 import org.lucas.arbackend.util.CustomUserDetails;
 import org.lucas.arbackend.util.TenantContext;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -33,6 +37,7 @@ public class TenantFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
             throws ServletException, IOException {
+
         log.info("Tenant Filter running for request: {} ", request.getRequestURI());
 
         String apiKeyHeader = request.getHeader("X-API-KEY");
@@ -83,6 +88,8 @@ public class TenantFilter extends OncePerRequestFilter {
 
 
                 if (auth.getPrincipal() instanceof CustomUserDetails user) {
+                    log.info("Setting tenant context to: {}", user.getOrgId());
+                    // TODO: Have to lookup the user in the DB to get the orgId
                     TenantContext.setCurrentTenant(user.getOrgId());
                 }
                 } else {
@@ -108,7 +115,7 @@ public class TenantFilter extends OncePerRequestFilter {
 
     // ONLY skip the Filter for Organisation SIGNUP (POST)
     // All other /organisations/** routes (GET details, PUT profile) NEED the filter to run
-    if (path.equals("/api/v1/organisations/signup") && method.equalsIgnoreCase("POST")) {
+    if (path.equals("/api/v1/organisations/signup") && method.equalsIgnoreCase(HttpMethod.POST.name())) {
         return true;
     }
 

@@ -49,7 +49,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/courses/**").hasAnyAuthority(RoleTypes.ORG_ADMIN.name(), RoleTypes.COURSE_EDITOR.name(), RoleTypes.SUPPORT.name(), RoleTypes.STUDENT.name())
 
                         // Public signup/login
-                        .requestMatchers(HttpMethod.POST, "/api/v1/organisations/singup").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/organisations/signup").permitAll()
+
                         // Other public routes
                         .requestMatchers(
                                 "/v3/api-docs/**",
