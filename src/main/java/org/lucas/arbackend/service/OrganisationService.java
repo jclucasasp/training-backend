@@ -2,11 +2,10 @@ package org.lucas.arbackend.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
-import lombok.extern.log4j.Log4j;
 import lombok.extern.slf4j.Slf4j;
-import org.lucas.arbackend.dto.security.ApiKeyResponse;
 import org.lucas.arbackend.dto.organisation.OrgDetailsRequest;
 import org.lucas.arbackend.dto.organisation.OrganisationResponse;
+import org.lucas.arbackend.dto.security.ApiKeyResponse;
 import org.lucas.arbackend.entity.Organisation.OrgAddress;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.Organisation.OrganisationSubscription;
@@ -25,9 +24,6 @@ import org.lucas.arbackend.repository.security.ApiKeyRepository;
 import org.lucas.arbackend.repository.security.RoleRepository;
 import org.lucas.arbackend.util.CustomUserDetails;
 import org.lucas.arbackend.util.TenantContext;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -60,51 +56,40 @@ public class OrganisationService {
     // 1. ATOMIC SIGN UP (Org + Profile + Sub)
     // ==========================================
     public OrganisationResponse signup(OrgDetailsRequest request) {
-        // 1. Validation
+        // 1. Validation & Role Lookup
         if (orgRepo.findByEmail(request.getEmail()).isPresent()) {
             throw new IllegalStateException("Email already registered");
         }
 
-        // Get the generic role
         Role role = roleRepo.findByName(RoleTypes.ORG_ADMIN.name())
                 .orElseThrow(() -> new EntityNotFoundException("Role not found"));
 
+        // 2. Create Organisation
         Organisation org = new Organisation();
         org.setEmail(request.getEmail());
         org.setPassword(passwordEncoder.encode(request.getPassword()));
         org.setRole(role);
-        // BaseEntity fields like createdAt are handled automatically or by default values
 
-        // 2. Create Subscription
-        // Get the subscription plan
+        // 3. Create Subscription & Link
         SubscriptionPlan plan = planRepo.findById(request.getInitialPlanId())
                 .orElseThrow(() -> new EntityNotFoundException("Plan not found"));
-
-        // Create an initial subscription and set the subscription plan
         OrganisationSubscription subscription = new OrganisationSubscription();
         subscription.setSubscriptionPlan(plan);
-        subscription.getSubscriptionPlan().setPlan(plan.getPlan());
-
-        // Set the end date based on the plan type
-       // TODO: Change to a switch if more plans get added
-       subscription.setEndedAt(plan.getPlan().toString().equals(PlanTypes.MONTHLY.name()) ?
-               LocalDateTime.now().plusMonths(1) : LocalDateTime.now().plusMonths(12));
-
-        Organisation savedOrg = orgRepo.save(org);
-
         subscription.setStatus(1);
-        subscription.setOrganisation(savedOrg);
+        subscription.setEndedAt(plan.getPlan().toString().equals(PlanTypes.MONTHLY.name()) ?
+                LocalDateTime.now().plusMonths(1) : LocalDateTime.now().plusMonths(12));
+
+        // CRITICAL: Bi-directional link for @MapsId
+        subscription.setOrganisation(org);
         org.setSubscription(subscription);
 
-        subRepo.save(subscription);
-
-        // 3. Create Linked Profile (Shares PK)
+        // 4. Create Profile & Address & Link
         Profile profile = new Profile();
-        profile.setOrganisation(savedOrg); // Sets ID automatically via MapsId
         profile.setOrgName(request.getOrgName());
         profile.setRegistrationNumber(request.getRegistrationNumber());
         profile.setVatNumber(request.getVatNumber());
-        profile.setContactPerson(request.getContactPerson());
+        profile.setContactPersonFirstName(request.getContactPersonFirstName());
+        profile.setContactPersonLastName(request.getContactPersonLastName());
         profile.setContactNumber(request.getContactNumber());
 
         OrgAddress address = new OrgAddress();
@@ -114,12 +99,18 @@ public class OrganisationService {
         address.setState(request.getState());
         address.setZip(request.getZip());
 
-        profileRepo.save(profile);
-
+        // CRITICAL: Link Address to Profile AND Profile to Org
         address.setProfile(profile);
-        addressRepo.save(address);
+        profile.setAddress(address); // Assuming Profile has cascade = CascadeType.ALL for address
 
-        // Generate API Key
+        profile.setOrganisation(org);
+        org.setProfile(profile);
+
+        // 5. THE SINGLE SAVE
+        // Persists Org, Subscription, Profile, and Address in one transaction
+        Organisation savedOrg = orgRepo.save(org);
+
+        // 6. Generate API Key
         ApiKeyResponse apiKeyResponse = apiKeyService.generateKeyForOrg(savedOrg.getId());
 
         if (apiKeyResponse.getRawKey().isBlank()) {
@@ -137,7 +128,8 @@ public class OrganisationService {
                 .orgName(profile.getOrgName())
                 .registrationNumber(profile.getRegistrationNumber())
                 .vatNumber(profile.getVatNumber())
-                .contactPerson(profile.getContactPerson())
+                .contactPersonFirstName(profile.getContactPersonFirstName())
+                .contactPersonLastName(profile.getContactPersonLastName())
                 .contactNumber(profile.getContactNumber())
                 .streetAddress(address.getStreet())
                 .suburb(address.getSuburb())
@@ -150,8 +142,8 @@ public class OrganisationService {
                 .orgDeletedDate(org.getEndedAt())
                 .subscriptionStatus(subscription.getStatus() == 1)
                 .subscriptionPlan(plan.getPlan().toString())
-                .subscriptionStartDate(subscription.getCreatedAt())
-                .subscriptionEndDate(subscription.getEndedAt())
+                .subscriptionStartDate(subscription.getSubscribedAt())
+                .subscriptionEndDate(subscription.getExpiresAt())
                 .build();
 
     }
@@ -181,7 +173,8 @@ public class OrganisationService {
 
         // Update the Address
         if (req.getContactNumber() != null) profile.setContactNumber(req.getContactNumber());
-        if (req.getContactPerson().isBlank()) profile.setContactPerson(req.getContactPerson());
+        if (req.getContactPersonFirstName().isBlank()) profile.setContactPersonFirstName(req.getContactPersonFirstName());
+        if (req.getContactPersonLastName().isBlank()) profile.setContactPersonLastName(req.getContactPersonLastName());
         if (req.getStreet().isBlank()) address.setStreet(req.getStreet());
         if (req.getSuburb().isBlank()) address.setSuburb(req.getSuburb());
         if (req.getCity().isBlank()) address.setCity(req.getCity());
@@ -203,36 +196,37 @@ public class OrganisationService {
                 .orElseThrow(() -> new EntityNotFoundException("Organisation not found"));
 
         Profile profile = org.getProfile();
-        log.info("Profile found: [{}]",profile);
+        log.info("Profile found: [{}]", profile);
 
         OrgAddress address = org.getProfile().getAddress();
-        log.info("Address found: [{}]",address);
+        log.info("Address found: [{}]", address);
 
         OrganisationSubscription subscription = org.getSubscription();
-        log.info("Subscription found: [{}]",subscription);
+        log.info("Subscription found: [{}]", subscription);
 
-    return OrganisationResponse.builder()
-            .id(org.getId())
-            .email(org.getEmail())
-            .orgName(profile.getOrgName())
-            .registrationNumber(profile.getRegistrationNumber())
-            .vatNumber(profile.getVatNumber())
-            .contactPerson(profile.getContactPerson())
-            .contactNumber(profile.getContactNumber())
-            .streetAddress(address.getStreet())
-            .suburb(address.getSuburb())
-            .city(address.getCity())
-            .state(address.getState())
-            .zip(address.getZip())
-            .apiKey(profile.getApiKey().getHashKey())
-            .orgSignedUpDate(org.getCreatedAt())
-            .orgLastUpdated(org.getUpdatedAt())
-            .orgDeletedDate(org.getEndedAt())
-            .subscriptionStatus(subscription.getStatus() == 1)
-            .subscriptionPlan(subscription.getSubscriptionPlan().getPlan().toString())
-            .subscriptionStartDate(subscription.getCreatedAt())
-            .subscriptionEndDate(subscription.getEndedAt())
-            .build();
+        return OrganisationResponse.builder()
+                .id(org.getId())
+                .email(org.getEmail())
+                .orgName(profile.getOrgName())
+                .registrationNumber(profile.getRegistrationNumber())
+                .vatNumber(profile.getVatNumber())
+                .contactPersonFirstName(profile.getContactPersonFirstName())
+                .contactPersonLastName(profile.getContactPersonLastName())
+                .contactNumber(profile.getContactNumber())
+                .streetAddress(address.getStreet())
+                .suburb(address.getSuburb())
+                .city(address.getCity())
+                .state(address.getState())
+                .zip(address.getZip())
+                .apiKey(profile.getApiKey().getHashKey())
+                .orgSignedUpDate(org.getCreatedAt())
+                .orgLastUpdated(org.getUpdatedAt())
+                .orgDeletedDate(org.getEndedAt())
+                .subscriptionStatus(subscription.getStatus() == 1)
+                .subscriptionPlan(subscription.getSubscriptionPlan().getPlan().toString())
+                .subscriptionStartDate(subscription.getCreatedAt())
+                .subscriptionEndDate(subscription.getEndedAt())
+                .build();
     }
 
     public void softDeleteOrg() {

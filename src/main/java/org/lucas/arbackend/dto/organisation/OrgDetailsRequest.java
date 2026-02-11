@@ -29,8 +29,11 @@ public class OrgDetailsRequest {
     @NotNull(message = "Contact number is required")
     private Integer contactNumber;
 
-    @NotNull(message = "Contact person is required")
-    private String contactPerson;
+    @NotNull(message = "Contact person firstname is required")
+    private String contactPersonFirstName;
+
+    @NotNull(message = "Contact person lastname is required")
+    private String contactPersonLastName;
 
     @NotNull(message = "Street is required")
     private String street;

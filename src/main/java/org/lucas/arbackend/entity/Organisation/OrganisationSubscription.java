@@ -2,14 +2,17 @@ package org.lucas.arbackend.entity.Organisation;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.*;
 import org.lucas.arbackend.entity.BaseEntity;
 import org.lucas.arbackend.entity.SubscriptionPlan;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "organisation_subscription")
@@ -32,6 +35,13 @@ public class OrganisationSubscription extends BaseEntity {
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "os_plan_id")
     private SubscriptionPlan subscriptionPlan;
+
+    @CreatedDate
+    @Column(name = "os_subscribed_at")
+    private LocalDateTime subscribedAt;
+
+    @Column(name = "os_expires_at")
+    private LocalDateTime expiresAt;
 
     @Column(name = "os_status")
     private Integer status;

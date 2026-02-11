@@ -39,20 +39,19 @@ CREATE TABLE IF NOT EXISTS organisation (
                               org_email VARCHAR(255) UNIQUE NOT NULL,
                               org_password VARCHAR(255) NOT NULL,
                               org_role_id TINYINT(1) DEFAULT 1,
-                              org_subscription_id BIGINT,
                               created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                               updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
                               ended_at DATETIME NULL,
                               -- Index for soft-delete filtering & auth lookups
                               INDEX idx_org_status (ended_at, org_id),
-                              INDEX idx_org_email (org_email),
-                              CONSTRAINT fk_org_role FOREIGN KEY (org_role_id) REFERENCES role(r_id),
-                              CONSTRAINT fk_org_subscription FOREIGN KEY (org_subscription_id) REFERENCES subscription_plan(sp_id)
+                              INDEX idx_org_email (org_email)
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS organisation_subscription (
                                            os_org_id BIGINT NOT NULL PRIMARY KEY ,
                                            os_plan_id BIGINT NOT NULL,
+                                           os_subscribed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                           os_expires_at DATETIME NOT NULL,
                                            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                                            updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
                                            ended_at DATETIME NULL,
@@ -68,7 +67,8 @@ CREATE TABLE IF NOT EXISTS profile (
                          p_org_reg_number VARCHAR(100),
                          p_org_vat_number VARCHAR(100),
                          p_org_contact_number Integer,
-                         p_org_contact_person VARCHAR(255),
+                         p_org_contact_person_firstname VARCHAR(255),
+                         p_org_contact_person_lastname VARCHAR(255),
                          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                          updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
                          ended_at DATETIME NULL,

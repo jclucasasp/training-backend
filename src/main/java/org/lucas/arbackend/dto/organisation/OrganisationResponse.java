@@ -14,7 +14,8 @@ public class OrganisationResponse {
     private String registrationNumber;
     private String vatNumber;
     // Address
-    private String contactPerson;
+    private String contactPersonFirstName;
+    private String contactPersonLastName;
     private Integer contactNumber;
     private String streetAddress;
     private String suburb;
