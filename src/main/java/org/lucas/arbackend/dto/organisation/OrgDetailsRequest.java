@@ -25,15 +25,15 @@ public class OrgDetailsRequest {
     @NotNull(message = "VAT number is required")
     private String vatNumber;
 
-    // OrgAddress
-    @NotNull(message = "Contact number is required")
-    private Integer contactNumber;
-
     @NotNull(message = "Contact person firstname is required")
-    private String contactPersonFirstName;
+    private String firstName;
 
     @NotNull(message = "Contact person lastname is required")
-    private String contactPersonLastName;
+    private String lastName;
+
+    @NotNull(message = "Contact number is required")
+    private Integer contactNumber;
+    // OrgAddress
 
     @NotNull(message = "Street is required")
     private String street;

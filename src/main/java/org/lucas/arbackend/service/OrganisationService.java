@@ -15,11 +15,8 @@ import org.lucas.arbackend.entity.SubscriptionPlan;
 import org.lucas.arbackend.entity.security.ApiKey;
 import org.lucas.arbackend.entity.security.Role;
 import org.lucas.arbackend.entity.security.RoleTypes;
-import org.lucas.arbackend.repository.OrgAddressRepository;
 import org.lucas.arbackend.repository.SubscriptionPlanRepository;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
-import org.lucas.arbackend.repository.organisation.OrganisationSubscriptionRepository;
-import org.lucas.arbackend.repository.organisation.ProfileRepository;
 import org.lucas.arbackend.repository.security.ApiKeyRepository;
 import org.lucas.arbackend.repository.security.RoleRepository;
 import org.lucas.arbackend.util.CustomUserDetails;
@@ -40,13 +37,9 @@ import java.time.LocalDateTime;
 public class OrganisationService {
 
     private final OrganisationRepository orgRepo;
-    private final ProfileRepository profileRepo;
-    private final OrgAddressRepository addressRepo;
     private final SubscriptionPlanRepository planRepo;
-    private final OrganisationSubscriptionRepository subRepo;
     private final ApiKeyRepository apiKeyRepo;
     private final PasswordEncoder passwordEncoder;
-    private final CacheService cacheService;
     private final RoleRepository roleRepo;
 
     private final ApiKeyService apiKeyService;

@@ -38,15 +38,6 @@ public class Profile extends BaseEntity {
     @OneToOne(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
     private OrgAddress address;
 
-    @Column(name = "p_org_contact_number")
-    private Integer contactNumber;
-
-    @Column(name = "p_org_contact_person_firstname")
-    private String contactPersonFirstName;
-
-    @Column(name = "p_org_contact_person_lastname")
-    private String contactPersonLastName;
-
     @OneToOne(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
     private ApiKey apiKey;
 

@@ -36,15 +36,18 @@ INSERT INTO role (r_name, r_description) VALUES
 -- ==========================================
 CREATE TABLE IF NOT EXISTS organisation (
                               org_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                              org_email VARCHAR(255) UNIQUE NOT NULL,
-                              org_password VARCHAR(255) NOT NULL,
+                              first_name VARCHAR(255) NOT NULL,
+                              last_name VARCHAR(255) NOT NULL,
+                              contact_details INTEGER(10) NOT NULL,
+                              email VARCHAR(255) UNIQUE NOT NULL,
+                              password VARCHAR(255) NOT NULL,
                               org_role_id TINYINT(1) DEFAULT 1,
                               created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                               updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
                               ended_at DATETIME NULL,
                               -- Index for soft-delete filtering & auth lookups
                               INDEX idx_org_status (ended_at, org_id),
-                              INDEX idx_org_email (org_email)
+                              INDEX idx_org_email (email)
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS organisation_subscription (
@@ -67,8 +70,6 @@ CREATE TABLE IF NOT EXISTS profile (
                          p_org_reg_number VARCHAR(100),
                          p_org_vat_number VARCHAR(100),
                          p_org_contact_number Integer,
-                         p_org_contact_person_firstname VARCHAR(255),
-                         p_org_contact_person_lastname VARCHAR(255),
                          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                          updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
                          ended_at DATETIME NULL,
@@ -95,14 +96,17 @@ CREATE TABLE IF NOT EXISTS staff (
     stf_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     stf_org_id BIGINT NOT NULL,
     stf_role_id BIGINT NOT NULL,
-    stf_email VARCHAR(255) NOT NULL,
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
+    contact_number INTEGER(10) NOT NULL,
+    email VARCHAR(255) NOT NULL,
     stf_password VARCHAR(255) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
     ended_at DATETIME NULL,
     CONSTRAINT fk_staff_org FOREIGN KEY (stf_org_id) REFERENCES organisation(org_id),
     CONSTRAINT fk_staff_role FOREIGN KEY (stf_role_id) REFERENCES role(r_id),
-    UNIQUE INDEX idx_staff_email_org (stf_email, stf_org_id)
+    UNIQUE INDEX idx_staff_email_org (email, stf_org_id)
 ) ENGINE=InnoDB;
 
 -- ==========================================

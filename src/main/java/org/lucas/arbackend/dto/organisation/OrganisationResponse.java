@@ -2,21 +2,22 @@ package org.lucas.arbackend.dto.organisation;
 
 import lombok.Builder;
 import lombok.Data;
-import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
 @Data @Builder
 public class OrganisationResponse {
     private Long id;
-    private String email;
     private String orgName;
     private String registrationNumber;
     private String vatNumber;
-    // Address
-    private String contactPersonFirstName;
-    private String contactPersonLastName;
+
+    private String firstName;
+    private String lastName;
     private Integer contactNumber;
+    private String email;
+
+    // Address
     private String streetAddress;
     private String suburb;
     private String city;
