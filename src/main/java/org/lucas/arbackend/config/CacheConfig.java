@@ -54,15 +54,15 @@ public class CacheConfig implements CachingConfigurer {
         // 2. Specific TTLs for different business needs
         Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
 
-        // API Keys: Keep for 30 mins (Sensitive, frequent lookup)
-        cacheConfigurations.put("api_keys", defaultConfig.entryTtl(Duration.ofMinutes(30)));
+        // User login cache
+        cacheConfigurations.put("org_users", defaultConfig.entryTtl(Duration.ofHours(24)));
+        cacheConfigurations.put("staff_users", defaultConfig.entryTtl(Duration.ofHours(24)));
 
-        // User Lookups: Keep for 1 hour
-        cacheConfigurations.put("org_users", defaultConfig.entryTtl(Duration.ofHours(1)));
-        cacheConfigurations.put("staff_users", defaultConfig.entryTtl(Duration.ofHours(1)));
-
-        // Subscriptions: Keep for 6 hours (Rarely change)
-        cacheConfigurations.put("active_subscriptions", defaultConfig.entryTtl(Duration.ofHours(6)));
+        // Other cache
+        cacheConfigurations.put("api_keys", defaultConfig.entryTtl(Duration.ofHours(24)));
+        cacheConfigurations.put("staff", defaultConfig.entryTtl(Duration.ofDays(30)));
+        cacheConfigurations.put("organisation", defaultConfig.entryTtl(Duration.ofDays(30)));
+        cacheConfigurations.put("active_subscriptions", defaultConfig.entryTtl(Duration.ofDays(30)));
 
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(defaultConfig)

@@ -61,6 +61,17 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(TypeNotPresentException.class)
+    public ResponseEntity<ErrorDetailsResponse> handleTypeNotPresent(TypeNotPresentException ex, WebRequest request) {
+        ErrorDetailsResponse response = ErrorDetailsResponse.builder()
+                .timeStamp(LocalDateTime.now())
+                .message(ex.getMessage())
+                .details(request.getDescription(false))
+                .errorCode(HttpStatus.BAD_REQUEST)
+                .build();
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(SecurityException.class)
     public ResponseEntity<ErrorDetailsResponse> handleSecurity(AccessDeniedException ex, WebRequest request) {
 

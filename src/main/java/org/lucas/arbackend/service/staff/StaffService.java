@@ -10,14 +10,16 @@ import org.lucas.arbackend.entity.security.Role;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.StaffRepository;
 import org.lucas.arbackend.repository.security.RoleRepository;
+import org.lucas.arbackend.service.CacheService;
 import org.lucas.arbackend.util.TenantContext;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.validation.annotation.Validated;
 
 @Service
 @Transactional
@@ -28,14 +30,12 @@ public class StaffService {
     private final RoleRepository roleRepo;
     private final OrganisationRepository orgRepo;
     private final PasswordEncoder passwordEncoder;
+    private final CacheService cacheService;
 
-    public StaffResponse createStaff(CreateStaffRequest request) {
+    @CachePut(value = "staff", key = "#target.email")
+    public StaffResponse createStaff(@Validated CreateStaffRequest request) {
 
-        Long orgId = TenantContext.getCurrentTenant();
-
-        if (orgId == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No organisation found for id: [" + orgId + "]");
-        }
+        Long orgId = getTenantId();
 
         Organisation org = orgRepo.findById(orgId)
                 .orElseThrow(() -> new EntityNotFoundException("Organisation not found"));
@@ -59,11 +59,7 @@ public class StaffService {
     }
 
     public Page<StaffResponse> getAllStaff (Pageable pageable) {
-        Long orgId = TenantContext.getCurrentTenant();
-
-        if (orgId == null) {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No organisation found for id: [" + orgId + "]");
-        }
+        Long orgId = getTenantId();
 
         return staffRepo.findAllByOrganisationIdAndEndedAtIsNull(orgId, pageable)
                 .map(staff -> StaffResponse.builder()
@@ -74,18 +70,19 @@ public class StaffService {
                 );
     }
 
+    @CachePut(value = "staff", key = "#result.email")
     public StaffResponse updateStaff (Long staffId, CreateStaffRequest request) {
-        Long orgId = TenantContext.getCurrentTenant();
+        Long orgId = getTenantId();
 
-        if (orgId == null) {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No organisation found for id: [" + orgId + "]");
+        if (staffId == null) {
+                throw new IllegalStateException("Must provide a valid organisation id and staff id");
         }
 
         Staff staff = staffRepo.findById(staffId)
                 .orElseThrow(() -> new EntityNotFoundException("Staff not found"));
 
         if (!staff.getOrganisation().getId().equals(orgId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not allowed to update this staff member");
+            throw new AccessDeniedException("You are not allowed to update this staff member");
         }
 
         Role role = roleRepo.findByName(request.getRole())
@@ -105,18 +102,25 @@ public class StaffService {
     }
 
     public void softDeleteStaff(Long staffId) {
-        Long orgId = TenantContext.getCurrentTenant();
-
-        if (orgId == null) {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No organisation found for id: [" + orgId + "]");
-        }
+        Long orgId = getTenantId();
 
         Staff staff = staffRepo.findById(staffId)
                 .orElseThrow(() -> new EntityNotFoundException("Staff not found"));
 
         if (!staff.getOrganisation().getId().equals(orgId))
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not allowed to delete this staff member");
+            throw new AccessDeniedException("You are not allowed to delete this staff member");
+
+        cacheService.evictStaff(staff.getEmail());
 
         staffRepo.delete(staff);
+    }
+
+    private Long getTenantId() {
+        Long orgId = TenantContext.getCurrentTenant();
+
+        if (orgId == null) {
+            throw new IllegalStateException("No organisation id found in the Tenant Context");
+        }
+        return orgId;
     }
 }

@@ -8,7 +8,9 @@ import org.lucas.arbackend.entity.security.RoleTypes;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.StaffRepository;
 import org.lucas.arbackend.util.CustomUserDetails;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -23,11 +25,17 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final OrganisationRepository orgRepo;
     private final StaffRepository staffRepo;
 
+    @Caching(
+            cacheable = {
+                    @Cacheable(value = "org_users", key = "#email",
+                            condition = "#result != null && #result.role == 'ORG_ADMIN'"),
+                    @Cacheable(value = "staff_users", key = "#email",
+                            condition = "#result != null && #result.role != 'ORG_ADMIN'")
+            }
+    )
     @Override
-    @Cacheable(value = "org_users", key = "#email", unless = "#result == null")
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
-        log.info("Attempting to cache a user by email : [{}]",email);
         // 1. Try to find an Organisation Owner
         Optional<Organisation> org = orgRepo.findByEmail(email);
         if (org.isPresent()) {

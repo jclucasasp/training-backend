@@ -21,8 +21,8 @@ public class CacheService {
     }
 
     // Evict a specific user from the auth cache
-    public void evictUser(String email) {
-        var cache = cacheManager.getCache("user_details");
+    public void evictStaff(String email) {
+        var cache = cacheManager.getCache("staff");
         if (cache != null) {
             cache.evict(email);
         }

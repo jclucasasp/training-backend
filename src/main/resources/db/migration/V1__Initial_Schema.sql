@@ -39,12 +39,15 @@ CREATE TABLE IF NOT EXISTS organisation (
                               org_email VARCHAR(255) UNIQUE NOT NULL,
                               org_password VARCHAR(255) NOT NULL,
                               org_role_id TINYINT(1) DEFAULT 1,
+                              org_subscription_id BIGINT,
                               created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                               updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
                               ended_at DATETIME NULL,
                               -- Index for soft-delete filtering & auth lookups
                               INDEX idx_org_status (ended_at, org_id),
-                              INDEX idx_org_email (org_email)
+                              INDEX idx_org_email (org_email),
+                              CONSTRAINT fk_org_role FOREIGN KEY (org_role_id) REFERENCES role(r_id),
+                              CONSTRAINT fk_org_subscription FOREIGN KEY (org_subscription_id) REFERENCES subscription_plan(sp_id)
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS organisation_subscription (

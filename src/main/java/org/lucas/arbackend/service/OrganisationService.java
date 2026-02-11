@@ -25,6 +25,9 @@ import org.lucas.arbackend.repository.security.ApiKeyRepository;
 import org.lucas.arbackend.repository.security.RoleRepository;
 import org.lucas.arbackend.util.CustomUserDetails;
 import org.lucas.arbackend.util.TenantContext;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -52,7 +55,6 @@ public class OrganisationService {
 
     private final ApiKeyService apiKeyService;
 
-    // TODO: Add soft delete (look at the CourseService for an example)
     // TODO: Implement a check to make sure a company can not generate more then one API key. Implement a new method to be able to end the old one and generate a new one.
     // ==========================================
     // 1. ATOMIC SIGN UP (Org + Profile + Sub)
@@ -63,35 +65,38 @@ public class OrganisationService {
             throw new IllegalStateException("Email already registered");
         }
 
-        Role role = roleRepo.findByName(RoleTypes.ORG_ADMIN.name()).orElseThrow(() -> new EntityNotFoundException("Role not found"));
+        // Get the generic role
+        Role role = roleRepo.findByName(RoleTypes.ORG_ADMIN.name())
+                .orElseThrow(() -> new EntityNotFoundException("Role not found"));
 
-            // 2. Create Core Organisation
         Organisation org = new Organisation();
         org.setEmail(request.getEmail());
         org.setPassword(passwordEncoder.encode(request.getPassword()));
         org.setRole(role);
-//        org.setSubscription(sub);
         // BaseEntity fields like createdAt are handled automatically or by default values
 
-        // 2.1. Assign Initial Subscription (Default to ID 1 or specific plan)
-        // TODO: Change this after testing
-        OrganisationSubscription sub = new OrganisationSubscription();
-
-        Long planId = request.getInitialPlanId() != null ? request.getInitialPlanId() : 1L;
-        SubscriptionPlan plan = planRepo.findById(planId)
+        // 2. Create Subscription
+        // Get the subscription plan
+        SubscriptionPlan plan = planRepo.findById(request.getInitialPlanId())
                 .orElseThrow(() -> new EntityNotFoundException("Plan not found"));
 
-        sub.setOrganisation(org);
-        sub.setSubscriptionPlan(plan);
+        // Create an initial subscription and set the subscription plan
+        OrganisationSubscription subscription = new OrganisationSubscription();
+        subscription.setSubscriptionPlan(plan);
+        subscription.getSubscriptionPlan().setPlan(plan.getPlan());
 
-        // TODO: Change to a switch if more plans get added
-        sub.setEndedAt(plan.getPlan().toString().equals(PlanTypes.MONTHLY.name()) ?
-                LocalDateTime.now().plusMonths(1) : LocalDateTime.now().plusMonths(12));
-
-        sub.setStatus(1); // Active
-        subRepo.save(sub);
+        // Set the end date based on the plan type
+       // TODO: Change to a switch if more plans get added
+       subscription.setEndedAt(plan.getPlan().toString().equals(PlanTypes.MONTHLY.name()) ?
+               LocalDateTime.now().plusMonths(1) : LocalDateTime.now().plusMonths(12));
 
         Organisation savedOrg = orgRepo.save(org);
+
+        subscription.setStatus(1);
+        subscription.setOrganisation(savedOrg);
+        org.setSubscription(subscription);
+
+        subRepo.save(subscription);
 
         // 3. Create Linked Profile (Shares PK)
         Profile profile = new Profile();
@@ -126,9 +131,6 @@ public class OrganisationService {
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(newUser, null, newUser.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
 
-        // Manually push to Redis
-        cacheService.setCache("user_details", org.getEmail(), newUser);
-
         return OrganisationResponse.builder()
                 .id(org.getId())
                 .email(org.getEmail())
@@ -146,10 +148,10 @@ public class OrganisationService {
                 .orgSignedUpDate(org.getCreatedAt())
                 .orgLastUpdated(org.getUpdatedAt())
                 .orgDeletedDate(org.getEndedAt())
-                .subscriptionStatus(true)
+                .subscriptionStatus(subscription.getStatus() == 1)
                 .subscriptionPlan(plan.getPlan().toString())
-                .subscriptionStartDate(sub.getCreatedAt())
-                .subscriptionEndDate(sub.getEndedAt())
+                .subscriptionStartDate(subscription.getCreatedAt())
+                .subscriptionEndDate(subscription.getEndedAt())
                 .build();
 
     }
@@ -160,10 +162,10 @@ public class OrganisationService {
     // TODO: Implement a function to update the OrganisationSubscription entity
     public void updateProfile(OrgDetailsRequest req) {
 
-        Long orgId = TenantContext.getCurrentTenant();
+        Long orgId = getTenantId();
 
         Organisation org = orgRepo.findById(orgId)
-                .orElseThrow(() -> new EntityNotFoundException("Organisation not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Organisation not found in the Tenant Context"));
 
         Profile profile = org.getProfile();
         OrgAddress address = org.getProfile().getAddress();
@@ -195,13 +197,7 @@ public class OrganisationService {
     @Transactional(readOnly = true)
     public OrganisationResponse getOrganisationDetails() {
 
-        Long orgId = TenantContext.getCurrentTenant();
-
-        log.info("Organisation ID: [{}]", orgId);
-
-        if (orgId == null) {
-            throw new IllegalStateException("No Organisation id found");
-        }
+        Long orgId = getTenantId();
 
         Organisation org = orgRepo.findById(orgId)
                 .orElseThrow(() -> new EntityNotFoundException("Organisation not found"));
@@ -209,16 +205,11 @@ public class OrganisationService {
         Profile profile = org.getProfile();
         log.info("Profile found: [{}]",profile);
 
-        OrgAddress address = profile != null ? org.getProfile().getAddress() : null;
+        OrgAddress address = org.getProfile().getAddress();
         log.info("Address found: [{}]",address);
 
-        OrganisationSubscription subscription = profile != null ? org.getSubscription() : null;
+        OrganisationSubscription subscription = org.getSubscription();
         log.info("Subscription found: [{}]",subscription);
-
-        // TODO: See why the subscription is not working in signup
-//    if (subscription == null) {
-//        throw new EntityNotFoundException("Organisation subscription not found");
-//    }
 
     return OrganisationResponse.builder()
             .id(org.getId())
@@ -237,16 +228,16 @@ public class OrganisationService {
             .orgSignedUpDate(org.getCreatedAt())
             .orgLastUpdated(org.getUpdatedAt())
             .orgDeletedDate(org.getEndedAt())
-//            .subscriptionStatus(true)
-//            .subscriptionPlan(subscription.getSubscriptionPlan().getPlan().toString())
-//            .subscriptionStartDate(subscription.getCreatedAt())
-//            .subscriptionEndDate(subscription.getEndedAt())
+            .subscriptionStatus(subscription.getStatus() == 1)
+            .subscriptionPlan(subscription.getSubscriptionPlan().getPlan().toString())
+            .subscriptionStartDate(subscription.getCreatedAt())
+            .subscriptionEndDate(subscription.getEndedAt())
             .build();
     }
 
     public void softDeleteOrg() {
 
-        Long orgId = TenantContext.getCurrentTenant();
+        Long orgId = getTenantId();
 
         Organisation org = orgRepo.findById(orgId)
                 .orElseThrow(() -> new EntityNotFoundException("Organisation not found"));
@@ -256,7 +247,7 @@ public class OrganisationService {
 
     public void revokeApiKey(Long keyId) {
 
-        Long orgId = TenantContext.getCurrentTenant();
+        Long orgId = getTenantId();
 
         ApiKey key = apiKeyRepo.findById(keyId)
                 .orElseThrow(() -> new EntityNotFoundException("Key not found"));
@@ -265,10 +256,17 @@ public class OrganisationService {
             throw new AccessDeniedException("Unauthorized access to API key");
         }
 
-        key.setEndedAt(LocalDateTime.now()); // Soft delete
-        apiKeyRepo.save(key);
+        apiKeyRepo.delete(key);
+    }
 
-        cacheService.evictApiKey(key.getPrefix());
+    private Long getTenantId() {
+        Long orgId = TenantContext.getCurrentTenant();
+
+        if (orgId == null) {
+            throw new IllegalStateException("No Organisation id found in the Tenant Context");
+        }
+
+        return orgId;
     }
 
 }
