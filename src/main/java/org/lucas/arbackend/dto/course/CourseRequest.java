@@ -4,12 +4,13 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
 import org.lucas.arbackend.entity.course.DifficultyTypes;
-import org.springframework.stereotype.Component;
+import org.lucas.arbackend.entity.course.Module;
 
 import java.util.List;
+import java.util.Set;
 
 @Data @Builder
-public class CourseCreateRequest {
+public class CourseRequest {
     @NotNull(message = "Course name is required")
     private String name;
 
@@ -25,6 +26,6 @@ public class CourseCreateRequest {
     private String imageUrl;
 
     @NotNull(message = "Course modules are required")
-    private List<ModuleRequest> modules;
+    private Set<Module> modules;
 }
 

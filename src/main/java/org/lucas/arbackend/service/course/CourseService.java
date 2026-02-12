@@ -16,7 +16,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -29,7 +28,7 @@ public class CourseService {
     private final CourseRepository courseRepo;
     private final OrganisationRepository orgRepo;
 
-    public CourseResponse createCourse(CourseCreateRequest request) {
+    public CourseResponse createCourse(CourseRequest request) {
 
         Long orgId = TenantContext.getCurrentTenant();
 
@@ -83,7 +82,7 @@ public class CourseService {
                 .map(this::mapToResponse);
     }
 
-    public CourseResponse updateCourse(Long courseId, CourseUpdateRequest request) {
+    public CourseResponse updateCourse(Long courseId, CourseRequest request) {
         Long orgId = TenantContext.getCurrentTenant();
 
         Course course = courseRepo.findByIdAndOrganisationIdAndEndedAtIsNull(courseId, orgId)

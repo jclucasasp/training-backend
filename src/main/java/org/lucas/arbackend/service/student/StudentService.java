@@ -4,7 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.lucas.arbackend.dto.student.EnrollmentResponse;
 import org.lucas.arbackend.dto.student.ProgressUpdateRequest;
-import org.lucas.arbackend.dto.student.StudentEnrollRequest;
+import org.lucas.arbackend.dto.student.StudentRequest;
 import org.lucas.arbackend.dto.student.StudentResponse;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.course.Course;
@@ -45,7 +45,7 @@ public class StudentService {
     // ==========================================
     // 1. ENROLLMENT LOGIC (UPSERT Student)
     // ==========================================
-    public EnrollmentResponse enrollStudent(Long orgId, StudentEnrollRequest request) {
+    public EnrollmentResponse enrollStudent(Long orgId, StudentRequest request) {
 
         // Verify Organisation
         Organisation org = orgRepo.findById(orgId)

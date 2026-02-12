@@ -2,7 +2,7 @@ package org.lucas.arbackend.service.staff;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.lucas.arbackend.dto.organisation.CreateStaffRequest;
+import org.lucas.arbackend.dto.organisation.StaffRequest;
 import org.lucas.arbackend.dto.organisation.StaffResponse;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.Organisation.Staff;
@@ -22,7 +22,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.annotation.Validated;
 
 @Service
 @Transactional
@@ -35,7 +34,7 @@ public class StaffService {
     private final PasswordEncoder passwordEncoder;
     private final CacheService cacheService;
 
-    public StaffResponse createStaff(@Validated CreateStaffRequest request) {
+    public StaffResponse createStaff(StaffRequest request) {
 
         Long orgId = getTenantId();
 
@@ -46,22 +45,22 @@ public class StaffService {
                 .orElseThrow(() -> new EntityNotFoundException("Invalid Role"));
 
         Staff staff = new Staff();
-        staff.setOrganisation(org);
+        staff.setFirstName(request.getFirstName());
+        staff.setLastName(request.getLastName());
+        staff.setContactNumber(request.getContactNumber());
         staff.setEmail(request.getEmail());
         staff.setPassword(passwordEncoder.encode(request.getPassword()));
         staff.setRole(role);
 
-        Staff saved = staffRepo.save(staff);
+        staff.setOrganisation(org);
+
+        Staff savedStaff = staffRepo.save(staff);
 
         CustomUserDetails newUser = new CustomUserDetails(org.getEmail(), "", org.getId(), org.getRole().getName());
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(newUser, null, newUser.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
 
-        return StaffResponse.builder()
-                .id(saved.getId())
-                .email(saved.getEmail())
-                .role(saved.getRole().getName())
-                .build();
+        return mapStaffToResponse(savedStaff);
     }
 
     public Page<StaffResponse> getAllStaff (Pageable pageable) {
@@ -70,14 +69,19 @@ public class StaffService {
         return staffRepo.findAllByOrganisationIdAndEndedAtIsNull(orgId, pageable)
                 .map(staff -> StaffResponse.builder()
                         .id(staff.getId())
+                        .firstName(staff.getFirstName())
+                        .lastName(staff.getLastName())
+                        .contactNumber(staff.getContactNumber())
                         .email(staff.getEmail())
                         .role(staff.getRole().getName())
+                        .createdAt(staff.getCreatedAt())
+                        .updatedAt(staff.getUpdatedAt())
                         .build()
                 );
     }
 
     @CachePut(value = "staff", key = "#result.email")
-    public StaffResponse updateStaff (Long staffId, CreateStaffRequest request) {
+    public StaffResponse updateStaff (Long staffId, StaffRequest request) {
         Long orgId = getTenantId();
 
         if (staffId == null) {
@@ -94,17 +98,16 @@ public class StaffService {
         Role role = roleRepo.findByName(request.getRole())
                 .orElseThrow(() -> new EntityNotFoundException("Invalid Role"));
 
+        staff.setFirstName(request.getFirstName().isBlank() ? staff.getFirstName() : request.getFirstName());
+        staff.setLastName(request.getLastName().isBlank() ? staff.getLastName() : request.getLastName());
+        staff.setContactNumber(request.getContactNumber().isBlank() ? staff.getContactNumber() : request.getContactNumber());
         staff.setEmail(request.getEmail().isBlank() ? staff.getEmail() : request.getEmail());
         staff.setPassword(request.getPassword().isBlank() ? staff.getPassword() : passwordEncoder.encode(request.getPassword()));
         staff.setRole(request.getRole().isBlank() ? staff.getRole() : role);
 
         staffRepo.save(staff);
 
-        return StaffResponse.builder()
-                .id(staff.getId())
-                .email(staff.getEmail())
-                .role(staff.getRole().getName())
-                .build();
+        return mapStaffToResponse(staff);
     }
 
     public void softDeleteStaff(Long staffId) {
@@ -119,6 +122,19 @@ public class StaffService {
         cacheService.evictStaff(staff.getEmail());
 
         staffRepo.delete(staff);
+    }
+
+    private StaffResponse mapStaffToResponse(Staff staff) {
+            return StaffResponse.builder()
+                .id(staff.getId())
+                .firstName(staff.getFirstName())
+                .lastName(staff.getLastName())
+                .contactNumber(staff.getContactNumber())
+                .email(staff.getEmail())
+                .role(staff.getRole().getName())
+                .createdAt(staff.getCreatedAt())
+                .updatedAt(staff.getUpdatedAt())
+                .build();
     }
 
     private Long getTenantId() {

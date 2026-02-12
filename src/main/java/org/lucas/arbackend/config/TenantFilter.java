@@ -81,7 +81,7 @@ public class TenantFilter extends OncePerRequestFilter {
                 log.info("Checking Security Context....");
                 Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-                if (auth != null) {
+                if (auth != null && auth.isAuthenticated()) {
 
                 log.info("Security context object {}", auth.getDetails());
                 log.info("Security context object type {}", auth.getPrincipal());
@@ -89,11 +89,10 @@ public class TenantFilter extends OncePerRequestFilter {
 
                 if (auth.getPrincipal() instanceof CustomUserDetails user) {
                     log.info("Setting tenant context to: {}", user.getOrgId());
-                    // TODO: Have to lookup the user in the DB to get the orgId
                     TenantContext.setCurrentTenant(user.getOrgId());
                 }
                 } else {
-                    log.error("No authentication found in Security Context");
+                    log.error("No authentication found in TenantFilter for request [{}] for auth [{}]", request.getRequestURI(), auth);
                 }
             }
             filterChain.doFilter(request, response);

@@ -3,7 +3,7 @@ package org.lucas.arbackend.service;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.lucas.arbackend.dto.organisation.OrgDetailsRequest;
+import org.lucas.arbackend.dto.organisation.OrganisationRequest;
 import org.lucas.arbackend.dto.organisation.OrganisationResponse;
 import org.lucas.arbackend.dto.security.ApiKeyResponse;
 import org.lucas.arbackend.entity.Organisation.OrgAddress;
@@ -48,7 +48,7 @@ public class OrganisationService {
     // ==========================================
     // 1. ATOMIC SIGN UP (Org + Profile + Sub)
     // ==========================================
-    public OrganisationResponse signup(OrgDetailsRequest request) {
+    public OrganisationResponse signup(OrganisationRequest request) {
         // 1. Validation & Role Lookup
         if (orgRepo.findByEmail(request.getEmail()).isPresent()) {
             throw new IllegalStateException("Email already registered");
@@ -110,7 +110,6 @@ public class OrganisationService {
             throw new RuntimeException("API Key could not be generated");
         }
 
-        // TODO: Implement this in the StaffService as well
         CustomUserDetails newUser = new CustomUserDetails(org.getEmail(), "", org.getId(), org.getRole().getName());
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(newUser, null, newUser.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
@@ -145,7 +144,7 @@ public class OrganisationService {
     // 2. PROFILE MANAGEMENT
     // ==========================================
     // TODO: Implement a function to update the OrganisationSubscription entity
-    public void updateProfile(OrgDetailsRequest req) {
+    public OrganisationResponse updateProfile(OrganisationRequest req) {
 
         Long orgId = getTenantId();
 
@@ -154,6 +153,7 @@ public class OrganisationService {
 
         Profile profile = org.getProfile();
         OrgAddress address = org.getProfile().getAddress();
+        OrganisationSubscription subscription = org.getSubscription();
 
         // Update the Organisation
         if (req.getEmail().isBlank()) org.setEmail(req.getEmail());
@@ -178,6 +178,8 @@ public class OrganisationService {
         // No need to call save() if @Transactional is active,
         // Hibernate dirty checking handles it, but explicit save is fine too.
         orgRepo.save(org);
+
+        return mapToOrganisationResponse(org, profile, address, subscription);
     }
 
     // This tells the database that it will just be a lookup which speed things up by not doing dirty checking or object snapshots, flushing
@@ -198,29 +200,7 @@ public class OrganisationService {
         OrganisationSubscription subscription = org.getSubscription();
         log.info("Subscription found: [{}]", subscription);
 
-        return OrganisationResponse.builder()
-                .id(org.getId())
-                .orgName(profile.getOrgName())
-                .firstName(org.getFirstName())
-                .lastName(org.getLastName())
-                .contactNumber(org.getContactNumber())
-                .email(org.getEmail())
-                .registrationNumber(profile.getRegistrationNumber())
-                .vatNumber(profile.getVatNumber())
-                .streetAddress(address.getStreet())
-                .suburb(address.getSuburb())
-                .city(address.getCity())
-                .state(address.getState())
-                .zip(address.getZip())
-                .apiKey(profile.getApiKey().getHashKey())
-                .orgSignedUpDate(org.getCreatedAt())
-                .orgLastUpdated(org.getUpdatedAt())
-                .orgDeletedDate(org.getEndedAt())
-                .subscriptionStatus(subscription.getStatus() == 1)
-                .subscriptionPlan(subscription.getSubscriptionPlan().getPlan().toString())
-                .subscriptionStartDate(subscription.getCreatedAt())
-                .subscriptionEndDate(subscription.getEndedAt())
-                .build();
+        return mapToOrganisationResponse(org, profile, address, subscription);
     }
 
     public void softDeleteOrg() {
@@ -245,6 +225,33 @@ public class OrganisationService {
         }
 
         apiKeyRepo.delete(key);
+    }
+
+    private OrganisationResponse mapToOrganisationResponse(Organisation org, Profile profile, OrgAddress address, OrganisationSubscription subscription) {
+       return OrganisationResponse.builder()
+                .id(org.getId())
+                .orgName(profile.getOrgName())
+                .firstName(org.getFirstName())
+                .lastName(org.getLastName())
+                .contactNumber(org.getContactNumber())
+                .email(org.getEmail())
+                .registrationNumber(profile.getRegistrationNumber())
+                .vatNumber(profile.getVatNumber())
+                .streetAddress(address.getStreet())
+                .suburb(address.getSuburb())
+                .city(address.getCity())
+                .state(address.getState())
+                .zip(address.getZip())
+                .apiKey(profile.getApiKey().getHashKey())
+                .orgSignedUpDate(org.getCreatedAt())
+                .orgLastUpdated(org.getUpdatedAt())
+                .orgDeletedDate(org.getEndedAt())
+                .subscriptionStatus(subscription.getStatus() == 1)
+                .subscriptionPlan(subscription.getSubscriptionPlan().getPlan().toString())
+                .subscriptionStartDate(subscription.getCreatedAt())
+                .subscriptionEndDate(subscription.getEndedAt())
+                .build();
+
     }
 
     private Long getTenantId() {

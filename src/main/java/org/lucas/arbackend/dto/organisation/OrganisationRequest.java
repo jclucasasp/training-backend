@@ -5,9 +5,9 @@ import lombok.Builder;
 import lombok.Data;
 
 @Data @Builder
-public class OrgDetailsRequest {
+public class OrganisationRequest {
+    @NotBlank
     @Email(message = "Must be a valid email address")
-    @NotNull(message = "Email address is required")
     private String email;
 
     // Organisation

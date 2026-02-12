@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 
 @Data @Builder
-public class AccessRequest {
+public class ApiKeyRequest {
     @NotNull (message = "Must include an API key for access")
     private String apiKey;
 

@@ -3,13 +3,9 @@ package org.lucas.arbackend.dto.student;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
-import org.springframework.stereotype.Component;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Data @Builder
-public class StudentEnrollRequest {
+public class StudentRequest {
 
     @NotNull(message = "Student number is required")
     private String studentNumber;
