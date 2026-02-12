@@ -15,8 +15,8 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "organisation_subscription")
-@SQLDelete(sql = "UPDATE organisation_subscription SET ended_at = CURRENT_TIMESTAMP WHERE os_org_id = ?")
-@SQLRestriction("ended_at IS NULL")
+//@SQLDelete(sql = "UPDATE organisation_subscription SET ended_at = CURRENT_TIMESTAMP WHERE os_org_id = ?")
+//@SQLRestriction("ended_at IS NULL")
 @EntityListeners(AuditingEntityListener.class)
 @Getter @Setter
 public class OrganisationSubscription extends BaseEntity {
@@ -34,13 +34,6 @@ public class OrganisationSubscription extends BaseEntity {
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "os_plan_id")
     private SubscriptionPlan subscriptionPlan;
-
-    @CreatedDate
-    @Column(name = "os_subscribed_at")
-    private LocalDateTime subscribedAt;
-
-    @Column(name = "os_expires_at")
-    private LocalDateTime expiresAt;
 
     @Column(name = "os_status")
     private Integer status;

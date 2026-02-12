@@ -59,6 +59,9 @@ public class OrganisationService {
 
         // 2. Create Organisation
         Organisation org = new Organisation();
+        org.setFirstName(request.getFirstName());
+        org.setLastName(request.getLastName());
+        org.setContactNumber(request.getContactNumber());
         org.setEmail(request.getEmail());
         org.setPassword(passwordEncoder.encode(request.getPassword()));
         org.setRole(role);
@@ -81,9 +84,6 @@ public class OrganisationService {
         profile.setOrgName(request.getOrgName());
         profile.setRegistrationNumber(request.getRegistrationNumber());
         profile.setVatNumber(request.getVatNumber());
-        profile.setContactPersonFirstName(request.getContactPersonFirstName());
-        profile.setContactPersonLastName(request.getContactPersonLastName());
-        profile.setContactNumber(request.getContactNumber());
 
         OrgAddress address = new OrgAddress();
         address.setStreet(request.getStreet());
@@ -119,11 +119,11 @@ public class OrganisationService {
                 .id(org.getId())
                 .email(org.getEmail())
                 .orgName(profile.getOrgName())
+                .firstName(org.getFirstName())
+                .lastName(org.getLastName())
+                .contactNumber(org.getContactNumber())
                 .registrationNumber(profile.getRegistrationNumber())
                 .vatNumber(profile.getVatNumber())
-                .contactPersonFirstName(profile.getContactPersonFirstName())
-                .contactPersonLastName(profile.getContactPersonLastName())
-                .contactNumber(profile.getContactNumber())
                 .streetAddress(address.getStreet())
                 .suburb(address.getSuburb())
                 .city(address.getCity())
@@ -135,8 +135,8 @@ public class OrganisationService {
                 .orgDeletedDate(org.getEndedAt())
                 .subscriptionStatus(subscription.getStatus() == 1)
                 .subscriptionPlan(plan.getPlan().toString())
-                .subscriptionStartDate(subscription.getSubscribedAt())
-                .subscriptionEndDate(subscription.getExpiresAt())
+                .subscriptionStartDate(subscription.getCreatedAt())
+                .subscriptionEndDate(subscription.getEndedAt())
                 .build();
 
     }
@@ -165,9 +165,10 @@ public class OrganisationService {
         if (req.getVatNumber().isBlank()) profile.setVatNumber(req.getVatNumber());
 
         // Update the Address
-        if (req.getContactNumber() != null) profile.setContactNumber(req.getContactNumber());
-        if (req.getContactPersonFirstName().isBlank()) profile.setContactPersonFirstName(req.getContactPersonFirstName());
-        if (req.getContactPersonLastName().isBlank()) profile.setContactPersonLastName(req.getContactPersonLastName());
+        if (req.getContactNumber() != null) org.setContactNumber(req.getContactNumber());
+        if (req.getFirstName().isBlank()) org.setFirstName(req.getFirstName());
+        if (req.getLastName().isBlank()) org.setLastName(req.getLastName());
+        if (req.getContactNumber() != null) org.setContactNumber(req.getContactNumber());
         if (req.getStreet().isBlank()) address.setStreet(req.getStreet());
         if (req.getSuburb().isBlank()) address.setSuburb(req.getSuburb());
         if (req.getCity().isBlank()) address.setCity(req.getCity());
@@ -199,13 +200,13 @@ public class OrganisationService {
 
         return OrganisationResponse.builder()
                 .id(org.getId())
-                .email(org.getEmail())
                 .orgName(profile.getOrgName())
+                .firstName(org.getFirstName())
+                .lastName(org.getLastName())
+                .contactNumber(org.getContactNumber())
+                .email(org.getEmail())
                 .registrationNumber(profile.getRegistrationNumber())
                 .vatNumber(profile.getVatNumber())
-                .contactPersonFirstName(profile.getContactPersonFirstName())
-                .contactPersonLastName(profile.getContactPersonLastName())
-                .contactNumber(profile.getContactNumber())
                 .streetAddress(address.getStreet())
                 .suburb(address.getSuburb())
                 .city(address.getCity())

@@ -14,7 +14,7 @@ public class OrganisationResponse {
 
     private String firstName;
     private String lastName;
-    private Integer contactNumber;
+    private String contactNumber;
     private String email;
 
     // Address
@@ -22,7 +22,7 @@ public class OrganisationResponse {
     private String suburb;
     private String city;
     private String state;
-    private Integer zip;
+    private String zip;
 
     private String apiKey;
     private LocalDateTime orgSignedUpDate;

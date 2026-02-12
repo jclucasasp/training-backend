@@ -11,11 +11,14 @@ import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.StaffRepository;
 import org.lucas.arbackend.repository.security.RoleRepository;
 import org.lucas.arbackend.service.CacheService;
+import org.lucas.arbackend.util.CustomUserDetails;
 import org.lucas.arbackend.util.TenantContext;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +35,6 @@ public class StaffService {
     private final PasswordEncoder passwordEncoder;
     private final CacheService cacheService;
 
-    @CachePut(value = "staff", key = "#target.email")
     public StaffResponse createStaff(@Validated CreateStaffRequest request) {
 
         Long orgId = getTenantId();
@@ -50,6 +52,10 @@ public class StaffService {
         staff.setRole(role);
 
         Staff saved = staffRepo.save(staff);
+
+        CustomUserDetails newUser = new CustomUserDetails(org.getEmail(), "", org.getId(), org.getRole().getName());
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(newUser, null, newUser.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
 
         return StaffResponse.builder()
                 .id(saved.getId())

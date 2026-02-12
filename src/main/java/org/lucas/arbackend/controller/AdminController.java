@@ -48,7 +48,7 @@ public class AdminController {
     })
 
     @PostMapping("/course/create")
-    public ResponseEntity<CourseResponse> createCourse(@RequestBody CourseCreateRequest request) {
+    public ResponseEntity<CourseResponse> createCourse(@Valid @RequestBody CourseCreateRequest request) {
         return ResponseEntity.ok(courseService.createCourse(request));
     }
 

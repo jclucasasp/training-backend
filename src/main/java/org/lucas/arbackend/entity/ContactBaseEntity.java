@@ -21,5 +21,5 @@ public abstract class ContactBaseEntity extends BaseEntity {
     private String email;
 
     @Column(name = "contact_number")
-    private Integer contactNumber;
+    private String contactNumber;
 }

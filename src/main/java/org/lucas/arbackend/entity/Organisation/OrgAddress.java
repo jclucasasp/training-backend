@@ -40,5 +40,5 @@ public class OrgAddress extends BaseEntity {
     private String state;
 
     @Column(name = "a_zip", nullable = false)
-    private Integer zip;
+    private String zip;
 }
