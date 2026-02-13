@@ -117,7 +117,7 @@ CREATE TABLE IF NOT EXISTS api_key (
                          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                          updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
                          ended_at DATETIME NULL,
-                         CONSTRAINT fk_api_key_profile FOREIGN KEY (ak_org_id) REFERENCES profile(p_org_id),
+                         CONSTRAINT fk_api_key_profile FOREIGN KEY (ak_org_id) REFERENCES organisation(org_id),
                          -- Fast lookup for auth filter
                          INDEX idx_api_auth (ak_key_hash, ended_at, ak_org_id),
                          INDEX idx_api_prefix (ak_prefix)

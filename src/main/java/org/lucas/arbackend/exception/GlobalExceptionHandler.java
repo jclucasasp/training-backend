@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,7 +30,7 @@ public class GlobalExceptionHandler {
         log.error("Entity Not Found Exception: ", ex);
 
         ErrorDetailsResponse response = ErrorDetailsResponse.builder()
-                .timeStamp(LocalDateTime.now())
+                .timeStamp(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS))
                 .message(ex.getMessage())
                 .details(request.getDescription(false))
                 .errorCode(HttpStatus.NOT_FOUND)
@@ -42,7 +43,7 @@ public class GlobalExceptionHandler {
         log.warn("Illegal Argument Exception: ", ex);
 
         ErrorDetailsResponse response = ErrorDetailsResponse.builder()
-                .timeStamp(LocalDateTime.now())
+                .timeStamp(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS))
                 .message(ex.getMessage())
                 .details(request.getDescription(false))
                 .errorCode(HttpStatus.BAD_REQUEST)
@@ -57,7 +58,7 @@ public class GlobalExceptionHandler {
         log.warn("Validation Exception: ", ex);
 
         ErrorDetailsResponse response = ErrorDetailsResponse.builder()
-                .timeStamp(LocalDateTime.now())
+                .timeStamp(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS))
                 .message(ex.getMessage())
                 .details(request.getDescription(false))
                 .errorCode(HttpStatus.UNPROCESSABLE_ENTITY)
@@ -73,7 +74,7 @@ public class GlobalExceptionHandler {
         log.error("Illegal State Exception: ", ex);
 
         ErrorDetailsResponse response = ErrorDetailsResponse.builder()
-                .timeStamp(LocalDateTime.now())
+                .timeStamp(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS))
                 .message(ex.getMessage())
                 .details(request.getDescription(false))
                 .errorCode(HttpStatus.FAILED_DEPENDENCY)
@@ -91,7 +92,7 @@ public class GlobalExceptionHandler {
                 });
 
         ErrorDetailsResponse response = ErrorDetailsResponse.builder()
-                .timeStamp(LocalDateTime.now())
+                .timeStamp(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS))
                 .message(errorsMap.toString())
                 .details(request.getDescription(false))
                 .errorCode(HttpStatus.NOT_ACCEPTABLE)
@@ -105,7 +106,7 @@ public class GlobalExceptionHandler {
         log.warn("Type Not Present Exception: ", ex);
 
         ErrorDetailsResponse response = ErrorDetailsResponse.builder()
-                .timeStamp(LocalDateTime.now())
+                .timeStamp(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS))
                 .message(ex.getMessage())
                 .details(request.getDescription(false))
                 .errorCode(HttpStatus.BAD_REQUEST)
@@ -119,7 +120,7 @@ public class GlobalExceptionHandler {
         log.warn("Access Denied Exception: ", ex);
 
         ErrorDetailsResponse response = ErrorDetailsResponse.builder()
-                .timeStamp(LocalDateTime.now())
+                .timeStamp(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS))
                 .message(ex.getMessage())
                 .details(request.getDescription(false))
                 .errorCode(HttpStatus.UNAUTHORIZED)
@@ -132,7 +133,7 @@ public class GlobalExceptionHandler {
         log.warn("Property Reference Exception: ", ex);
 
         ErrorDetailsResponse response = ErrorDetailsResponse.builder()
-                .timeStamp(LocalDateTime.now())
+                .timeStamp(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS))
                 .message(ex.getMessage())
                 .details(request.getDescription(false))
                 .errorCode(HttpStatus.BAD_REQUEST)
@@ -149,7 +150,7 @@ public class GlobalExceptionHandler {
         log.error("Database Integrity Violation Exception: ", ex);
 
         ErrorDetailsResponse response = ErrorDetailsResponse.builder()
-                .timeStamp(LocalDateTime.now())
+                .timeStamp(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS))
                 .message(ex.getMostSpecificCause().getMessage().concat(" Please contact support."))
                 .details(request.getDescription(false))
                 .errorCode(HttpStatus.CONFLICT)
@@ -163,7 +164,7 @@ public class GlobalExceptionHandler {
         log.error("Database Constraint Violation Exception: ", ex);
 
         ErrorDetailsResponse response = ErrorDetailsResponse.builder()
-                .timeStamp(LocalDateTime.now())
+                .timeStamp(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS))
                 .message(ex.getMessage())
                 .details(request.getDescription(false))
                 .errorCode(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -177,7 +178,7 @@ public class GlobalExceptionHandler {
         log.error("Database Access Exception: ", ex);
 
         ErrorDetailsResponse response = ErrorDetailsResponse.builder()
-                .timeStamp(LocalDateTime.now())
+                .timeStamp(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS))
                 .message("An unexpected error occurred. Our team has been notified. Please try again later.")
                 .details(request.getDescription(false))
                 .errorCode(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -190,7 +191,7 @@ public class GlobalExceptionHandler {
         log.error("Invalid Data Access Resource Usage Exception: ", ex);
 
         ErrorDetailsResponse response = ErrorDetailsResponse.builder()
-                .timeStamp(LocalDateTime.now())
+                .timeStamp(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS))
                 .message("An unexpected error occurred. Our team has been notified. Please try again later.")
                 .details(request.getDescription(false))
                 .errorCode(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -206,7 +207,7 @@ public class GlobalExceptionHandler {
         log.error("General Exception: ", ex);
 
         ErrorDetailsResponse response = ErrorDetailsResponse.builder()
-                .timeStamp(LocalDateTime.now())
+                .timeStamp(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS))
                 .message("An unexpected error occurred. Our team has been notified. Please try again later.")
                 .details(request.getDescription(false))
                 .errorCode(HttpStatus.INTERNAL_SERVER_ERROR)

@@ -2,6 +2,7 @@ package org.lucas.arbackend.config;
 
 import lombok.RequiredArgsConstructor;
 import org.lucas.arbackend.entity.security.RoleTypes;
+import org.lucas.arbackend.exception.CustomAuthenticationExceptionHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -22,11 +23,13 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class SecurityConfig {
 
     private final TenantFilter tenantFilter;
+    private final CustomAuthenticationExceptionHandler authEntryPointExceptionHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
+                .exceptionHandling(e -> e.authenticationEntryPoint(authEntryPointExceptionHandler))
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
                         // Organisation specific endpoints (Must be logged in)

@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.ContactBaseEntity;
+import org.lucas.arbackend.entity.security.ApiKey;
 import org.lucas.arbackend.entity.security.Role;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -18,7 +19,6 @@ attributeNodes = {
         @NamedSubgraph(name = "profile-subgraph",
                 attributeNodes = {
                         @NamedAttributeNode("address"),
-                        @NamedAttributeNode("apiKey")
                 }),
         @NamedSubgraph(name = "subscription",
                 attributeNodes = {
@@ -46,6 +46,9 @@ public class Organisation extends ContactBaseEntity {
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "org_role_id")
     private Role role;
+
+    @OneToOne(mappedBy = "organisation", cascade = CascadeType.ALL, orphanRemoval = true)
+    private ApiKey apiKey;
 
     @OneToOne(mappedBy = "organisation", cascade = CascadeType.ALL, orphanRemoval = true)
     private Profile profile;

@@ -20,7 +20,8 @@ import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.security.ApiKeyRepository;
 import org.lucas.arbackend.repository.security.RoleRepository;
 import org.lucas.arbackend.util.CustomUserDetails;
-import org.lucas.arbackend.util.TenantContext;
+import org.lucas.arbackend.util.TenantProvider;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -41,8 +42,10 @@ public class OrganisationService {
     private final ApiKeyRepository apiKeyRepo;
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepo;
+    private final TenantProvider tenantProvider;
 
     private final ApiKeyService apiKeyService;
+    private final CacheService cacheService;
 
     // TODO: Implement a check to make sure a company can not generate more then one API key. Implement a new method to be able to end the old one and generate a new one.
     // ==========================================
@@ -92,51 +95,30 @@ public class OrganisationService {
         address.setState(request.getState());
         address.setZip(request.getZip());
 
-        // CRITICAL: Link Address to Profile AND Profile to Org
-        address.setProfile(profile);
-        profile.setAddress(address); // Assuming Profile has cascade = CascadeType.ALL for address
-
-        profile.setOrganisation(org);
-        org.setProfile(profile);
-
-        // 5. THE SINGLE SAVE
-        // Persists Org, Subscription, Profile, and Address in one transaction
-        Organisation savedOrg = orgRepo.save(org);
-
-        // 6. Generate API Key
-        ApiKeyResponse apiKeyResponse = apiKeyService.generateKeyForOrg(savedOrg.getId());
+        ApiKey apiKey = new ApiKey();
+        ApiKeyResponse apiKeyResponse = apiKeyService.generateKeyForOrg(apiKey);
 
         if (apiKeyResponse.getRawKey().isBlank()) {
             throw new RuntimeException("API Key could not be generated");
         }
 
+        apiKey.setOrganisation(org);
+        address.setProfile(profile);
+        profile.setAddress(address); // Assuming Profile has cascade = CascadeType.ALL for address
+
+        profile.setOrganisation(org);
+        org.setProfile(profile);
+        org.setApiKey(apiKey);
+
+        // 5. THE SINGLE SAVE
+        // Persists Org, Subscription, Profile, and Address in one transaction
+        Organisation savedOrg = orgRepo.save(org);
+
         CustomUserDetails newUser = new CustomUserDetails(org.getEmail(), "", org.getId(), org.getRole().getName());
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(newUser, null, newUser.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
 
-        return OrganisationResponse.builder()
-                .id(org.getId())
-                .email(org.getEmail())
-                .orgName(profile.getOrgName())
-                .firstName(org.getFirstName())
-                .lastName(org.getLastName())
-                .contactNumber(org.getContactNumber())
-                .registrationNumber(profile.getRegistrationNumber())
-                .vatNumber(profile.getVatNumber())
-                .streetAddress(address.getStreet())
-                .suburb(address.getSuburb())
-                .city(address.getCity())
-                .state(address.getState())
-                .zip(address.getZip())
-                .apiKey(apiKeyResponse.getRawKey())
-                .orgSignedUpDate(org.getCreatedAt())
-                .orgLastUpdated(org.getUpdatedAt())
-                .orgDeletedDate(org.getEndedAt())
-                .subscriptionStatus(subscription.getStatus() == 1)
-                .subscriptionPlan(plan.getPlan().toString())
-                .subscriptionStartDate(subscription.getCreatedAt())
-                .subscriptionEndDate(subscription.getEndedAt())
-                .build();
+        return mapToOrganisationResponse(savedOrg);
 
     }
 
@@ -144,16 +126,13 @@ public class OrganisationService {
     // 2. PROFILE MANAGEMENT
     // ==========================================
     // TODO: Implement a function to update the OrganisationSubscription entity
+    @CachePut(value = "org_users", key = "#request.getEmail()")
     public OrganisationResponse updateProfile(OrganisationRequest req) {
 
-        Long orgId = getTenantId();
-
-        Organisation org = orgRepo.findById(orgId)
-                .orElseThrow(() -> new EntityNotFoundException("Organisation not found in the Tenant Context"));
+        Organisation org = tenantProvider.get();
 
         Profile profile = org.getProfile();
         OrgAddress address = org.getProfile().getAddress();
-        OrganisationSubscription subscription = org.getSubscription();
 
         // Update the Organisation
         if (req.getEmail().isBlank()) org.setEmail(req.getEmail());
@@ -179,89 +158,66 @@ public class OrganisationService {
         // Hibernate dirty checking handles it, but explicit save is fine too.
         orgRepo.save(org);
 
-        return mapToOrganisationResponse(org, profile, address, subscription);
+        return mapToOrganisationResponse(org);
     }
 
     // This tells the database that it will just be a lookup which speed things up by not doing dirty checking or object snapshots, flushing
     @Transactional(readOnly = true)
     public OrganisationResponse getOrganisationDetails() {
 
-        Long orgId = getTenantId();
-
-        Organisation org = orgRepo.findById(orgId)
-                .orElseThrow(() -> new EntityNotFoundException("Organisation not found"));
-
-        Profile profile = org.getProfile();
-        log.info("Profile found: [{}]", profile);
-
-        OrgAddress address = org.getProfile().getAddress();
-        log.info("Address found: [{}]", address);
-
-        OrganisationSubscription subscription = org.getSubscription();
-        log.info("Subscription found: [{}]", subscription);
-
-        return mapToOrganisationResponse(org, profile, address, subscription);
+        Organisation org = tenantProvider.get();
+        return mapToOrganisationResponse(org);
     }
 
     public void softDeleteOrg() {
 
-        Long orgId = getTenantId();
+        Organisation org = tenantProvider.get();
 
-        Organisation org = orgRepo.findById(orgId)
-                .orElseThrow(() -> new EntityNotFoundException("Organisation not found"));
-
+        cacheService.evictOrganisation(org.getEmail());
         orgRepo.delete(org);
     }
 
     public void revokeApiKey(Long keyId) {
 
-        Long orgId = getTenantId();
+        Organisation org = tenantProvider.get();
 
         ApiKey key = apiKeyRepo.findById(keyId)
                 .orElseThrow(() -> new EntityNotFoundException("Key not found"));
 
-        if (!key.getOrgId().equals(orgId)) {
+        if (!key.getOrgId().equals(org.getId())) {
             throw new AccessDeniedException("Unauthorized access to API key");
         }
 
+        cacheService.evictApiKey(key.getPrefix());
         apiKeyRepo.delete(key);
     }
 
-    private OrganisationResponse mapToOrganisationResponse(Organisation org, Profile profile, OrgAddress address, OrganisationSubscription subscription) {
-       return OrganisationResponse.builder()
+    private OrganisationResponse mapToOrganisationResponse(Organisation org) {
+
+        return OrganisationResponse.builder()
                 .id(org.getId())
-                .orgName(profile.getOrgName())
+                .orgName(org.getProfile().getOrgName())
                 .firstName(org.getFirstName())
                 .lastName(org.getLastName())
                 .contactNumber(org.getContactNumber())
                 .email(org.getEmail())
-                .registrationNumber(profile.getRegistrationNumber())
-                .vatNumber(profile.getVatNumber())
-                .streetAddress(address.getStreet())
-                .suburb(address.getSuburb())
-                .city(address.getCity())
-                .state(address.getState())
-                .zip(address.getZip())
-                .apiKey(profile.getApiKey().getHashKey())
-                .orgSignedUpDate(org.getCreatedAt())
-                .orgLastUpdated(org.getUpdatedAt())
-                .orgDeletedDate(org.getEndedAt())
-                .subscriptionStatus(subscription.getStatus() == 1)
-                .subscriptionPlan(subscription.getSubscriptionPlan().getPlan().toString())
-                .subscriptionStartDate(subscription.getCreatedAt())
-                .subscriptionEndDate(subscription.getEndedAt())
+                .registrationNumber(org.getProfile().getRegistrationNumber())
+                .vatNumber(org.getProfile().getVatNumber())
+                .streetAddress(org.getProfile().getAddress().getStreet())
+                .suburb(org.getProfile().getAddress().getSuburb())
+                .city(org.getProfile().getAddress().getCity())
+                .state(org.getProfile().getAddress().getState())
+                .zip(org.getProfile().getAddress().getZip())
+                .apiKey(org.getApiKey().getHashKey())
+                .createdAt(org.getCreatedAt())
+                .updatedAt(org.getUpdatedAt())
+                .endedAt(org.getEndedAt())
+                .subscriptionStatus(org.getSubscription().getStatus() == 1)
+                .subscriptionPlan(org.getSubscription().getSubscriptionPlan().getPlan().toString())
+                .subscriptionStartDate(org.getSubscription().getCreatedAt())
+                .subscriptionEndDate(org.getSubscription().getEndedAt())
                 .build();
 
-    }
-
-    private Long getTenantId() {
-        Long orgId = TenantContext.getCurrentTenant();
-
-        if (orgId == null) {
-            throw new IllegalStateException("No Organisation id found in the Tenant Context");
-        }
-
-        return orgId;
     }
 
 }

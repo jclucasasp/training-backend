@@ -10,6 +10,7 @@ import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.ProfileRepository;
 import org.lucas.arbackend.repository.security.ApiKeyRepository;
 import org.lucas.arbackend.util.TenantContext;
+import org.lucas.arbackend.util.TenantProvider;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,17 +23,11 @@ import java.util.UUID;
 public class ApiKeyService {
 
     private final ApiKeyRepository apiKeyRepo;
-    private final ProfileRepository profileRepo;
+    private final TenantProvider provider;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public ApiKeyResponse generateKeyForOrg(Long orgId) {
-
-//        Long orgId = TenantContext.getCurrentTenant();
-
-        // Check if the Organisation exists
-        Profile profile = profileRepo.findById(orgId)
-                .orElseThrow(() -> new EntityNotFoundException("Organisation Profile not found"));
+    public ApiKeyResponse generateKeyForOrg(ApiKey apiKey) {
 
         // Generate API Key
         String rawKey = "sk_" + UUID.randomUUID().toString().replace("-", "") + UUID.randomUUID().toString().replace("-", "");
@@ -41,12 +36,10 @@ public class ApiKeyService {
         String hashedKey = passwordEncoder.encode(rawKey);
 
         // 3. Save metadata + hash
-        ApiKey apiKey = new ApiKey();
-        apiKey.setProfile(profile);
         apiKey.setPrefix(rawKey.substring(0, 12));
         apiKey.setHashKey(hashedKey); // We never store the raw key
 
-        apiKeyRepo.save(apiKey);
+//        apiKeyRepo.save(apiKey);
 
         // 4. Return the RAW key to the user
         return ApiKeyResponse.builder()

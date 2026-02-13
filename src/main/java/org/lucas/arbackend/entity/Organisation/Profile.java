@@ -38,7 +38,4 @@ public class Profile extends BaseEntity {
     @OneToOne(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
     private OrgAddress address;
 
-    @OneToOne(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
-    private ApiKey apiKey;
-
 }
