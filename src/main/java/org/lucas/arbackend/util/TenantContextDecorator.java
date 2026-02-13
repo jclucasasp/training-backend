@@ -9,12 +9,12 @@ public class TenantContextDecorator implements TaskDecorator {
     @NonNull
     public Runnable decorate(@NonNull Runnable runnable) {
         // This comes from the current Web thread
-        Long tenantId = TenantContext.getCurrentTenant();
+        String tenantEmail = TenantContext.getCurrentTenant();
 
         return () -> {
             try {
                 // Pass on the tenantId to any new threads
-                TenantContext.setCurrentTenant(tenantId);
+                TenantContext.setCurrentTenant(tenantEmail);
                 runnable.run();
             } finally {
                 TenantContext.clear();

@@ -11,14 +11,12 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
-import org.lucas.arbackend.dto.security.ApiKeyResponse;
 import org.lucas.arbackend.dto.organisation.OrganisationRequest;
 import org.lucas.arbackend.dto.organisation.OrganisationResponse;
 import org.lucas.arbackend.exception.ErrorDetailsResponse; // Ensure this is imported
 import org.lucas.arbackend.service.ApiKeyService;
 import org.lucas.arbackend.service.OrganisationService;
 import org.lucas.arbackend.util.AccessLevelViews;
-import org.lucas.arbackend.util.TenantContext;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

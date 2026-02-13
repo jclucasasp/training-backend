@@ -13,12 +13,12 @@ public class TenantProvider {
     private final OrganisationRepository repository;
 
     public Organisation get() {
-        Long tenantId = TenantContext.getCurrentTenant();
+        String tenantEmail = TenantContext.getCurrentTenant();
 
-        if (tenantId == null) {
+        if (tenantEmail.isBlank()) {
             throw new IllegalStateException("No organisation id found in the Tenant Context");
         }
 
-        return repository.findById(tenantId).orElseThrow(() -> new EntityNotFoundException("No organisation found with id: " + tenantId));
+        return repository.findByEmail(tenantEmail).orElseThrow(() -> new EntityNotFoundException("No organisation found with id: " + tenantEmail));
     }
 }

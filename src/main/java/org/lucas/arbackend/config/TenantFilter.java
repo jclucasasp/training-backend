@@ -1,6 +1,5 @@
 package org.lucas.arbackend.config;
 
-import io.swagger.v3.oas.models.PathItem;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,8 +17,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -60,8 +57,8 @@ public class TenantFilter extends OncePerRequestFilter {
                 }
 
                 // Set the current tenant for this request
-                log.info("Using header to set tenant context to: {}", apiKey.getOrgId());
-                TenantContext.setCurrentTenant(apiKey.getOrgId());
+                log.info("Using header to set tenant context to: {}",  apiKey.getOrganisation().getEmail());
+                TenantContext.setCurrentTenant(apiKey.getOrganisation().getEmail());
 
                 CustomUserDetails studentPrincipal = new CustomUserDetails("API_KEY_".concat(apiKey.getPrefix()), "", apiKey.getOrgId(), RoleTypes.STUDENT.name());
                 // Manually authenticate the Student for this request
@@ -88,8 +85,8 @@ public class TenantFilter extends OncePerRequestFilter {
 
 
                 if (auth.getPrincipal() instanceof CustomUserDetails user) {
-                    log.info("Setting tenant context to: {}", user.getOrgId());
-                    TenantContext.setCurrentTenant(user.getOrgId());
+                    log.info("Setting tenant context to: {}", user.getEmail());
+                    TenantContext.setCurrentTenant(user.getEmail());
                 }
                 } else {
                     log.error("No authentication found in TenantFilter for request [{}] for auth [{}]", request.getRequestURI(), auth);
