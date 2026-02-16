@@ -6,7 +6,6 @@ import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.BaseEntity;
-import org.lucas.arbackend.entity.security.ApiKey;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity

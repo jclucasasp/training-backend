@@ -1,7 +1,8 @@
-package org.lucas.arbackend.entity;
+package org.lucas.arbackend.entity.Organisation;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.lucas.arbackend.entity.PlanTypes;
 
 @Entity
 @Table(name = "subscription_plan")

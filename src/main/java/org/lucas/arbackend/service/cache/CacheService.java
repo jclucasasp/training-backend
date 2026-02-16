@@ -1,4 +1,4 @@
-package org.lucas.arbackend.service;
+package org.lucas.arbackend.service.cache;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

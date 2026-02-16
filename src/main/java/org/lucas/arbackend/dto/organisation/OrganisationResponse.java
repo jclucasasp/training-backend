@@ -11,6 +11,8 @@ import java.time.LocalDateTime;
 public class OrganisationResponse {
 
     @JsonView(AccessLevelViews.Public.class)
+    private Long id;
+    @JsonView(AccessLevelViews.Public.class)
     private String orgName;
     @JsonView(AccessLevelViews.Public.class)
     private String registrationNumber;
@@ -41,10 +43,6 @@ public class OrganisationResponse {
     @JsonView(AccessLevelViews.Public.class)
     private String apiKey;
     @JsonView(AccessLevelViews.Public.class)
-    private LocalDateTime createdAt;
-    @JsonView(AccessLevelViews.Public.class)
-    private LocalDateTime updatedAt;
-    @JsonView(AccessLevelViews.Public.class)
     private String subscriptionPlan;
     @JsonView(AccessLevelViews.Public.class)
     private LocalDateTime subscriptionStartDate;
@@ -53,8 +51,11 @@ public class OrganisationResponse {
     @JsonView(AccessLevelViews.Public.class)
     private LocalDateTime subscriptionEndDate;
 
-    @JsonView(AccessLevelViews.Internal.class)
-    private Long id;
+    // Meta Data
+    @JsonView(AccessLevelViews.Public.class)
+    private LocalDateTime createdAt;
+    @JsonView(AccessLevelViews.Public.class)
+    private LocalDateTime updatedAt;
     @JsonView(AccessLevelViews.Internal.class)
     private LocalDateTime endedAt;
 }

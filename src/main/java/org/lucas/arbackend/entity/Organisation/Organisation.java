@@ -14,6 +14,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 attributeNodes = {
         @NamedAttributeNode(value = "profile"),
         @NamedAttributeNode(value = "subscription"),
+        @NamedAttributeNode(value = "apiKey"),
+        @NamedAttributeNode(value = "role"),
         @NamedAttributeNode(value = "profile", subgraph = "profile-subgraph")
 }, subgraphs = {
         @NamedSubgraph(name = "profile-subgraph",

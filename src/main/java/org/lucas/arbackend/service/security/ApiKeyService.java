@@ -1,15 +1,9 @@
-package org.lucas.arbackend.service;
+package org.lucas.arbackend.service.security;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.lucas.arbackend.dto.security.ApiKeyResponse;
-import org.lucas.arbackend.entity.Organisation.Organisation;
-import org.lucas.arbackend.entity.Organisation.Profile;
 import org.lucas.arbackend.entity.security.ApiKey;
-import org.lucas.arbackend.repository.organisation.OrganisationRepository;
-import org.lucas.arbackend.repository.organisation.ProfileRepository;
 import org.lucas.arbackend.repository.security.ApiKeyRepository;
-import org.lucas.arbackend.util.TenantContext;
 import org.lucas.arbackend.util.TenantProvider;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

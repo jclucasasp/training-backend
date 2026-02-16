@@ -2,10 +2,11 @@ package org.lucas.arbackend.dto.student;
 
 import lombok.Builder;
 import lombok.Data;
-import org.springframework.stereotype.Component;
+
+import java.io.Serializable;
 
 @Data @Builder
-public class StudentResponse {
+public class StudentResponse implements Serializable {
     private Long id;
     private String studentNumber;
     private String firstName;

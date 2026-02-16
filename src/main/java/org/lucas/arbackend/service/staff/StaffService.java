@@ -10,7 +10,7 @@ import org.lucas.arbackend.entity.security.Role;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.StaffRepository;
 import org.lucas.arbackend.repository.security.RoleRepository;
-import org.lucas.arbackend.service.CacheService;
+import org.lucas.arbackend.service.cache.CacheService;
 import org.lucas.arbackend.util.CustomUserDetails;
 import org.lucas.arbackend.util.TenantProvider;
 import org.springframework.cache.annotation.CachePut;

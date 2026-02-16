@@ -5,13 +5,8 @@ import jakarta.persistence.*;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.*;
 import org.lucas.arbackend.entity.BaseEntity;
-import org.lucas.arbackend.entity.SubscriptionPlan;
-import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "organisation_subscription")

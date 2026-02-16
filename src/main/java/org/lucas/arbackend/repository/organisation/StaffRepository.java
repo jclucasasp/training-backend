@@ -12,7 +12,6 @@ import java.util.Optional;
 
 @Repository
 public interface StaffRepository extends JpaRepository<Staff, Long> {
-    @Cacheable(value = "staff_users", key = "#email", unless = "#result == null")
     Optional<Staff> findByEmail(String email);
 
     Page<Staff> findByOrganisationId(Long orgId, Pageable pageable);

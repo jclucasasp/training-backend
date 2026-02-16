@@ -1,4 +1,4 @@
-package org.lucas.arbackend.service;
+package org.lucas.arbackend.service.organisation;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
@@ -11,14 +11,16 @@ import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.Organisation.OrganisationSubscription;
 import org.lucas.arbackend.entity.Organisation.Profile;
 import org.lucas.arbackend.entity.PlanTypes;
-import org.lucas.arbackend.entity.SubscriptionPlan;
+import org.lucas.arbackend.entity.Organisation.SubscriptionPlan;
 import org.lucas.arbackend.entity.security.ApiKey;
 import org.lucas.arbackend.entity.security.Role;
 import org.lucas.arbackend.entity.security.RoleTypes;
-import org.lucas.arbackend.repository.SubscriptionPlanRepository;
+import org.lucas.arbackend.repository.organisation.SubscriptionPlanRepository;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.security.ApiKeyRepository;
 import org.lucas.arbackend.repository.security.RoleRepository;
+import org.lucas.arbackend.service.security.ApiKeyService;
+import org.lucas.arbackend.service.cache.CacheService;
 import org.lucas.arbackend.util.CustomUserDetails;
 import org.lucas.arbackend.util.TenantProvider;
 import org.springframework.cache.annotation.CachePut;

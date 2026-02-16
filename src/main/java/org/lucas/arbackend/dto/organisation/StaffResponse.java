@@ -5,10 +5,11 @@ import lombok.Builder;
 import lombok.Data;
 import org.lucas.arbackend.util.AccessLevelViews;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data @Builder
-public class StaffResponse {
+public class StaffResponse implements Serializable {
 
     @JsonView(AccessLevelViews.Public.class)
     private Long id;
