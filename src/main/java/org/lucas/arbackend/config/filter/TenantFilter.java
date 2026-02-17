@@ -28,7 +28,7 @@ import java.nio.file.AccessDeniedException;
 @RequiredArgsConstructor
 public class TenantFilter extends OncePerRequestFilter {
 
-    private final ApiKeyRepository apiKeyRepo; // Ideally, move this logic to a cached Service
+    private final ApiKeyRepository apiKeyRepo;
     private final PasswordEncoder encoder;
 
     @Override
@@ -57,7 +57,6 @@ public class TenantFilter extends OncePerRequestFilter {
 
         String prefix = apiKeyHeader.substring(0, 12);
 
-        // This lookup should be cached in Redis for better performance!
         ApiKey apiKey = apiKeyRepo.findByPrefix(prefix)
                 .orElseThrow(() -> new BadRequestException("Invalid API Key"));
 

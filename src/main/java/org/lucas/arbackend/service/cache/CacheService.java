@@ -21,15 +21,8 @@ public class CacheService {
     }
 
     // Evict a specific user from the auth cache
-    public void evictStaff(String email) {
-        var cache = cacheManager.getCache("staff_users");
-        if (cache != null) {
-            cache.evict(email);
-        }
-    }
-
-    public void evictOrganisation(String email) {
-        var cache = cacheManager.getCache("org_users");
+    public void evictAuthUser(String email) {
+        var cache = cacheManager.getCache("auth_user");
         if (cache != null)
             cache.evict(email);
     }
@@ -42,11 +35,4 @@ public class CacheService {
         }
     }
 
-    public void setCache(String cacheName, String key, Object value) {
-        var cache = cacheManager.getCache(cacheName);
-        if (cache != null) {
-            log.info("Pre Caching new user in redis: [{}]", key);
-            cache.put(key, value);
-        }
-    }
 }

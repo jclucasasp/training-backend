@@ -175,7 +175,7 @@ public class OrganisationService {
 
         Organisation org = findOrganisation();
 
-        cacheService.evictOrganisation(org.getEmail());
+        cacheService.evictAuthUser(org.getEmail());
         orgRepo.delete(org);
     }
 

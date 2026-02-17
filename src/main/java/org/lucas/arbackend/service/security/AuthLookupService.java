@@ -19,7 +19,6 @@ public class AuthLookupService {
 
     @Cacheable(value = "auth_user", key = "#email", unless = "#result == null")
     public CacheDto getAuthCacheDto(String email) {
-        log.info("Checking database for user [{}]", email);
 
         return orgRepo.findByEmail(email)
                 .map(org ->

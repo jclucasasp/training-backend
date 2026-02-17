@@ -1,7 +1,6 @@
 package org.lucas.arbackend.util;
 
 import lombok.RequiredArgsConstructor;
-import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.springframework.stereotype.Component;
 
 @Component

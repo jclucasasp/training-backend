@@ -83,7 +83,7 @@ public class StaffService {
                 );
     }
 
-    @CachePut(value = "staff_user", key = "#result.email")
+    @CachePut(value = "auth_user", key = "#result.email")
     public StaffResponse updateStaff (Long staffId, StaffRequest request) {
         Organisation org = findOrganisation();
 
@@ -122,7 +122,7 @@ public class StaffService {
         if (!staff.getOrganisation().getId().equals(org.getId()))
             throw new AccessDeniedException("You are not allowed to delete this staff member");
 
-        cacheService.evictStaff(staff.getEmail());
+        cacheService.evictAuthUser(staff.getEmail());
 
         staffRepo.delete(staff);
     }

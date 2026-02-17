@@ -15,13 +15,11 @@ import org.lucas.arbackend.entity.student.StudentProgress;
 import org.lucas.arbackend.repository.course.CourseRepository;
 import org.lucas.arbackend.repository.course.SectionRepository;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
-import org.lucas.arbackend.repository.security.ApiKeyRepository;
 import org.lucas.arbackend.repository.student.StudentEnrollmentRepository;
 import org.lucas.arbackend.repository.student.StudentProgressRepository;
 import org.lucas.arbackend.repository.student.StudentRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,8 +37,6 @@ public class StudentService {
     private final OrganisationRepository orgRepo;
     private final CourseRepository courseRepo;
     private final SectionRepository sectionRepo;
-    private final ApiKeyRepository apiRepo;
-    private final PasswordEncoder passwordEncoder;
 
     // ==========================================
     // 1. ENROLLMENT LOGIC (UPSERT Student)

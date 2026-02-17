@@ -12,6 +12,6 @@ import java.util.Optional;
 @Repository
 public interface ApiKeyRepository extends JpaRepository<ApiKey, Long> {
 
-    @Cacheable(value = "api_keys", key = "#prefix", unless = "#result == null")
+    @Cacheable(value = "api_key", key = "#prefix", unless = "#result == null")
     Optional<ApiKey> findByPrefix(String prefix);
 }
