@@ -11,6 +11,7 @@ import java.io.Serializable;
 @Data @Builder
 @AllArgsConstructor @NoArgsConstructor
 public class CacheDto implements Serializable {
+
     @Serial
     private static final long serialVersionUID = 1L;
 

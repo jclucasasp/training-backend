@@ -2,13 +2,16 @@ package org.lucas.arbackend.dto.course;
 
 import lombok.Builder;
 import lombok.Data;
-import org.lucas.arbackend.entity.course.Module;
 
-import java.util.List;
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Set;
 
 @Data @Builder
-public class CourseResponse {
+public class CourseResponse implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
     private Long id;
     private String name;
     private String description;
