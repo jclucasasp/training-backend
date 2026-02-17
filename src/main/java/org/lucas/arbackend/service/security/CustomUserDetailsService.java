@@ -6,7 +6,6 @@ import org.lucas.arbackend.dto.CacheDto;
 import org.lucas.arbackend.util.CustomUserDetails;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Slf4j

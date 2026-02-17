@@ -1,6 +1,5 @@
 package org.lucas.arbackend.controller;
 
-import com.fasterxml.jackson.annotation.JsonView;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -16,7 +15,6 @@ import org.lucas.arbackend.dto.organisation.StaffResponse;
 import org.lucas.arbackend.exception.ErrorDetailsResponse;
 import org.lucas.arbackend.service.course.CourseService;
 import org.lucas.arbackend.service.staff.StaffService;
-import org.lucas.arbackend.util.AccessLevelViews;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -58,7 +56,7 @@ public class AdminController {
             @ApiResponse(responseCode = "403", description = "Forbidden: Insufficient permissions",
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
     })
     @PostMapping("/course/add")
     public ResponseEntity<CourseResponse> addCourse(@Valid @RequestBody CourseRequest request) {
@@ -76,7 +74,6 @@ public class AdminController {
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
     @GetMapping("/staff/all")
-    @JsonView(AccessLevelViews.Internal.class)
     public ResponseEntity<Page<StaffResponse>> getAllStaff(@RequestParam(defaultValue = "0") int page,
                                                            @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(staffService.getAllStaff(Pageable.ofSize(size).withPage(page)));

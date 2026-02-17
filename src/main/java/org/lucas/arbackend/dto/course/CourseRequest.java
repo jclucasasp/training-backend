@@ -6,7 +6,6 @@ import lombok.Data;
 import org.lucas.arbackend.entity.course.DifficultyTypes;
 import org.lucas.arbackend.entity.course.Module;
 
-import java.util.List;
 import java.util.Set;
 
 @Data @Builder

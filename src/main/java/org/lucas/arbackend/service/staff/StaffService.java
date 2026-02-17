@@ -2,12 +2,12 @@ package org.lucas.arbackend.service.staff;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.lucas.arbackend.dto.organisation.StaffRequest;
 import org.lucas.arbackend.dto.organisation.StaffResponse;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.Organisation.Staff;
 import org.lucas.arbackend.entity.security.Role;
-import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.StaffRepository;
 import org.lucas.arbackend.repository.security.RoleRepository;
 import org.lucas.arbackend.service.cache.CacheService;
@@ -24,6 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -31,12 +32,11 @@ public class StaffService {
 
     private final StaffRepository staffRepo;
     private final RoleRepository roleRepo;
-    private final OrganisationRepository orgRepo;
     private final PasswordEncoder passwordEncoder;
     private final CacheService cacheService;
     private final TenantProvider tenantProvider;
 
-    @Cacheable(value = "staff_users", key = "#request.getEmail()")
+    @Cacheable(value = "staff_user", key = "#request.getEmail()")
     public StaffResponse createStaff(StaffRequest request) {
 
         Organisation org = tenantProvider.get();
@@ -68,20 +68,20 @@ public class StaffService {
         Organisation org = tenantProvider.get();
 
         return staffRepo.findAllByOrganisationIdAndEndedAtIsNull(org.getId(), pageable)
-                .map(staff -> StaffResponse.builder()
-                        .id(staff.getId())
-                        .firstName(staff.getFirstName())
-                        .lastName(staff.getLastName())
-                        .contactNumber(staff.getContactNumber())
-                        .email(staff.getEmail())
-                        .role(staff.getRole().getName())
-                        .createdAt(staff.getCreatedAt())
-                        .updatedAt(staff.getUpdatedAt())
+                .map(s -> StaffResponse.builder()
+                        .id(s.getId())
+                        .firstName(s.getFirstName())
+                        .lastName(s.getLastName())
+                        .contactNumber(s.getContactNumber())
+                        .email(s.getEmail())
+                        .role(s.getRole().getName())
+                        .createdAt(s.getCreatedAt())
+                        .updatedAt(s.getUpdatedAt())
                         .build()
                 );
     }
 
-    @CachePut(value = "staff", key = "#result.email")
+    @CachePut(value = "staff_user", key = "#result.email")
     public StaffResponse updateStaff (Long staffId, StaffRequest request) {
         Organisation org = tenantProvider.get();
 

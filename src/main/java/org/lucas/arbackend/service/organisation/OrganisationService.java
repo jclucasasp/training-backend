@@ -128,7 +128,7 @@ public class OrganisationService {
     // 2. PROFILE MANAGEMENT
     // ==========================================
     // TODO: Implement a function to update the OrganisationSubscription entity
-    @CachePut(value = "org_users", key = "#request.getEmail()")
+    @CachePut(value = "org_user", key = "#request.getEmail()")
     public OrganisationResponse updateProfile(OrganisationRequest req) {
 
         Organisation org = tenantProvider.get();
