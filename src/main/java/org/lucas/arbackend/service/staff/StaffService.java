@@ -8,6 +8,7 @@ import org.lucas.arbackend.dto.organisation.StaffResponse;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.Organisation.Staff;
 import org.lucas.arbackend.entity.security.Role;
+import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.StaffRepository;
 import org.lucas.arbackend.repository.security.RoleRepository;
 import org.lucas.arbackend.service.cache.CacheService;
@@ -32,6 +33,7 @@ public class StaffService {
 
     private final StaffRepository staffRepo;
     private final RoleRepository roleRepo;
+    private final OrganisationRepository orgRepo;
     private final PasswordEncoder passwordEncoder;
     private final CacheService cacheService;
     private final TenantProvider tenantProvider;
@@ -39,7 +41,7 @@ public class StaffService {
     @Cacheable(value = "staff_user", key = "#request.getEmail()")
     public StaffResponse createStaff(StaffRequest request) {
 
-        Organisation org = tenantProvider.get();
+        Organisation org = findOrganisation();
 
         Role role = roleRepo.findByName(request.getRole())
                 .orElseThrow(() -> new EntityNotFoundException("Invalid Role"));
@@ -65,7 +67,7 @@ public class StaffService {
 
     public Page<StaffResponse> getAllStaff (Pageable pageable) {
 
-        Organisation org = tenantProvider.get();
+        Organisation org = findOrganisation();
 
         return staffRepo.findAllByOrganisationIdAndEndedAtIsNull(org.getId(), pageable)
                 .map(s -> StaffResponse.builder()
@@ -83,7 +85,7 @@ public class StaffService {
 
     @CachePut(value = "staff_user", key = "#result.email")
     public StaffResponse updateStaff (Long staffId, StaffRequest request) {
-        Organisation org = tenantProvider.get();
+        Organisation org = findOrganisation();
 
         if (staffId == null) {
                 throw new IllegalStateException("Must provide a valid organisation id and staff id");
@@ -112,7 +114,7 @@ public class StaffService {
     }
 
     public void softDeleteStaff(Long staffId) {
-        Organisation org = tenantProvider.get();
+        Organisation org = findOrganisation();
 
         Staff staff = staffRepo.findById(staffId)
                 .orElseThrow(() -> new EntityNotFoundException("Staff not found"));
@@ -136,6 +138,13 @@ public class StaffService {
                 .createdAt(staff.getCreatedAt())
                 .updatedAt(staff.getUpdatedAt())
                 .build();
+    }
+
+    private Organisation findOrganisation() {
+        Long orgId = tenantProvider.get();
+
+        return orgRepo.findById(tenantProvider.get())
+                .orElseThrow(() -> new EntityNotFoundException("No organisation found for tenant id: [" + orgId +"]"));
     }
 
 }

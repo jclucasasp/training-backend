@@ -13,7 +13,6 @@ import org.lucas.arbackend.entity.security.RoleTypes;
 import org.lucas.arbackend.repository.security.ApiKeyRepository;
 import org.lucas.arbackend.util.CustomUserDetails;
 import org.lucas.arbackend.util.TenantContext;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,99 +22,75 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 
+
 @Component
 @Slf4j
 @RequiredArgsConstructor
 public class TenantFilter extends OncePerRequestFilter {
 
-    private final ApiKeyRepository apiKeyRepo;
+    private final ApiKeyRepository apiKeyRepo; // Ideally, move this logic to a cached Service
     private final PasswordEncoder encoder;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
             throws ServletException, IOException {
 
-        log.info("Tenant Filter running for request: {} ", request.getRequestURI());
-
         String apiKeyHeader = request.getHeader("X-API-KEY");
 
         try {
-            // 1. Check for API KEY (Student / AR App)
-            if (apiKeyHeader != null && apiKeyHeader.length() > 12) {
-                log.info("X-API-KEY header found: {}", apiKeyHeader);
-
-                String prefix = apiKeyHeader.substring(0 , 12);
-                log.info("API Key prefix: {}", prefix);
-
-                // Lookup the API Key in the DB
-                ApiKey apiKey = apiKeyRepo.findByPrefix(prefix)
-                    .orElseThrow(() -> new BadRequestException("Invalid API Key"));
-
-                // Validate the API Key
-                if (!encoder.matches(apiKeyHeader, apiKey.getHashKey())) {
-                    throw new AccessDeniedException("Invalid API Key");
-                }
-
-                // Set the current tenant for this request
-                log.info("Using header to set tenant context to: {}",  apiKey.getOrganisation().getEmail());
-                TenantContext.setCurrentTenant(apiKey.getOrganisation().getEmail());
-
-                CustomUserDetails studentPrincipal = new CustomUserDetails("API_KEY_".concat(apiKey.getPrefix()), "", apiKey.getOrgId(), RoleTypes.STUDENT.name());
-                // Manually authenticate the Student for this request
-                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                        studentPrincipal, null, studentPrincipal.getAuthorities());
-
-                SecurityContextHolder.getContext().setAuthentication(auth);
-
-            }
-            else if (apiKeyHeader != null && apiKeyHeader.length() < 12) {
-                throw new BadRequestException("Malformed API Key");
+            if (apiKeyHeader != null) {
+                // PATH A: Student via API Key
+                handleApiKeyAuthentication(apiKeyHeader);
+            } else {
+                // PATH B: Staff/Org via Session (Already populated by Spring Session)
+                handleSessionAuthentication();
             }
 
-            // 2. Check for Org/Staff Authentication (Already logged in via Basic/JWT)
-            else  {
-
-                log.info("Checking Security Context....");
-                Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-                if (auth != null && auth.isAuthenticated()) {
-
-                log.info("Security context object {}", auth.getDetails());
-                log.info("Security context object type {}", auth.getPrincipal());
-
-
-                if (auth.getPrincipal() instanceof CustomUserDetails user) {
-                    log.info("Setting tenant context to: {}", user.getEmail());
-                    TenantContext.setCurrentTenant(user.getEmail());
-                }
-                } else {
-                    log.error("No authentication found in TenantFilter for request [{}] for auth [{}]", request.getRequestURI(), auth);
-                }
-            }
             filterChain.doFilter(request, response);
         } finally {
-            // CRITICAL: Always clear the context to prevent memory leaks or tenant bleeding
             TenantContext.clear();
         }
     }
 
+    private void handleApiKeyAuthentication(String apiKeyHeader) throws BadRequestException, AccessDeniedException {
+        if (apiKeyHeader.length() < 12) throw new BadRequestException("Malformed API Key");
+
+        String prefix = apiKeyHeader.substring(0, 12);
+
+        // This lookup should be cached in Redis for better performance!
+        ApiKey apiKey = apiKeyRepo.findByPrefix(prefix)
+                .orElseThrow(() -> new BadRequestException("Invalid API Key"));
+
+        if (!encoder.matches(apiKeyHeader, apiKey.getHashKey())) {
+            throw new AccessDeniedException("Invalid API Key");
+        }
+
+        Long orgId = apiKey.getOrganisation().getId();
+        TenantContext.setCurrentTenant(orgId);
+
+        // Manually set Student in SecurityContext so @PreAuthorize works
+        CustomUserDetails student = new CustomUserDetails("API_KEY_" + prefix, "", orgId, RoleTypes.STUDENT.name());
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(student, null, student.getAuthorities())
+        );
+    }
+
+    private void handleSessionAuthentication() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth != null && auth.getPrincipal() instanceof CustomUserDetails user) {
+            // Simply pull the ID from the already-loaded session in Redis
+            TenantContext.setCurrentTenant(user.getOrgId());
+        }
+    }
+
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+    protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        String method = request.getMethod();
-
-    // Skip docs and health checks
-    if (path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui") || path.startsWith("/api/v1/health")) {
-        return true;
+        return path.startsWith("/v3/api-docs") ||
+                path.startsWith("/swagger-ui") ||
+                path.startsWith("/api/v1/auth") ||
+                path.equals("/api/v1/organisations/signup");
     }
-
-    // ONLY skip the Filter for Organisation SIGNUP (POST)
-    // All other /organisations/** routes (GET details, PUT profile) NEED the filter to run
-    if (path.equals("/api/v1/organisations/signup") && method.equalsIgnoreCase(HttpMethod.POST.name())) {
-        return true;
-    }
-
-    return path.startsWith("/api/v1/auth");
-    }
-
 }
+

@@ -32,7 +32,7 @@ public class CourseService {
 
     public CourseResponse createCourse(CourseRequest request) {
 
-        Organisation org = tenantProvider.get();
+        Organisation org = findOrganisation();
 
         // Map DTO to Entity
         Course course = new Course();
@@ -75,14 +75,14 @@ public class CourseService {
 
     public Page<CourseResponse> getPaginatedCourses(Pageable pageable) {
 
-        Long orgId = tenantProvider.get().getId();
+        Long orgId = tenantProvider.get();
 
         return courseRepo.findAllByOrganisationIdAndEndedAtIsNull(orgId, pageable)
                 .map(this::mapToResponse);
     }
 
     public CourseResponse updateCourse(Long courseId, CourseRequest request) {
-        Long orgId = tenantProvider.get().getId();
+        Long orgId = tenantProvider.get();
 
         Course course = courseRepo.findByIdAndOrganisationIdAndEndedAtIsNull(courseId, orgId)
                 .orElseThrow(() -> new EntityNotFoundException("Course not found or does not belong to this organization"));
@@ -224,5 +224,12 @@ public class CourseService {
                         .build()).collect(Collectors.toSet()))
                 .tags(course.getTags())
                 .build();
+    }
+
+    private Organisation findOrganisation() {
+        Long orgId = tenantProvider.get();
+
+        return orgRepo.findById(tenantProvider.get())
+                .orElseThrow(() -> new EntityNotFoundException("No organisation found for tenant id: [" + orgId +"]"));
     }
 }

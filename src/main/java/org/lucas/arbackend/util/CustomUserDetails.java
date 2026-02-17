@@ -8,11 +8,13 @@ import java.util.List;
 
 @Getter
 public class CustomUserDetails extends User {
+    private final Long orgId;
     private final String email;
     private final String roleName;
 
     public CustomUserDetails(String email, String password, Long orgId, String roleName) {
         super(email, password, List.of(new SimpleGrantedAuthority(roleName)));
+        this.orgId = orgId;
         this.email = email;
         this.roleName = roleName;
     }

@@ -131,7 +131,7 @@ public class OrganisationService {
     @CachePut(value = "org_user", key = "#request.getEmail()")
     public OrganisationResponse updateProfile(OrganisationRequest req) {
 
-        Organisation org = tenantProvider.get();
+        Organisation org = findOrganisation();
 
         Profile profile = org.getProfile();
         OrgAddress address = org.getProfile().getAddress();
@@ -167,13 +167,13 @@ public class OrganisationService {
     @Transactional(readOnly = true)
     public OrganisationResponse getOrganisationDetails() {
 
-        Organisation org = tenantProvider.get();
+        Organisation org = findOrganisation();
         return mapToOrganisationResponse(org);
     }
 
     public void softDeleteOrg() {
 
-        Organisation org = tenantProvider.get();
+        Organisation org = findOrganisation();
 
         cacheService.evictOrganisation(org.getEmail());
         orgRepo.delete(org);
@@ -181,7 +181,7 @@ public class OrganisationService {
 
     public void revokeApiKey(Long keyId) {
 
-        Organisation org = tenantProvider.get();
+        Organisation org = findOrganisation();
 
         ApiKey key = apiKeyRepo.findById(keyId)
                 .orElseThrow(() -> new EntityNotFoundException("Key not found"));
@@ -220,6 +220,13 @@ public class OrganisationService {
                 .subscriptionEndDate(org.getSubscription().getEndedAt())
                 .build();
 
+    }
+
+    private Organisation findOrganisation() {
+        Long orgId = tenantProvider.get();
+
+        return orgRepo.findById(tenantProvider.get())
+                .orElseThrow(() -> new EntityNotFoundException("No organisation found for tenant id: [" + orgId +"]"));
     }
 
 }

@@ -27,28 +27,6 @@ public class CustomUserDetailsService implements UserDetailsService {
                 auth.getRoleName()
        );
 
-//        // 1. Try to find an Organisation Owner
-//        Optional<Organisation> org = orgRepo.findByEmail(email);
-//        if (org.isPresent()) {
-//            return new CustomUserDetails(
-//                    org.get().getEmail(),
-//                    org.get().getPassword(),
-//                    org.get().getId(),
-//                    RoleTypes.ORG_ADMIN.name()
-//                    );
-//        }
-//
-//        // 2. Try to find a Staff member
-//        Optional<Staff> staff = staffRepo.findByEmail(email);
-//        if (staff.isPresent()) {
-//            return new CustomUserDetails(
-//                    staff.get().getEmail(),
-//                    staff.get().getPassword(),
-//                    staff.get().getOrganisation().getId(),
-//                    staff.get().getRole().getName()
-//            );
-//        }
-
     }
 
 }
