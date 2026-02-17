@@ -1,4 +1,4 @@
-package org.lucas.arbackend.config;
+package org.lucas.arbackend.config.swagger;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;

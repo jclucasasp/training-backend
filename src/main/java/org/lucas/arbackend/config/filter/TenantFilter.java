@@ -1,4 +1,4 @@
-package org.lucas.arbackend.config;
+package org.lucas.arbackend.config.filter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

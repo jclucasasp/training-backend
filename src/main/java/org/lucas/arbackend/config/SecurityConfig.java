@@ -1,6 +1,7 @@
 package org.lucas.arbackend.config;
 
 import lombok.RequiredArgsConstructor;
+import org.lucas.arbackend.config.filter.TenantFilter;
 import org.lucas.arbackend.entity.security.RoleTypes;
 import org.lucas.arbackend.exception.CustomAuthenticationExceptionHandler;
 import org.springframework.context.annotation.Bean;

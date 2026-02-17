@@ -1,4 +1,4 @@
-package org.lucas.arbackend.config;
+package org.lucas.arbackend.config.redis;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
