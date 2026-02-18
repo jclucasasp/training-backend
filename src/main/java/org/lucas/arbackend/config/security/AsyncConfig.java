@@ -1,4 +1,4 @@
-package org.lucas.arbackend.config;
+package org.lucas.arbackend.config.security;
 
 import org.lucas.arbackend.util.TenantContextDecorator;
 import org.springframework.context.annotation.Bean;

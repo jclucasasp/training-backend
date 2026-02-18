@@ -37,6 +37,7 @@ public class Module extends BaseEntity {
     @JoinColumn(name = "m_course_id")
     private Course course;
 
+    @Builder.Default
     @OneToMany(mappedBy = "module",fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orderIndex ASC")
     private Set<Section> sections = new HashSet<>();

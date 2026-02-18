@@ -2,9 +2,12 @@ package org.lucas.arbackend.service.security;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.BadRequestException;
 import org.lucas.arbackend.dto.CacheDto;
+import org.lucas.arbackend.dto.security.ApiKeyResponse;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.StaffRepository;
+import org.lucas.arbackend.repository.security.ApiKeyRepository;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -16,6 +19,7 @@ public class AuthLookupService {
 
     private final OrganisationRepository orgRepo;
     private final StaffRepository staffRepo;
+    private final ApiKeyRepository apiKeyRepo;
 
     @Cacheable(value = "auth_user", key = "#email", unless = "#result == null")
     public CacheDto getAuthCacheDto(String email) {
@@ -45,5 +49,12 @@ public class AuthLookupService {
                                         staff.getOrganisation().getId()
                                 )).orElseThrow(() -> new UsernameNotFoundException("User not found: " + email)));
 
+    }
+
+    @Cacheable(value = "api_key", key = "#prefix", unless = "#result == null")
+    public ApiKeyResponse getApiKey(String prefix) throws BadRequestException {
+        return apiKeyRepo.findByPrefix(prefix)
+                .map(key -> new ApiKeyResponse(key.getOrgId(), null, key.getPrefix(), key.getHashKey(), key.getCreatedAt()))
+                .orElseThrow(() -> new BadRequestException("API Key not found: " + prefix));
     }
 }

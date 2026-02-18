@@ -52,6 +52,7 @@ public class Course extends BaseEntity {
     @JoinColumn(name = "c_org_id")
     private Organisation organisation;
 
+    @Builder.Default
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Module> modules = new HashSet<>();
 }

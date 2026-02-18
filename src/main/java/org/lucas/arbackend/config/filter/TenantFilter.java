@@ -8,9 +8,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
 import org.jspecify.annotations.NonNull;
-import org.lucas.arbackend.entity.security.ApiKey;
+import org.lucas.arbackend.dto.security.ApiKeyResponse;
 import org.lucas.arbackend.entity.security.RoleTypes;
-import org.lucas.arbackend.repository.security.ApiKeyRepository;
+import org.lucas.arbackend.service.security.AuthLookupService;
 import org.lucas.arbackend.util.CustomUserDetails;
 import org.lucas.arbackend.util.TenantContext;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -28,7 +28,7 @@ import java.nio.file.AccessDeniedException;
 @RequiredArgsConstructor
 public class TenantFilter extends OncePerRequestFilter {
 
-    private final ApiKeyRepository apiKeyRepo;
+    private final AuthLookupService authLookupService;
     private final PasswordEncoder encoder;
 
     @Override
@@ -57,14 +57,13 @@ public class TenantFilter extends OncePerRequestFilter {
 
         String prefix = apiKeyHeader.substring(0, 12);
 
-        ApiKey apiKey = apiKeyRepo.findByPrefix(prefix)
-                .orElseThrow(() -> new BadRequestException("Invalid API Key"));
+        ApiKeyResponse apiKey = authLookupService.getApiKey(prefix);
 
-        if (!encoder.matches(apiKeyHeader, apiKey.getHashKey())) {
+        if (!encoder.matches(apiKeyHeader, apiKey.hashedKey())) {
             throw new AccessDeniedException("Invalid API Key");
         }
 
-        Long orgId = apiKey.getOrganisation().getId();
+        Long orgId = apiKey.orgId();
         TenantContext.setCurrentTenant(orgId);
 
         // Manually set Student in SecurityContext so @PreAuthorize works
@@ -75,6 +74,7 @@ public class TenantFilter extends OncePerRequestFilter {
     }
 
     private void handleSessionAuthentication() {
+        // Gets it from Redis Session
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         if (auth != null && auth.getPrincipal() instanceof CustomUserDetails user) {

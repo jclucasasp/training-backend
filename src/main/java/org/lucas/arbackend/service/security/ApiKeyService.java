@@ -3,8 +3,6 @@ package org.lucas.arbackend.service.security;
 import lombok.RequiredArgsConstructor;
 import org.lucas.arbackend.dto.security.ApiKeyResponse;
 import org.lucas.arbackend.entity.security.ApiKey;
-import org.lucas.arbackend.repository.security.ApiKeyRepository;
-import org.lucas.arbackend.util.TenantProvider;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,8 +14,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ApiKeyService {
 
-    private final ApiKeyRepository apiKeyRepo;
-    private final TenantProvider provider;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional

@@ -100,7 +100,7 @@ public class OrganisationService {
         ApiKey apiKey = new ApiKey();
         ApiKeyResponse apiKeyResponse = apiKeyService.generateKeyForOrg(apiKey);
 
-        if (apiKeyResponse.getRawKey().isBlank()) {
+        if (apiKeyResponse.rawKey().isBlank()) {
             throw new RuntimeException("API Key could not be generated");
         }
 
@@ -137,23 +137,23 @@ public class OrganisationService {
         OrgAddress address = org.getProfile().getAddress();
 
         // Update the Organisation
-        if (req.getEmail().isBlank()) org.setEmail(req.getEmail());
-        if (req.getPassword().isBlank()) org.setPassword(passwordEncoder.encode(req.getPassword()));
+        if (!req.getEmail().isBlank()) org.setEmail(req.getEmail());
+        if (!req.getPassword().isBlank()) org.setPassword(passwordEncoder.encode(req.getPassword()));
 
         // Update the Profile
-        if (req.getOrgName().isBlank()) profile.setOrgName(req.getOrgName());
-        if (req.getRegistrationNumber().isBlank()) profile.setRegistrationNumber(req.getRegistrationNumber());
-        if (req.getVatNumber().isBlank()) profile.setVatNumber(req.getVatNumber());
+        if (!req.getOrgName().isBlank()) profile.setOrgName(req.getOrgName());
+        if (!req.getRegistrationNumber().isBlank()) profile.setRegistrationNumber(req.getRegistrationNumber());
+        if (!req.getVatNumber().isBlank()) profile.setVatNumber(req.getVatNumber());
 
         // Update the Address
         if (req.getContactNumber() != null) org.setContactNumber(req.getContactNumber());
-        if (req.getFirstName().isBlank()) org.setFirstName(req.getFirstName());
-        if (req.getLastName().isBlank()) org.setLastName(req.getLastName());
+        if (!req.getFirstName().isBlank()) org.setFirstName(req.getFirstName());
+        if (!req.getLastName().isBlank()) org.setLastName(req.getLastName());
         if (req.getContactNumber() != null) org.setContactNumber(req.getContactNumber());
-        if (req.getStreet().isBlank()) address.setStreet(req.getStreet());
-        if (req.getSuburb().isBlank()) address.setSuburb(req.getSuburb());
-        if (req.getCity().isBlank()) address.setCity(req.getCity());
-        if (req.getState().isBlank()) address.setState(req.getState());
+        if (!req.getStreet().isBlank()) address.setStreet(req.getStreet());
+        if (!req.getSuburb().isBlank()) address.setSuburb(req.getSuburb());
+        if (!req.getCity().isBlank()) address.setCity(req.getCity());
+        if (!req.getState().isBlank()) address.setState(req.getState());
         if (req.getZip() != null) address.setZip(req.getZip());
 
         // No need to call save() if @Transactional is active,

@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Configuration;
         info = @Info(
                 contact = @Contact(
                         name = "Lucas",
-                        email = "contact@example.com",
+                        email = "jclucasasp@gmail.com",
                         url = "https://your-website.com"
                 ),
                 description = "OpenAPI documentation for the Multi-Tenant AR Backend",
@@ -35,12 +35,13 @@ import org.springframework.context.annotation.Configuration;
 )
 @SecurityScheme(
         name = "X-API-KEY",
-        description = "API auth description",
+        description = "API auth description for students",
         type = SecuritySchemeType.APIKEY,
         in = SecuritySchemeIn.HEADER
 )
 @SecurityScheme(
         name = "BasicAuth",
+        description = "Normal login session for staff members",
         type = SecuritySchemeType.HTTP,
         scheme = "basic"
 )

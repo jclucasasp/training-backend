@@ -32,7 +32,7 @@ public class StudentEnrollment extends BaseEntity {
 
     @CreatedDate
     @Column(name = "se_enrolled_at", updatable = false)
-    private LocalDateTime enrolledAt = LocalDateTime.now();
+    private final LocalDateTime enrolledAt = LocalDateTime.now();
 
     @Column(name = "se_completed_at")
     private LocalDateTime completedAt;

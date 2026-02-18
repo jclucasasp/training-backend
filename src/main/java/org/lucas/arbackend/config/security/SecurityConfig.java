@@ -1,4 +1,4 @@
-package org.lucas.arbackend.config;
+package org.lucas.arbackend.config.security;
 
 import lombok.RequiredArgsConstructor;
 import org.lucas.arbackend.config.filter.TenantFilter;
@@ -39,8 +39,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/organisations/api-keys").hasAuthority(RoleTypes.ORG_ADMIN.name())
 
                         // Admin & Staff Endpoints (Must be logged in)
+                        .requestMatchers("/api/v1/admin/staff/update")
+                        .hasAnyAuthority(RoleTypes.ORG_ADMIN.name(), RoleTypes.COURSE_EDITOR.name(), RoleTypes.SUPPORT.name())
                         .requestMatchers("/api/v1/admin/staff/**").hasAuthority(RoleTypes.ORG_ADMIN.name())
-                        .requestMatchers("/api/v1/admin/course/**").hasAnyAuthority(RoleTypes.ORG_ADMIN.name(), RoleTypes.COURSE_EDITOR.name())
+                        .requestMatchers("/api/v1/admin/course/**")
+                        .hasAnyAuthority(RoleTypes.ORG_ADMIN.name(), RoleTypes.COURSE_EDITOR.name())
                         // Student Endpoints (Must have API Key via Filter)
                         .requestMatchers("/api/v1/courses/**").hasAnyAuthority(RoleTypes.ORG_ADMIN.name(), RoleTypes.COURSE_EDITOR.name(), RoleTypes.SUPPORT.name(), RoleTypes.STUDENT.name())
 
