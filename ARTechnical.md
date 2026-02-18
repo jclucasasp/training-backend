@@ -69,7 +69,7 @@ This document defines the scope, architecture, data model, and implementation bl
 | `api_key` | Stores partner credentials | `id`, `key`, `secret`, `partner_id`, `scopes`, `status`, `created_at`, `expires_at` |
 | `partner` | Represents an e‑learning provider | `id`, `name`, `email`, `org`, `status` |
 | `course` | High‑level learning path | `id`, `partner_id`, `title`, `description`, `status`, `created_at` |
-| `module` | Sub‑division of a course | `id`, `course_id`, `title`, `order`, `description` |
+| `courseChapter` | Sub‑division of a course | `id`, `course_id`, `title`, `order`, `description` |
 | `asset` | 3D/VR/AR model, video, image | `id`, `module_id`, `type`, `url`, `metadata_json`, `created_at` |
 | `user` | End‑user of the platform | `id`, `email`, `first_name`, `last_name`, `role` |
 | `enrollment` | Links users to courses | `id`, `user_id`, `course_id`, `progress`, `completed_at` |
@@ -79,8 +79,8 @@ This document defines the scope, architecture, data model, and implementation bl
 ```
 partner 1 --- * api_key
 partner 1 --- * course
-course 1 --- * module
-module 1 --- * asset
+course 1 --- * courseChapter
+courseChapter 1 --- * asset
 user 1 --- * enrollment
 course 1 --- * enrollment
 ```
@@ -123,8 +123,8 @@ CREATE TABLE course (
   FOREIGN KEY (partner_id) REFERENCES partner(id)
 ) ENGINE=InnoDB;
 
--- modules
-CREATE TABLE module (
+-- courseModules
+CREATE TABLE courseChapter (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   course_id BIGINT UNSIGNED NOT NULL,
   title VARCHAR(255) NOT NULL,
@@ -142,7 +142,7 @@ CREATE TABLE asset (
   url VARCHAR(512) NOT NULL,
   metadata_json JSON,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (module_id) REFERENCES module(id)
+  FOREIGN KEY (module_id) REFERENCES courseChapter(id)
 ) ENGINE=InnoDB;
 
 -- users
@@ -174,7 +174,7 @@ CREATE TABLE enrollment (
 |-------|---------|
 | `api_key` | `(partner_id)`, `(status)`, `(expires_at)` |
 | `course` | `(partner_id)`, `(status)`, `(created_at)` |
-| `module` | `(course_id)`, `(order)` |
+| `courseChapter` | `(course_id)`, `(order)` |
 | `asset` | `(module_id)`, `(type)` |
 | `enrollment` | `(user_id)`, `(course_id)`, `(completed_at)` |
 
@@ -187,7 +187,7 @@ Use MariaDB InnoDB compression for `asset.metadata_json` if storage grows.
 | Data | Cache Key | TTL | Use‑Case |
 |------|-----------|-----|----------|
 | Course & Module lists per partner | `partner:{id}:courses` | 12 h | Quick discovery |
-| Asset list for a module | `module:{id}:assets` | 6 h | AR scene build |
+| Asset list for a courseChapter | `courseChapter:{id}:assets` | 6 h | AR scene build |
 | JWT token revocation list | `jwt:{jti}` | token expiry | Prevent replay |
 | Rate‑limit counters per API key | `rl:{key}` | 1 min | Throttle requests |
 
@@ -220,7 +220,7 @@ JWT claims:
 | PUT | `/courses/{id}` | Update course | Partner |
 | DELETE | `/courses/{id}` | Delete course | Partner |
 | GET | `/courses/{id}/modules` | List modules | Partner |
-| POST | `/courses/{id}/modules` | Add module | Partner |
+| POST | `/courses/{id}/modules` | Add courseChapter | Partner |
 | ... | ... | ... | ... |
 
 All responses use HAL+JSON (`Link` headers) for discoverability.

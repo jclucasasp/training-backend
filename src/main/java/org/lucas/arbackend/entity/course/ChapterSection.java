@@ -5,19 +5,17 @@ import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.BaseEntity;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
+import java.util.Set;
 
 @Entity
-@Table(name = "section")
-@SQLDelete(sql = "UPDATE section SET ended_at = CURRENT_TIMESTAMP WHERE s_id = ?")
+@Table(name = "chapter_section")
+@SQLDelete(sql = "UPDATE chapterSection SET ended_at = CURRENT_TIMESTAMP WHERE s_id = ?")
 @SQLRestriction("ended_at IS NULL")
 @EntityListeners(AuditingEntityListener.class)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-public class Section extends BaseEntity {
+public class ChapterSection extends BaseEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "s_id")
     private Long id;
@@ -45,5 +43,5 @@ public class Section extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "s_module_id")
-    private Module module;
+    private Set<CourseChapter> courseChapter;
 }

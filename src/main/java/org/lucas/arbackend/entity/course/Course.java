@@ -14,12 +14,12 @@ import java.util.Set;
 @Entity
 @NamedEntityGraph(name = "Course.withModulesAndSections",
         attributeNodes = {
-        @NamedAttributeNode("modules"),
-        @NamedAttributeNode(value = "modules", subgraph = "sections")
+        @NamedAttributeNode("courseModules"),
+        @NamedAttributeNode(value = "courseModules", subgraph = "chapterSections")
 },
-subgraphs = { @NamedSubgraph(name = "sections",
+subgraphs = { @NamedSubgraph(name = "chapterSections",
         attributeNodes = {
-        @NamedAttributeNode("sections")
+        @NamedAttributeNode("chapterSections")
 })
 })
 @Table(name = "course")
@@ -54,5 +54,5 @@ public class Course extends BaseEntity {
 
     @Builder.Default
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Module> modules = new HashSet<>();
+    private Set<CourseChapter> courseChapters = new HashSet<>();
 }

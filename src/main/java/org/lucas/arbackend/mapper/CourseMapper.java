@@ -1,10 +1,11 @@
 package org.lucas.arbackend.mapper;
 
+import org.lucas.arbackend.dto.course.CourseChapterRequest;
 import org.lucas.arbackend.dto.course.CourseRequest;
-import org.lucas.arbackend.dto.course.ModuleRequest;
-import org.lucas.arbackend.dto.course.SectionRequest;
+import org.lucas.arbackend.dto.course.CourseResponse;
+import org.lucas.arbackend.dto.course.ChapterSectionRequest;
 import org.lucas.arbackend.entity.course.Course;
-import org.lucas.arbackend.entity.course.Section;
+import org.lucas.arbackend.entity.course.CourseChapter;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
@@ -14,8 +15,10 @@ public interface CourseMapper {
 
      void updateCourse(CourseRequest dto, @MappingTarget Course entity);
 
-    // MapStruct will automatically look for this if CourseRequest has a List<ModuleRequest>
-    void updateModule(ModuleRequest dto, @MappingTarget Module entity);
+    // MapStruct will automatically look for this if CourseRequest has a List<CourseChapterRequest>
+    void updateChapter(CourseChapterRequest dto, @MappingTarget CourseChapter entity);
 
-    void updateSection(SectionRequest dto, @MappingTarget Section entity);
+    void updateChapterSection(ChapterSectionRequest dto, @MappingTarget org.lucas.arbackend.entity.course.ChapterSection entity);
+
+    CourseResponse maptoCourseResponse(Course course);
 }

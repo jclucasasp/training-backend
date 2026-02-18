@@ -8,7 +8,7 @@ import java.io.Serializable;
 import java.util.Set;
 
 @Data @Builder
-public class ModuleResponse implements Serializable {
+public class CourseChapterResponse implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -17,5 +17,5 @@ public class ModuleResponse implements Serializable {
     private String name;
     private String description;
 
-    private Set<SectionResponse> sections;
+    private Set<ChapterSectionResponse> sections;
 }

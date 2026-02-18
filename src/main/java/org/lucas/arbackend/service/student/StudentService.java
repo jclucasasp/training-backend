@@ -8,7 +8,7 @@ import org.lucas.arbackend.dto.student.StudentRequest;
 import org.lucas.arbackend.dto.student.StudentResponse;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.course.Course;
-import org.lucas.arbackend.entity.course.Section;
+import org.lucas.arbackend.entity.course.ChapterSection;
 import org.lucas.arbackend.entity.student.Student;
 import org.lucas.arbackend.entity.student.StudentEnrollment;
 import org.lucas.arbackend.entity.student.StudentProgress;
@@ -85,19 +85,19 @@ public class StudentService {
         StudentEnrollment enrollment = enrollmentRepo.findById(request.getEnrollmentId())
                 .orElseThrow(() -> new EntityNotFoundException("Enrollment not found"));
 
-        Section section = sectionRepo.findById(request.getSectionId())
-                .orElseThrow(() -> new EntityNotFoundException("Section not found"));
+        ChapterSection chapterSection = sectionRepo.findById(request.getSectionId())
+                .orElseThrow(() -> new EntityNotFoundException("ChapterSectionRequest not found"));
 
-        // Check if progress entry already exists for this section, otherwise create new
+        // Check if progress entry already exists for this chapterSection, otherwise create new
         StudentProgress progress = progressRepo.findByEnrollmentIdAndSectionId(request.getEnrollmentId(), request.getSectionId())
                 .orElseGet(() -> {
                     StudentProgress newProgress = new StudentProgress();
                     newProgress.setEnrollment(enrollment);
-                    newProgress.setSection(section);
+                    newProgress.setChapterSection(chapterSection);
                     return newProgress;
                 });
 
-        // TODO: Implement check on section completion and calculate the progress percentage
+        // TODO: Implement check on chapterSection completion and calculate the progress percentage
 //        progress.setPercentage(request.getPercentage());
 //        progressRepo.save(progress);
 //
@@ -108,7 +108,7 @@ public class StudentService {
     }
 
     private void checkAndMarkCompletion(StudentEnrollment enrollment) {
-        // Logic to compare total sections in course vs sections completed in progress table
+        // Logic to compare total chapterSections in course vs chapterSections completed in progress table
         // Update enrollment.setCompletedAt(LocalDateTime.now()) if finished
     }
 

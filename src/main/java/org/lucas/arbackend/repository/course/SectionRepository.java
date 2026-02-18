@@ -1,15 +1,14 @@
 package org.lucas.arbackend.repository.course;
 
-import org.lucas.arbackend.entity.course.Section;
+import org.lucas.arbackend.entity.course.ChapterSection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Set;
 
 @Repository
-public interface SectionRepository extends JpaRepository<Section, Long> {
+public interface SectionRepository extends JpaRepository<ChapterSection, Long> {
 
-    // Quickly find sections for a module, ordered by index
-    Set<Section> findByModuleIdOrderByOrderIndexAsc(Long moduleId);
+    // Quickly find chapterSections for a courseModule, ordered by index
+    Set<ChapterSection> findByModuleIdOrderByOrderIndexAsc(Long moduleId);
 }

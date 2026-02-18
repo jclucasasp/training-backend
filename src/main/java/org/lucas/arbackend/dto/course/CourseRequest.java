@@ -4,7 +4,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
 import org.lucas.arbackend.entity.course.DifficultyTypes;
-import org.lucas.arbackend.entity.course.Module;
 
 import java.util.Set;
 
@@ -24,7 +23,7 @@ public class CourseRequest {
 
     private String imageUrl;
 
-    @NotNull(message = "Course modules are required")
-    private Set<Module> modules;
+    @NotNull(message = "Course courseModules are required")
+    private Set<CourseChapterRequest> modules;
 }
 

@@ -5,12 +5,8 @@ import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.BaseEntity;
-import org.lucas.arbackend.entity.course.Module;
-import org.lucas.arbackend.entity.course.Section;
-import org.springframework.data.annotation.LastModifiedDate;
+import org.lucas.arbackend.entity.course.ChapterSection;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "student_progress")
@@ -29,7 +25,7 @@ public class StudentProgress extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sp_section_id")
-    private Section section;
+    private ChapterSection chapterSection;
 
     @Column(name = "sp_percentage")
     private Double percentage;

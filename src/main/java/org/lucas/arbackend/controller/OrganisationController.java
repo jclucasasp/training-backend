@@ -74,7 +74,6 @@ public class OrganisationController {
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
     @PutMapping("/update")
-//    @JsonView(AccessLevelViews.Public.class)
     public ResponseEntity<OrganisationResponse> updateProfile(@Validated(ValidatedLabel.OnUpdate.class) @RequestBody OrganisationRequest request) {
         OrganisationResponse response = orgService.updateProfile(request);
         return ResponseEntity.ok(response);

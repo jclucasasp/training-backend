@@ -13,7 +13,7 @@ SELECT
     sec.s_description AS section_title,
     sp.sp_percentage AS progress_percentage,
     sp.sp_updated_at AS last_activity,
-    -- Simple logic to check if a section is "passed"
+    -- Simple logic to check if a chapterSection is "passed"
     CASE
         WHEN sp.sp_percentage >= 100 THEN 'COMPLETED'
         WHEN sp.sp_percentage > 0 THEN 'IN_PROGRESS'

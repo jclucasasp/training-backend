@@ -26,7 +26,7 @@ CREATE TABLE role (
 -- Insert default roles
 INSERT INTO role (r_name, r_description) VALUES
 ('ORG_ADMIN', 'Full control over the organisation'),
-('COURSE_EDITOR', 'Can manage courses and modules but not billing'),
+('COURSE_EDITOR', 'Can manage courses and courseModules but not billing'),
 ('SUPPORT', 'Can view student progress but not edit content'),
 ('STUDENT', 'Can view courses and update progress');
 
@@ -143,8 +143,8 @@ CREATE TABLE IF NOT EXISTS course (
                         INDEX idx_course_status (ended_at, c_id)
 ) ENGINE=InnoDB;
 
--- Enforcing 1 Module per Course via UNIQUE constraint
-CREATE TABLE IF NOT EXISTS module (
+-- Enforcing 1 CourseModule per Course via UNIQUE constraint
+CREATE TABLE IF NOT EXISTS courseChapter (
                         m_id BIGINT AUTO_INCREMENT PRIMARY KEY,
                         m_course_id BIGINT
                             NOT NULL,
@@ -154,12 +154,12 @@ CREATE TABLE IF NOT EXISTS module (
                         updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
                         ended_at DATETIME NULL,
                         CONSTRAINT fk_module_course FOREIGN KEY (m_course_id) REFERENCES course(c_id),
-                        -- Index for Course -> Module join
+                        -- Index for Course -> CourseModule join
                         INDEX idx_module_course_fk (m_course_id),
                         INDEX idx_module_status (ended_at, m_id)
 ) ENGINE=InnoDB;
 
-CREATE TABLE IF NOT EXISTS section (
+CREATE TABLE IF NOT EXISTS chapterSection (
                          s_id BIGINT AUTO_INCREMENT PRIMARY KEY,
                          s_module_id BIGINT NOT NULL,
                          s_title VARCHAR(255) NOT NULL,
@@ -172,8 +172,8 @@ CREATE TABLE IF NOT EXISTS section (
                          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                          updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
                          ended_at DATETIME NULL,
-                         CONSTRAINT fk_section_module FOREIGN KEY (s_module_id) REFERENCES module(m_id),
-                         -- Index for fetching sections in order
+                         CONSTRAINT fk_section_module FOREIGN KEY (s_module_id) REFERENCES courseChapter(m_id),
+                         -- Index for fetching chapterSectionRequests in order
                          INDEX idx_section_order (s_module_id, s_order_index),
                          INDEX idx_section_status (ended_at, s_id)
 ) ENGINE=InnoDB;
@@ -218,5 +218,5 @@ CREATE TABLE IF NOT EXISTS student_progress (
                                   updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
                                   ended_at DATETIME NULL,
                                   CONSTRAINT fk_sp_enrollment FOREIGN KEY (sp_student_enrollment_id) REFERENCES student_enrollment(se_id),
-                                  CONSTRAINT fk_sp_section FOREIGN KEY (sp_section_id) REFERENCES section(s_id)
+                                  CONSTRAINT fk_sp_section FOREIGN KEY (sp_section_id) REFERENCES chapterSection(s_id)
 ) ENGINE=InnoDB;

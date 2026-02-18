@@ -14,7 +14,7 @@ import java.util.Optional;
 public interface StudentProgressRepository extends JpaRepository<StudentProgress, Long> {
     // Optimized: Calculate course completion % in a single DB call
     @Query("""
-        SELECT (COUNT(sp) * 100.0 / NULLIF((SELECT COUNT(s) FROM Section s WHERE s.module.course.id = :courseId), 0))
+        SELECT (COUNT(sp) * 100.0 / NULLIF((SELECT COUNT(s) FROM Section s WHERE s.courseChapter.course.id = :courseId), 0))
         FROM StudentProgress sp
         WHERE sp.enrollment.id = :enrollmentId AND sp.percentage = 100
     """)

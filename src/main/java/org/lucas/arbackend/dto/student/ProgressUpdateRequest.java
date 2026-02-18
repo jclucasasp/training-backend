@@ -10,6 +10,6 @@ public class ProgressUpdateRequest {
     @NotNull(message = "Enrollment Id is required")
     private Long enrollmentId;
 
-    @NotNull(message = "Section Id is required")
+    @NotNull(message = "ChapterSectionRequest Id is required")
     private Long sectionId;
 }
