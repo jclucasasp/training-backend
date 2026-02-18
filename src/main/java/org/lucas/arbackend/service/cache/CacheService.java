@@ -12,6 +12,12 @@ public class CacheService {
 
     private final CacheManager cacheManager;
 
+    public void updateCache(String cacheName, String key, Object value) {
+        var cache = cacheManager.getCache(cacheName);
+        if (cache != null)
+            cache.put(key, value);
+    }
+
     // Evict a specific org from the subscription cache
     public void evictSubscription(Long orgId) {
         var cache = cacheManager.getCache("active_subscriptions");

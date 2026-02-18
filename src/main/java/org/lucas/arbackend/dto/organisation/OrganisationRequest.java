@@ -3,40 +3,41 @@ package org.lucas.arbackend.dto.organisation;
 import jakarta.validation.constraints.*;
 import lombok.Builder;
 import lombok.Data;
+import org.lucas.arbackend.util.ValidatedLabel;
 
 @Data @Builder
 public class OrganisationRequest {
-    @NotBlank
+    @NotBlank(groups = ValidatedLabel.OnCreate.class)
     @Email(message = "Must be a valid email address")
     private String email;
 
     // Organisation
-    @NotBlank
+    @NotBlank(groups = ValidatedLabel.OnCreate.class)
     @Size(min = 8, max = 20, message = "Password must be between 8 and 20 characters long")
     private String password;
 
-    @NotBlank
+    @NotBlank(groups = ValidatedLabel.OnCreate.class)
     @Size(min = 3, max = 50, message = "Organisation name must be between 3 and 50 characters long")
     private String orgName;
 
     // Profile
-    @NotBlank
+    @NotBlank(groups = ValidatedLabel.OnCreate.class)
     @Pattern(
             regexp = "^\\d{4}/\\d{1,6}/\\d{2}$",
     message = "Registration number must follow the format YYYY/NNNNNN/SS"
     )
     private String registrationNumber;
 
-    @NotBlank
+    @NotBlank(groups = ValidatedLabel.OnCreate.class)
     @Pattern(regexp = "^4\\d{9}$",
             message = "VAT number must be a valid 10-digit number starting with 4")
     private String vatNumber;
 
-    @NotBlank
+    @NotBlank(groups = ValidatedLabel.OnCreate.class)
     @Size(min = 3, max = 20, message = "Contact person firstname must be between 3 and 20 characters long")
     private String firstName;
 
-    @NotBlank
+    @NotBlank(groups = ValidatedLabel.OnCreate.class)
     @Size(min = 3, max = 20, message = "Contact person firstname must be between 3 and 20 characters long")
     private String lastName;
 
@@ -52,23 +53,23 @@ public class OrganisationRequest {
     message = "Invalid South African mobile number. Use 07x/08x... or +277x/278x...")
     private String contactNumber;
 
-    @NotBlank
+    @NotBlank(groups = ValidatedLabel.OnCreate.class)
     @Size(min = 3, max = 50, message = "Street name must be between 3 and 50 characters long")
     private String street;
 
-    @NotBlank
+    @NotBlank(groups = ValidatedLabel.OnCreate.class)
     @Size(min = 3, max = 50, message = "Suburb name must be between 3 and 50 characters long")
     private String suburb;
 
-    @NotBlank
+    @NotBlank(groups = ValidatedLabel.OnCreate.class)
     @Size(min = 3, max = 50, message = "City/Town name must be between 3 and 20 characters long")
     private String city;
 
-    @NotBlank
+    @NotBlank(groups = ValidatedLabel.OnCreate.class)
     @Size(min = 3, max = 20, message = "State/Region name must be between 3 and 20 characters long")
     private String state;
 
-    @NotBlank
+    @NotBlank(groups = ValidatedLabel.OnCreate.class)
     @Pattern(regexp = "^[0-9]{4}$", message = "Zip code must be 4 characters long")
     private String zip;
 

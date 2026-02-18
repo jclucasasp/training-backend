@@ -7,17 +7,17 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 import org.lucas.arbackend.dto.organisation.OrganisationRequest;
 import org.lucas.arbackend.dto.organisation.OrganisationResponse;
 import org.lucas.arbackend.exception.ErrorDetailsResponse; // Ensure this is imported
-import org.lucas.arbackend.service.security.ApiKeyService;
 import org.lucas.arbackend.service.organisation.OrganisationService;
 import org.lucas.arbackend.util.AccessLevelViews;
+import org.lucas.arbackend.util.ValidatedLabel;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -28,7 +28,6 @@ import org.springframework.web.bind.annotation.*;
 public class OrganisationController {
 
     private final OrganisationService orgService;
-    private final ApiKeyService apiKeyService;
 
     @Operation(summary = "Create a new organisation", description = "Performs an atomic signup: Creates the Org, Profile, and initial Subscription Plan.")
     @ApiResponses(value = {
@@ -42,7 +41,7 @@ public class OrganisationController {
     })
     @PostMapping("/signup")
     @JsonView(AccessLevelViews.Public.class)
-    public ResponseEntity<OrganisationResponse> signup(@Valid @RequestBody OrganisationRequest request) {
+    public ResponseEntity<OrganisationResponse> signup(@Validated(ValidatedLabel.OnCreate.class) @RequestBody OrganisationRequest request) {
         return ResponseEntity.ok(orgService.signup(request));
     }
 
@@ -76,7 +75,7 @@ public class OrganisationController {
     })
     @PutMapping("/update")
 //    @JsonView(AccessLevelViews.Public.class)
-    public ResponseEntity<OrganisationResponse> updateProfile(@Valid @RequestBody OrganisationRequest request) {
+    public ResponseEntity<OrganisationResponse> updateProfile(@Validated(ValidatedLabel.OnUpdate.class) @RequestBody OrganisationRequest request) {
         OrganisationResponse response = orgService.updateProfile(request);
         return ResponseEntity.ok(response);
     }
