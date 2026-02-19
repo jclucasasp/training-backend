@@ -3,9 +3,6 @@ package org.lucas.arbackend.dto.course;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
-import org.lucas.arbackend.entity.course.CourseChapter;
-
-import java.util.Set;
 
 @Data @Builder
 public class ChapterSectionRequest {

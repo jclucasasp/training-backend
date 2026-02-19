@@ -12,19 +12,19 @@ import org.lucas.arbackend.entity.PlanTypes;
 public class SubscriptionPlan {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "sp_id")
+    @Column(name = "sup_id")
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "sp_plan")
+    @Column(name = "sup_plan")
     private PlanTypes plan;
 
-    @Column(name = "sp_price")
+    @Column(name = "sup_price")
     private Double price;
 
-    @Column(name = "sp_course_limit")
+    @Column(name = "sup_course_limit")
     private Integer courseLimit;
 
-    @Column(name = "sp_is_active")
+    @Column(name = "sup_is_active")
     private Integer isActive;
 }

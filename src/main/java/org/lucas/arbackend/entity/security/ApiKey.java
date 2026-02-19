@@ -7,30 +7,29 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.BaseEntity;
 import org.lucas.arbackend.entity.Organisation.Organisation;
-import org.lucas.arbackend.entity.Organisation.Profile;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "api_key")
-@SQLDelete(sql = "UPDATE api_key SET ended_at = CURRENT_TIMESTAMP WHERE ak_org_id = ?")
+@SQLDelete(sql = "UPDATE api_key SET ended_at = CURRENT_TIMESTAMP WHERE apk_org_id = ?")
 @SQLRestriction("ended_at IS NULL")
 @EntityListeners(AuditingEntityListener.class)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class ApiKey extends BaseEntity {
     @Id
-    @Column(name = "ak_org_id")
+    @Column(name = "apk_org_id")
     private Long orgId;
 
     @OneToOne(fetch = FetchType.EAGER)
     @MapsId // Ensures ApiKey ID is the same as Organisation ID
-    @JoinColumn(name = "ak_org_id")
+    @JoinColumn(name = "apk_org_id")
     @JsonIgnore
     private Organisation organisation;
 
-    @Column(name = "ak_prefix", nullable = false, length = 12)
+    @Column(name = "apk_prefix", nullable = false, length = 12)
     private String prefix;
 
     @JsonIgnore
-    @Column(name = "ak_key_hash", unique = true, nullable = false)
+    @Column(name = "apk_key_hash", unique = true, nullable = false)
     private String hashKey;
 }

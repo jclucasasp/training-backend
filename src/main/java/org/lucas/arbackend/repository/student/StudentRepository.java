@@ -1,5 +1,6 @@
 package org.lucas.arbackend.repository.student;
 
+import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.student.Student;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,4 +21,5 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     // Fast lookup for student sign-in/redirect
     Optional<Student> findByOrganisationIdAndStudentNumber(Long orgId, String studentNumber);
 
+    Optional<Student> findByOrganisationAndStudentNumber(Organisation org, String studentNumber);
 }

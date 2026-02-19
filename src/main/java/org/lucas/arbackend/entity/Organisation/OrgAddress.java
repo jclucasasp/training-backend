@@ -12,33 +12,33 @@ import org.lucas.arbackend.entity.BaseEntity;
 
 @Entity
 @Table(name = "address")
-@SQLDelete(sql = "UPDATE address SET ended_at = CURRENT_TIMESTAMP WHERE a_org_id = ?")
+@SQLDelete(sql = "UPDATE address SET ended_at = CURRENT_TIMESTAMP WHERE adr_org_id = ?")
 @SQLRestriction("ended_at IS NULL")
 @Getter @Setter @AllArgsConstructor @NoArgsConstructor
 public class OrgAddress extends BaseEntity {
 
     @Id
-    @Column(name = "a_org_id")
+    @Column(name = "adr_org_id")
     private Long orgId;
 
     @OneToOne(fetch = FetchType.EAGER)
     @MapsId
-    @JoinColumn(name = "a_org_id")
+    @JoinColumn(name = "adr_org_id")
     @JsonIgnore
     private Profile profile;
 
-    @Column(name = "a_street", nullable = false)
+    @Column(name = "adr_street", nullable = false)
     private String street;
 
-    @Column(name = "a_suburb")
+    @Column(name = "adr_suburb")
     private String suburb;
 
-    @Column(name = "a_city", nullable = false)
+    @Column(name = "adr_city", nullable = false)
     private String city;
 
-    @Column(name = "a_state", nullable = false)
+    @Column(name = "adr_state", nullable = false)
     private String state;
 
-    @Column(name = "a_zip", nullable = false)
+    @Column(name = "adr_zip", nullable = false)
     private String zip;
 }

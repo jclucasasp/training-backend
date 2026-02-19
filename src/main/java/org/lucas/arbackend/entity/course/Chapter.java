@@ -11,28 +11,28 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "course_chapter")
-@SQLDelete(sql = "UPDATE courseModule SET ended_at = CURRENT_TIMESTAMP WHERE m_id = ?")
+@Table(name = "chapter")
+@SQLDelete(sql = "UPDATE chapter SET ended_at = CURRENT_TIMESTAMP WHERE cha_id = ?")
 @SQLRestriction("ended_at IS NULL")
 @EntityListeners(AuditingEntityListener.class)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-public class CourseChapter extends BaseEntity {
+public class Chapter extends BaseEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "m_id")
+    @Column(name = "cha_id")
     private Long id;
 
-    @Column(name = "m_name", nullable = false)
+    @Column(name = "cha_name", nullable = false)
     private String name;
 
-    @Column(name = "m_description")
+    @Column(name = "cha_description")
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "m_course_id")
+    @JoinColumn(name = "cha_course_id")
     private Course course;
 
     @Builder.Default
-    @OneToMany(mappedBy = "courseChapter",fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "chapter",fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orderIndex ASC")
     private Set<ChapterSection> chapterSections = new HashSet<>();
 }

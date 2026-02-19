@@ -8,25 +8,35 @@ import org.lucas.arbackend.entity.BaseEntity;
 import org.lucas.arbackend.entity.course.ChapterSection;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "student_progress")
-@SQLDelete(sql = "UPDATE student_progress SET ended_at = CURRENT_TIMESTAMP WHERE sp_id = ?")
+@SQLDelete(sql = "UPDATE student_progress SET ended_at = CURRENT_TIMESTAMP WHERE stp_id = ?")
 @SQLRestriction("ended_at IS NULL")
 @EntityListeners(AuditingEntityListener.class)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class StudentProgress extends BaseEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "sp_id")
+    @Column(name = "stp_id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(name = "sp_student_enrollment_id")
-    private StudentEnrollment enrollment;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "stp_student_enrollment_id")
+    private StudentEnrollment studentEnrollment;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sp_section_id")
+    @JoinColumn(name = "stp_section_id")
     private ChapterSection chapterSection;
 
-    @Column(name = "sp_percentage")
-    private Double percentage;
+    @Builder.Default
+    @Column(name = "stp_percentage")
+    private Double percentage = 0.0;
+
+    @Builder.Default
+    @Column(name = "stp_is_completed")
+    private Boolean isCompleted = false;
+
+    @Column(name = "stp_last_access_at")
+    private LocalDateTime lastAccessedAt;
 }

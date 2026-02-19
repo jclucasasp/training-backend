@@ -9,13 +9,13 @@ import lombok.*;
 @NoArgsConstructor @AllArgsConstructor
 public class Role {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "r_id")
+    @Column(name = "rol_id")
     private Long id;
 
-    @Column(name = "r_name")
+    @Column(name = "rol_name")
     private String name;
 
-    @Column(name = "r_description")
+    @Column(name = "rol_description")
     private String description;
 }
 

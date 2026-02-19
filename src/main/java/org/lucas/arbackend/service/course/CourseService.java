@@ -4,9 +4,9 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.lucas.arbackend.dto.course.*;
 import org.lucas.arbackend.entity.Organisation.Organisation;
+import org.lucas.arbackend.entity.course.Chapter;
 import org.lucas.arbackend.entity.course.ChapterSection;
 import org.lucas.arbackend.entity.course.Course;
-import org.lucas.arbackend.entity.course.CourseChapter;
 import org.lucas.arbackend.mapper.CourseMapper;
 import org.lucas.arbackend.repository.course.CourseRepository;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
@@ -46,12 +46,12 @@ public class CourseService {
         course.setOrganisation(org);
 
         // Map Modules & Sections
-        if(course.getCourseChapters() != null) {
-            course.getCourseChapters().forEach(chapter -> {
+        if(course.getChapters() != null) {
+            course.getChapters().forEach(chapter -> {
                 chapter.setCourse(course);
                 if (chapter.getChapterSections() != null) {
                     chapter.getChapterSections().forEach(ChapterSection ->
-                            ChapterSection.setCourseChapter(chapter.getCourse().getCourseChapters()));
+                            ChapterSection.setChapter(chapter));
 
                 }
         });
@@ -121,36 +121,36 @@ public class CourseService {
 
     private void updateChapters(Course course, Set<CourseChapterRequest> chapterRequest) {
         // Create a map of existing courseModules for quick lookup by ID
-        Map<Long, CourseChapter> existingChaptersMap = course.getCourseChapters().stream()
-                .collect(Collectors.toMap(CourseChapter::getId, Function.identity()));
+        Map<Long, Chapter> existingChaptersMap = course.getChapters().stream()
+                .collect(Collectors.toMap(Chapter::getId, Function.identity()));
 
         // List to hold the final state of courseModules
-        Set<CourseChapter> updatedCourseChapters = new HashSet<>();
+        Set<Chapter> updatedChapters = new HashSet<>();
 
         for (CourseChapterRequest mReq : chapterRequest) {
-            CourseChapter courseChapter;
+            Chapter chapter;
 
             if (mReq.getId() != null && existingChaptersMap.containsKey(mReq.getId())) {
                 // --- UPDATE EXISTING MODULE ---
-                courseChapter = existingChaptersMap.get(mReq.getId());
-                courseMapper.updateChapter(mReq, courseChapter);
-//                courseChapter.setName(mReq.getName());
-//                courseChapter.setDescription(mReq.getDescription());
+                chapter = existingChaptersMap.get(mReq.getId());
+                courseMapper.updateChapter(mReq, chapter);
+//                chapter.setName(mReq.getName());
+//                chapter.setDescription(mReq.getDescription());
 
                 // Handle Sections for this courseModule
                 if (mReq.getSections() != null) {
-                    updateChapterSections(courseChapter, mReq.getSections());
+                    updateChapterSections(chapter, mReq.getSections());
                 }
             } else {
                 // --- CREATE NEW MODULE ---
-                courseChapter = new CourseChapter();
-                courseMapper.updateChapter(mReq, courseChapter);
-//                courseChapter.setName(mReq.getName());
-//                courseChapter.setDescription(mReq.getDescription());
-                courseChapter.setCourse(course);
+                chapter = new Chapter();
+                courseMapper.updateChapter(mReq, chapter);
+//                chapter.setName(mReq.getName());
+//                chapter.setDescription(mReq.getDescription());
+                chapter.setCourse(course);
 
                 // Handle Sections for the new courseModule
-                if (courseChapter.getChapterSections() != null) {
+                if (chapter.getChapterSections() != null) {
 //                    Set<ChapterSectionRequest> newChapterSections = mReq.getSections().stream().map(sReq -> {
 //                        ChapterSectionRequest chapterSection = new ChapterSectionRequest();
 //                        chapterSection.setTitle(sReq.getTitle());
@@ -159,23 +159,23 @@ public class CourseService {
 //                        chapterSection.setResourceMediaType(sReq.getResourceMediaType());
 //                        chapterSection.setOrderIndex(sReq.getOrderIndex());
 //                        chapterSection.setTags(sReq.getTags());
-//                        chapterSection.setCourseChapter(courseChapter);
+//                        chapterSection.setChapter(chapter);
 //                        return chapterSection;
 //                    }).collect(Collectors.toSet());
-                    courseChapter.getChapterSections().forEach(cs -> cs.setCourseChapter(courseChapter.getCourse().getCourseChapters()));
-                    courseChapter.setCourse(course);
-                    courseChapter.setChapterSections(courseChapter.getChapterSections());
+                    chapter.getChapterSections().forEach(cs -> cs.setChapter(chapter));
+                    chapter.setCourse(course);
+                    chapter.setChapterSections(chapter.getChapterSections());
                 }
             }
-            updatedCourseChapters.add(courseChapter);
+            updatedChapters.add(chapter);
         }
 
         // 3. Sync the collection:
         // Set the new list. Hibernate will delete orphans (courseModules in DB but not in updatedCourseModules)
-        course.setCourseChapters(updatedCourseChapters);
+        course.setChapters(updatedChapters);
     }
 
-    private void updateChapterSections(CourseChapter chapter, Set<ChapterSectionRequest> chapterSectionRequests) {
+    private void updateChapterSections(Chapter chapter, Set<ChapterSectionRequest> chapterSectionRequests) {
         Map<Long, org.lucas.arbackend.entity.course.ChapterSection> existingSectionsMap = chapter.getChapterSections().stream()
                 .collect(Collectors.toMap(org.lucas.arbackend.entity.course.ChapterSection::getId, Function.identity()));
 
@@ -204,14 +204,14 @@ public class CourseService {
 //                section.setResourceMediaType(sReq.getResourceMediaType());
 //                section.setOrderIndex(sReq.getOrderIndex());
 //                section.setTags(sReq.getTags());
-                section.setCourseChapter(chapter.getCourse().getCourseChapters());
+                section.setChapter(chapter);
             }
             updatedSections.add(section);
         }
 
         // Sync the collection for chapterSectionRequests
         chapter.getChapterSections().addAll(updatedSections);
-//        courseChapter.setChapterSections(updatedSections);
+//        chapter.setChapterSections(updatedSections);
     }
 
     private void softDeleteCourse(Long courseId, Long orgId) {
@@ -232,7 +232,7 @@ public class CourseService {
                 .description(course.getDescription())
                 .difficulty(course.getDifficultyTypes().name())
                 .imageUrl(course.getImageUrl())
-                .chapterResponses(course.getCourseChapters().stream().map(m -> CourseChapterResponse.builder()
+                .chapterResponses(course.getChapters().stream().map(m -> CourseChapterResponse.builder()
                         .id(m.getId())
                         .description(m.getDescription())
                         .sections(m.getChapterSections().stream().map(s -> ChapterSectionResponse.builder()

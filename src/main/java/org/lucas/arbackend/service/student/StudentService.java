@@ -3,27 +3,28 @@ package org.lucas.arbackend.service.student;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.lucas.arbackend.dto.student.EnrollmentResponse;
-import org.lucas.arbackend.dto.student.ProgressUpdateRequest;
 import org.lucas.arbackend.dto.student.StudentRequest;
 import org.lucas.arbackend.dto.student.StudentResponse;
 import org.lucas.arbackend.entity.Organisation.Organisation;
-import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.course.ChapterSection;
+import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.student.Student;
 import org.lucas.arbackend.entity.student.StudentEnrollment;
 import org.lucas.arbackend.entity.student.StudentProgress;
+import org.lucas.arbackend.repository.course.ChapterSectionRepository;
 import org.lucas.arbackend.repository.course.CourseRepository;
-import org.lucas.arbackend.repository.course.SectionRepository;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.student.StudentEnrollmentRepository;
 import org.lucas.arbackend.repository.student.StudentProgressRepository;
 import org.lucas.arbackend.repository.student.StudentRepository;
+import org.lucas.arbackend.util.TenantProvider;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -35,7 +36,8 @@ public class StudentService {
     private final StudentProgressRepository progressRepo;
     private final OrganisationRepository orgRepo;
     private final CourseRepository courseRepo;
-    private final SectionRepository sectionRepo;
+    private final ChapterSectionRepository sectionRepo;
+    private final TenantProvider tenantProvider;
 
     // ==========================================
     // 1. ENROLLMENT LOGIC (UPSERT Student)
@@ -65,7 +67,6 @@ public class StudentService {
         StudentEnrollment enrollment = new StudentEnrollment();
         enrollment.setStudent(student);
         enrollment.setCourse(course);
-//        enrollment.setEnrolledAt(LocalDateTime.now());
 
         StudentEnrollment saved = enrollmentRepo.save(enrollment);
 
@@ -81,35 +82,64 @@ public class StudentService {
     // ==========================================
     // 2. PROGRESS TRACKING
     // ==========================================
-    public void updateSectionProgress(ProgressUpdateRequest request) {
-        StudentEnrollment enrollment = enrollmentRepo.findById(request.getEnrollmentId())
-                .orElseThrow(() -> new EntityNotFoundException("Enrollment not found"));
+    @Transactional
+    public void updateProgress(String studentNumber, Long sectionId, Double percentage) {
+        // 1. Context Resolution (Org & Student)
+        Organisation org = orgRepo.findById(tenantProvider.get())
+                .orElseThrow(() -> new EntityNotFoundException("Organisation not found"));
 
-        ChapterSection chapterSection = sectionRepo.findById(request.getSectionId())
-                .orElseThrow(() -> new EntityNotFoundException("ChapterSectionRequest not found"));
+        Student student = studentRepo.findByOrganisationAndStudentNumber(org, studentNumber)
+                .orElseThrow(() -> new EntityNotFoundException("Student not found"));
 
-        // Check if progress entry already exists for this chapterSection, otherwise create new
-        StudentProgress progress = progressRepo.findByEnrollmentIdAndSectionId(request.getEnrollmentId(), request.getSectionId())
-                .orElseGet(() -> {
-                    StudentProgress newProgress = new StudentProgress();
-                    newProgress.setEnrollment(enrollment);
-                    newProgress.setChapterSection(chapterSection);
-                    return newProgress;
-                });
+        // 2. Resolve the Section first (needed for both Enrollment lookup and Progress)
+        ChapterSection section = sectionRepo.findById(sectionId)
+                .orElseThrow(() -> new EntityNotFoundException("Section not found"));
 
-        // TODO: Implement check on chapterSection completion and calculate the progress percentage
-//        progress.setPercentage(request.getPercentage());
-//        progressRepo.save(progress);
-//
-//        // If progress is 100%, check if course is completed
-//        if (request.getPercentage().compareTo(new BigDecimal("100.00")) >= 0) {
-//            checkAndMarkCompletion(enrollment);
-//        }
+        // 3. Find Enrollment (Scoped by Student and the Course this section belongs to)
+        StudentEnrollment enrollment = enrollmentRepo.findByStudentAndChapterSection(student, section)
+                .orElseThrow(() -> new EntityNotFoundException("No active enrollment found for this course section"));
+
+        // 4. Update the "Pointer" for Resume functionality
+        enrollment.setChapterSection(section);
+
+        // 5. Track the specific Section Progress
+        handleSectionProgress(enrollment, section, percentage);
+
+        // 6. Optional: Check if the whole Course is now 100% complete
+        checkAndMarkCourseCompletion(enrollment);
     }
 
-    private void checkAndMarkCompletion(StudentEnrollment enrollment) {
-        // Logic to compare total chapterSections in course vs chapterSections completed in progress table
-        // Update enrollment.setCompletedAt(LocalDateTime.now()) if finished
+    private void handleSectionProgress(StudentEnrollment enrollment, ChapterSection section, Double percentage) {
+        // Look for existing progress for this specific enrollment + section
+        StudentProgress progress = progressRepo.findByStudentEnrollmentAndChapterSection(enrollment, section)
+                .orElseGet(() -> StudentProgress.builder()
+                        .studentEnrollment(enrollment)
+                        .chapterSection(section)
+                        .percentage(0.0)
+                        .isCompleted(false)
+                        .build());
+
+        // Update percentage only if the new progress is higher (don't let progress go backwards)
+        if (percentage > progress.getPercentage()) {
+            progress.setPercentage(percentage);
+        }
+
+        // Mark as completed if percentage hits 100 (or your specific threshold)
+        if (percentage >= 100.0) {
+            progress.setIsCompleted(true);
+        }
+
+        progressRepo.save(progress);
+    }
+
+    private void checkAndMarkCourseCompletion(StudentEnrollment enrollment) {
+        long totalSections = sectionRepo.countByChapterCourse(enrollment.getCourse());
+        long completedSections = progressRepo.countByStudentEnrollmentAndIsCompletedTrue(enrollment);
+
+        if (totalSections > 0 && totalSections == completedSections) {
+            enrollment.setCompletedAt(LocalDateTime.now());
+            enrollmentRepo.save(enrollment);
+        }
     }
 
     @Transactional(readOnly = true)
@@ -122,4 +152,5 @@ public class StudentService {
                         .lastName(s.getLastName())
                         .build());
     }
+
 }

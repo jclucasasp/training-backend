@@ -12,10 +12,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@NamedEntityGraph(name = "Course.withModulesAndSections",
+@NamedEntityGraph(name = "Course.withChapterAndSections",
         attributeNodes = {
-        @NamedAttributeNode("courseModules"),
-        @NamedAttributeNode(value = "courseModules", subgraph = "chapterSections")
+        @NamedAttributeNode("chapters"),
+        @NamedAttributeNode(value = "chapters", subgraph = "chapterSections")
 },
 subgraphs = { @NamedSubgraph(name = "chapterSections",
         attributeNodes = {
@@ -23,36 +23,36 @@ subgraphs = { @NamedSubgraph(name = "chapterSections",
 })
 })
 @Table(name = "course")
-@SQLDelete(sql = "UPDATE course SET ended_at = CURRENT_TIMESTAMP WHERE c_id = ?")
+@SQLDelete(sql = "UPDATE course SET ended_at = CURRENT_TIMESTAMP WHERE cou_id = ?")
 @SQLRestriction("ended_at IS NULL")
 @EntityListeners(AuditingEntityListener.class)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Course extends BaseEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "c_id")
+    @Column(name = "cou_id")
     private Long id;
 
-    @Column(name = "c_name", nullable = false)
+    @Column(name = "cou_name", nullable = false)
     private String name;
 
-    @Column(name = "c_image_url")
+    @Column(name = "cou_image_url")
     private String imageUrl;
 
-    @Column(name = "c_description")
+    @Column(name = "cou_description")
     private String description;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "c_difficulty")
+    @Column(name = "cou_difficulty")
     private DifficultyTypes difficultyTypes;
 
-    @Column(name = "c_tags")
+    @Column(name = "cou_tags")
     private String tags;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "c_org_id")
+    @JoinColumn(name = "cou_org_id")
     private Organisation organisation;
 
     @Builder.Default
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<CourseChapter> courseChapters = new HashSet<>();
+    private Set<Chapter> chapters = new HashSet<>();
 }
