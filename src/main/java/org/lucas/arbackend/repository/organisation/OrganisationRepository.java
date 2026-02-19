@@ -10,7 +10,6 @@ import org.springframework.lang.NonNull;
 import java.util.Optional;
 
 public interface OrganisationRepository extends JpaRepository<Organisation, Long> {
-    Page<Organisation> findAllByEmail(String email, Pageable pageable);
 
     @EntityGraph(value = "Organisation.withDetails", type = EntityGraph.EntityGraphType.FETCH)
     Optional<Organisation> findByEmail(String email);

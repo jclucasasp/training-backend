@@ -62,10 +62,6 @@ public class OrganisationService {
 
         // 2. Create Organisation
         Organisation org = new Organisation();
-//        org.setFirstName(request.getFirstName());
-//        org.setLastName(request.getLastName());
-//        org.setContactNumber(request.getContactNumber());
-//        org.setEmail(request.getEmail());
 
         orgMapper.updateOrganisation(request, org);
         org.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -87,17 +83,9 @@ public class OrganisationService {
         // 4. Create Profile & Address & Link
         Profile profile = new Profile();
         orgMapper.updateProfile(request, profile);
-//        profile.setOrgName(request.getOrgName());
-//        profile.setRegistrationNumber(request.getRegistrationNumber());
-//        profile.setVatNumber(request.getVatNumber());
 
         OrgAddress address = new OrgAddress();
         orgMapper.updateAddress(request, address);
-//        address.setStreet(request.getStreet());
-//        address.setSuburb(request.getSuburb());
-//        address.setCity(request.getCity());
-//        address.setState(request.getState());
-//        address.setZip(request.getZip());
 
         ApiKey apiKey = new ApiKey();
         ApiKeyResponse apiKeyResponse = apiKeyService.generateKeyForOrg(apiKey);

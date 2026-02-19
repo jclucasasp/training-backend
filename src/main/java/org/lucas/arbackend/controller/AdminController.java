@@ -15,9 +15,11 @@ import org.lucas.arbackend.dto.organisation.StaffResponse;
 import org.lucas.arbackend.exception.ErrorDetailsResponse;
 import org.lucas.arbackend.service.course.CourseService;
 import org.lucas.arbackend.service.staff.StaffService;
+import org.lucas.arbackend.util.ValidatedLabel;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -44,7 +46,7 @@ public class AdminController {
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
     @PostMapping("/staff/add")
-    public ResponseEntity<StaffResponse> addStaff(@Valid @RequestBody StaffRequest request) {
+    public ResponseEntity<StaffResponse> addStaff(@Validated(ValidatedLabel.OnCreate.class) @RequestBody StaffRequest request) {
         return ResponseEntity.ok(staffService.createStaff(request));
     }
 
@@ -92,7 +94,7 @@ public class AdminController {
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
     @PutMapping("/staff/update")
-    public ResponseEntity<StaffResponse> updateStaff(@RequestParam Long staffId, @Valid @RequestBody StaffRequest request) {
+    public ResponseEntity<StaffResponse> updateStaff(@RequestParam Long staffId, @Validated(ValidatedLabel.OnUpdate.class) @RequestBody StaffRequest request) {
         return ResponseEntity.ok(staffService.updateStaff(staffId, request));
     }
 

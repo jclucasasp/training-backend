@@ -25,13 +25,13 @@ public class Profile extends BaseEntity {
     @JsonIgnore
     private Organisation organisation;
 
-    @Column(name = "pro_org_name")
+    @Column(name = "pro_name")
     private String orgName;
 
-    @Column(name = "pro_org_reg_number")
+    @Column(name = "pro_reg_number")
     private String registrationNumber;
 
-    @Column(name = "pro_org_vat_number")
+    @Column(name = "pro_vat_number")
     private String vatNumber;
 
     @OneToOne(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)

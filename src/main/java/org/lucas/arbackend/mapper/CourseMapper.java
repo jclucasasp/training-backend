@@ -4,6 +4,7 @@ import org.lucas.arbackend.dto.course.CourseChapterRequest;
 import org.lucas.arbackend.dto.course.CourseRequest;
 import org.lucas.arbackend.dto.course.CourseResponse;
 import org.lucas.arbackend.dto.course.ChapterSectionRequest;
+import org.lucas.arbackend.entity.course.ChapterSection;
 import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.course.Chapter;
 import org.mapstruct.Mapper;
@@ -18,7 +19,7 @@ public interface CourseMapper {
     // MapStruct will automatically look for this if CourseRequest has a List<CourseChapterRequest>
     void updateChapter(CourseChapterRequest dto, @MappingTarget Chapter entity);
 
-    void updateChapterSection(ChapterSectionRequest dto, @MappingTarget org.lucas.arbackend.entity.course.ChapterSection entity);
+    void updateChapterSection(ChapterSectionRequest dto, @MappingTarget ChapterSection entity);
 
     CourseResponse maptoCourseResponse(Course course);
 }
