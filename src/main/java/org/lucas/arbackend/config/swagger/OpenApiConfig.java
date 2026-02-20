@@ -29,21 +29,24 @@ import org.springframework.context.annotation.Configuration;
         ),
         // Applies security globally to all paths by default (optional)
         security = {
+                @SecurityRequirement(name = "SessionAuth"),
                 @SecurityRequirement(name = "X-API-KEY"),
-                @SecurityRequirement(name = "BasicAuth")
         }
 )
+// 1. Define Cookie-based session for Staff/Admins
+@SecurityScheme(
+        name = "SessionAuth",
+        description = "Authentication via JSESSIONID cookie after login",
+        type = SecuritySchemeType.APIKEY,
+        in = SecuritySchemeIn.COOKIE,
+        paramName = "JSESSIONID" // The actual cookie name used by Spring/Redis
+)
+// 2. Define Header-based API Key for Students
 @SecurityScheme(
         name = "X-API-KEY",
         description = "API auth description for students",
         type = SecuritySchemeType.APIKEY,
         in = SecuritySchemeIn.HEADER
-)
-@SecurityScheme(
-        name = "BasicAuth",
-        description = "Normal login session for staff members",
-        type = SecuritySchemeType.HTTP,
-        scheme = "basic"
 )
 public class OpenApiConfig {
 }

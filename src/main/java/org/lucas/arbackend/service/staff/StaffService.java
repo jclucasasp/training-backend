@@ -1,6 +1,8 @@
 package org.lucas.arbackend.service.staff;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
@@ -60,10 +62,6 @@ public class StaffService {
 
         Staff savedStaff = staffRepo.save(staff);
 
-        CustomUserDetails newUser = new CustomUserDetails(org.getEmail(), "", org.getId(), org.getRole().getName());
-        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(newUser, null, newUser.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(auth);
-
         return staffMapper.maptoStaffResponse(savedStaff);
     }
 
@@ -75,7 +73,6 @@ public class StaffService {
                 .map(staffMapper::maptoStaffResponse);
     }
 
-    @CachePut(value = "auth_user", key = "#result.email")
     public StaffResponse updateStaffDetails(Long staffId, StaffRequest request) {
 
         if (staffId == null) {
@@ -96,12 +93,16 @@ public class StaffService {
             cacheService.evictAuthUser(staff.getEmail());
         }
 
+        StaffResponse staffResponse = staffMapper.maptoStaffResponse(staff);
+
+        cacheService.updateCache("staff_user", staff.getEmail(), staffResponse);
+
         staffRepo.save(staff);
 
-        return staffMapper.maptoStaffResponse(staff);
+        return staffResponse;
     }
 
-    @CachePut(value = "auth_user", key = "#result.email")
+    @CachePut(value = "staff_user", key = "#result.email")
     public StaffResponse updateStaffRole(Long staffId, RoleTypes role) throws BadRequestException {
 
         if (staffId == null) {

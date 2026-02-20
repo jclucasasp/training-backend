@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/admin")
 @RequiredArgsConstructor
-@Tag(name = "4. Admin", description = "Management of staff, courses and internal permissions")
+@Tag(name = "3. Admin", description = "Management of staff, courses and internal permissions")
 public class AdminController {
 
     private final StaffService staffService;

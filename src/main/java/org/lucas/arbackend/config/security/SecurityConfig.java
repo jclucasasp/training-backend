@@ -7,17 +7,16 @@ import org.lucas.arbackend.exception.CustomAuthenticationExceptionHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-
-import java.lang.reflect.Method;
-
-import static org.springframework.security.config.Customizer.withDefaults;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -28,6 +27,7 @@ public class SecurityConfig {
     private final TenantFilter tenantFilter;
     private final CustomAuthenticationExceptionHandler authEntryPointExceptionHandler;
 
+    // TODO: Remove basic auth headers in swagger and security config. Add a login and logout endpoint, etc
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
@@ -53,6 +53,7 @@ public class SecurityConfig {
 
                         // Public signup/login
                         .requestMatchers(HttpMethod.POST, "/api/v1/organisations/signup").permitAll()
+                        .requestMatchers("/api/v1/auth/login", "/api/v1/auth/logout").permitAll()
 
                         // Other public routes
                         .requestMatchers(
@@ -65,10 +66,21 @@ public class SecurityConfig {
 
                         .anyRequest().authenticated()
                 )
-                .httpBasic(withDefaults()) // Organisation & Staff login
-                .addFilterAfter(tenantFilter, BasicAuthenticationFilter.class);
+                .logout(logout -> logout
+                        .logoutUrl("/api/v1/auth/logout")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                        .logoutSuccessHandler((request, response, authentication)
+                                -> response.setStatus(HttpStatus.OK.value()))
+                )
+                .addFilterAfter(tenantFilter, UsernamePasswordAuthenticationFilter.class);
 
         return httpSecurity.build();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
     }
 
 }

@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @Log4j2
 @RequestMapping("api/v1/organisations")
-@Tag(name = "1. Organisations", description = "Create, update, and retrieve organisation details.")
+@Tag(name = "2. Organisations", description = "Create, update, and retrieve organisation details.")
 public class OrganisationController {
 
     private final OrganisationService orgService;

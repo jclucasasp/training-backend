@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/students")
-@Tag(name = "3. Student Management", description = "Student onboarding and enrollment tracking")
+@Tag(name = "5. Student Management", description = "Student onboarding and enrollment tracking")
 public class StudentController {
 
     private final StudentService studentService;
