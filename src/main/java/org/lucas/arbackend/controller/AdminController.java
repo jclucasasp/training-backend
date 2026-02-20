@@ -8,10 +8,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.BadRequestException;
 import org.lucas.arbackend.dto.course.CourseRequest;
 import org.lucas.arbackend.dto.course.CourseResponse;
 import org.lucas.arbackend.dto.organisation.StaffRequest;
 import org.lucas.arbackend.dto.organisation.StaffResponse;
+import org.lucas.arbackend.entity.security.RoleTypes;
 import org.lucas.arbackend.exception.ErrorDetailsResponse;
 import org.lucas.arbackend.service.course.CourseService;
 import org.lucas.arbackend.service.staff.StaffService;
@@ -93,9 +95,27 @@ public class AdminController {
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
-    @PutMapping("/staff/update")
-    public ResponseEntity<StaffResponse> updateStaff(@RequestParam Long staffId, @Validated(ValidatedLabel.OnUpdate.class) @RequestBody StaffRequest request) {
-        return ResponseEntity.ok(staffService.updateStaff(staffId, request));
+    @PutMapping("/staff/{staffId}/update/details")
+    public ResponseEntity<StaffResponse> updateStaff(@PathVariable Long staffId, @Validated(ValidatedLabel.OnUpdate.class) @RequestBody StaffRequest request) {
+        return ResponseEntity.ok(staffService.updateStaffDetails(staffId, request));
+    }
+
+    @Operation(summary = "Update Staff Member", description = "Updates the details of a staff member.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Staff updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid input",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Staff member not found",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
+    })
+
+    @PutMapping("/staff/{staffId}/update/role")
+    public ResponseEntity<StaffResponse> updateStaffRole(@PathVariable Long staffId, @RequestBody RoleTypes role) throws BadRequestException {
+        return ResponseEntity.ok(staffService.updateStaffRole(staffId, role));
     }
 
     @Operation(summary = "Soft Delete Staff Member", description = "Marks a staff member as inactive.")
@@ -108,7 +128,7 @@ public class AdminController {
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
-    @DeleteMapping("/staff/delete/{staffId}")
+    @DeleteMapping("/staff/{staffId}/delete")
     public ResponseEntity<Void> deleteStaff(@PathVariable Long staffId) {
         staffService.softDeleteStaff(staffId);
         return ResponseEntity.noContent().build();

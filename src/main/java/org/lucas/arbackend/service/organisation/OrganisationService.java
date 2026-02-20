@@ -131,8 +131,12 @@ public class OrganisationService {
         orgMapper.updateAddress(req, address);
 
         // Special logic for password (still needs manual encoding)
-        if (req.getPassword() != null && !req.getPassword().isBlank()) {
+        if (req.getPassword() != null) {
             org.setPassword(passwordEncoder.encode(req.getPassword()));
+        }
+
+        if (req.getEmail() != null) {
+            cacheService.evictAuthUser(org.getEmail());
         }
 
         // No need to call save() if @Transactional is active,

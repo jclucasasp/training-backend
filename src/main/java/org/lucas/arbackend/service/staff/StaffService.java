@@ -3,11 +3,13 @@ package org.lucas.arbackend.service.staff;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.BadRequestException;
 import org.lucas.arbackend.dto.organisation.StaffRequest;
 import org.lucas.arbackend.dto.organisation.StaffResponse;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.Organisation.Staff;
 import org.lucas.arbackend.entity.security.Role;
+import org.lucas.arbackend.entity.security.RoleTypes;
 import org.lucas.arbackend.mapper.StaffMapper;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.StaffRepository;
@@ -74,8 +76,7 @@ public class StaffService {
     }
 
     @CachePut(value = "auth_user", key = "#result.email")
-    public StaffResponse updateStaff (Long staffId, StaffRequest request) {
-        Organisation org = findOrganisation();
+    public StaffResponse updateStaffDetails(Long staffId, StaffRequest request) {
 
         if (staffId == null) {
                 throw new IllegalStateException("Must provide a valid organisation id and staff id");
@@ -84,19 +85,40 @@ public class StaffService {
         Staff staff = staffRepo.findById(staffId)
                 .orElseThrow(() -> new EntityNotFoundException("Staff not found"));
 
-        if (!staff.getOrganisation().getId().equals(org.getId())) {
+        if (!staff.getOrganisation().getId().equals(tenantProvider.get())) {
             throw new AccessDeniedException("You are not allowed to update this staff member");
         }
 
         staffMapper.updateStaff(request, staff);
         staff.setPassword(request.getPassword() == null ? staff.getPassword() : passwordEncoder.encode(request.getPassword()));
 
-        if (request.getRole() != null) {
-            Role role = roleRepo.findByName(request.getRole())
-                    .orElseThrow(() -> new EntityNotFoundException("Invalid Role"));
-
-            staff.setRole(role);
+        if (request.getEmail() != null) {
+            cacheService.evictAuthUser(staff.getEmail());
         }
+
+        staffRepo.save(staff);
+
+        return staffMapper.maptoStaffResponse(staff);
+    }
+
+    @CachePut(value = "auth_user", key = "#result.email")
+    public StaffResponse updateStaffRole(Long staffId, RoleTypes role) throws BadRequestException {
+
+        if (staffId == null) {
+            throw new IllegalStateException("Must provide a valid organisation id and staff id");
+        }
+
+        Role newRole = roleRepo.findByName(role.name())
+                .orElseThrow(() -> new BadRequestException("Invalid Role"));
+
+        Staff staff = staffRepo.findById(staffId)
+                .orElseThrow(() -> new EntityNotFoundException("Staff member not found"));
+
+        if (!staff.getOrganisation().getId().equals(tenantProvider.get())) {
+            throw new AccessDeniedException("You are not allowed to update this staff member");
+        }
+
+        staff.setRole(newRole);
 
         staffRepo.save(staff);
 

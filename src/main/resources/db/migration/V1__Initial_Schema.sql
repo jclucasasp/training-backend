@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS staff (
     stf_role_id BIGINT NOT NULL,
     first_name VARCHAR(255),
     last_name VARCHAR(255),
-    contact_number INTEGER(10) NOT NULL,
+    contact_number VARCHAR(20) NOT NULL,
     email VARCHAR(255) NOT NULL,
     stf_password VARCHAR(255) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

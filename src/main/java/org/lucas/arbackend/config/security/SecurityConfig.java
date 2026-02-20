@@ -15,6 +15,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
+import java.lang.reflect.Method;
+
 import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
@@ -34,18 +36,20 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
                         // Organisation specific endpoints (Must be logged in)
-                        .requestMatchers("/api/v1/organisations/details").hasAuthority(RoleTypes.ORG_ADMIN.name())
-                        .requestMatchers("/api/v1/organisations/profile").hasAuthority(RoleTypes.ORG_ADMIN.name())
-                        .requestMatchers("/api/v1/organisations/api-keys").hasAuthority(RoleTypes.ORG_ADMIN.name())
+                        .requestMatchers(HttpMethod.GET, "/api/v1/organisations/***").hasAuthority(RoleTypes.ORG_ADMIN.name())
 
                         // Admin & Staff Endpoints (Must be logged in)
-                        .requestMatchers("/api/v1/admin/staff/update")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/admin/staff/*/update/details")
                         .hasAnyAuthority(RoleTypes.ORG_ADMIN.name(), RoleTypes.COURSE_EDITOR.name(), RoleTypes.SUPPORT.name())
-                        .requestMatchers("/api/v1/admin/staff/**").hasAuthority(RoleTypes.ORG_ADMIN.name())
-                        .requestMatchers("/api/v1/admin/course/**")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/admin/staff/*/update/role")
+                        .hasAuthority(RoleTypes.ORG_ADMIN.name())
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/admin/staff/*/delete").hasAuthority(RoleTypes.ORG_ADMIN.name())
+
+                        .requestMatchers(HttpMethod.POST, "/api/v1/admin/staff/**").hasAuthority(RoleTypes.ORG_ADMIN.name())
+                        .requestMatchers(HttpMethod.POST, "/api/v1/admin/course/**")
                         .hasAnyAuthority(RoleTypes.ORG_ADMIN.name(), RoleTypes.COURSE_EDITOR.name())
                         // Student Endpoints (Must have API Key via Filter)
-                        .requestMatchers("/api/v1/courses/**").hasAnyAuthority(RoleTypes.ORG_ADMIN.name(), RoleTypes.COURSE_EDITOR.name(), RoleTypes.SUPPORT.name(), RoleTypes.STUDENT.name())
+                        .requestMatchers(HttpMethod.GET, "/api/v1/courses/**").authenticated()
 
                         // Public signup/login
                         .requestMatchers(HttpMethod.POST, "/api/v1/organisations/signup").permitAll()
