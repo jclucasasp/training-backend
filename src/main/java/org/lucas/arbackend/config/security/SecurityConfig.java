@@ -36,11 +36,13 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
                         // Organisation specific endpoints (Must be logged in)
-                        .requestMatchers(HttpMethod.GET, "/api/v1/organisations/***").hasAuthority(RoleTypes.ORG_ADMIN.name())
+                        .requestMatchers("/api/v1/organisations/**").hasAuthority(RoleTypes.ORG_ADMIN.name())
 
                         // Admin & Staff Endpoints (Must be logged in)
                         .requestMatchers(HttpMethod.PUT, "/api/v1/admin/staff/*/update/details")
                         .hasAnyAuthority(RoleTypes.ORG_ADMIN.name(), RoleTypes.COURSE_EDITOR.name(), RoleTypes.SUPPORT.name())
+                        .requestMatchers(HttpMethod.GET, "/api/v1/admin/staff/*/details")
+                        .hasAuthority(RoleTypes.ORG_ADMIN.name())
                         .requestMatchers(HttpMethod.PUT, "/api/v1/admin/staff/*/update/role")
                         .hasAuthority(RoleTypes.ORG_ADMIN.name())
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/admin/staff/*/delete").hasAuthority(RoleTypes.ORG_ADMIN.name())

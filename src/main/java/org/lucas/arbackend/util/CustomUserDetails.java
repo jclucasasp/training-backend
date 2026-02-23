@@ -13,13 +13,14 @@ public class CustomUserDetails extends User implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
-
+    private final Long id;
     private final Long orgId;
     private final String email;
     private final String roleName;
 
-    public CustomUserDetails(String email, String password, Long orgId, String roleName) {
+    public CustomUserDetails(Long id, String email, String password, Long orgId, String roleName) {
         super(email, password, List.of(new SimpleGrantedAuthority(roleName)));
+        this.id = id;
         this.orgId = orgId;
         this.email = email;
         this.roleName = roleName;

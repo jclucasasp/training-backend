@@ -11,6 +11,8 @@ import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -67,6 +69,20 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.UNPROCESSABLE_ENTITY);
     }
 
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorDetailsResponse> handleBadCredentials(BadCredentialsException ex, WebRequest request) {
+        log.warn("Bad Credentials Exception: ", ex);
+
+        ErrorDetailsResponse response = ErrorDetailsResponse.builder()
+                .timeStamp(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS))
+                .message(ex.getMessage())
+                .details(request.getDescription(false))
+                .errorCode(HttpStatus.UNAUTHORIZED)
+                .build();
+
+        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+    }
+
 
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<ErrorDetailsResponse> handleIllegalState(IllegalStateException ex, WebRequest request) {
@@ -89,7 +105,7 @@ public class GlobalExceptionHandler {
         Map<String, String> errorsMap = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach(error -> {
             errorsMap.put(error.getCode(), error.getDefaultMessage());
-                });
+        });
 
         ErrorDetailsResponse response = ErrorDetailsResponse.builder()
                 .timeStamp(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS))
@@ -216,4 +232,18 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<ErrorDetailsResponse> handleAuthorizationDenied(AuthorizationDeniedException ex, WebRequest request) {
+
+        log.error("Authorization Denied Exception: ", ex);
+
+        ErrorDetailsResponse response = ErrorDetailsResponse.builder()
+                .timeStamp(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS))
+                .message("You are not authorized to perform this action.")
+                .details(request.getDescription(false))
+                .errorCode(HttpStatus.FORBIDDEN)
+                .build();
+        return new  ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+    }
 }
+

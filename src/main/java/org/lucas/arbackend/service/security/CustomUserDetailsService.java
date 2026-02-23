@@ -21,6 +21,7 @@ public class CustomUserDetailsService implements UserDetailsService {
        CacheDto auth = authLookupService.getAuthCacheDto(email);
 
        return new CustomUserDetails(
+               auth.getId(),
                 auth.getEmail(),
                 auth.getPassword(),
                 auth.getOrgId(),
