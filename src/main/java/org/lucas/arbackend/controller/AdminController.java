@@ -6,22 +6,18 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
-import org.lucas.arbackend.dto.course.CourseRequest;
-import org.lucas.arbackend.dto.course.CourseResponse;
 import org.lucas.arbackend.dto.organisation.StaffRequest;
 import org.lucas.arbackend.dto.organisation.StaffResponse;
 import org.lucas.arbackend.entity.security.RoleTypes;
 import org.lucas.arbackend.exception.ErrorDetailsResponse;
-import org.lucas.arbackend.service.course.CourseService;
+import org.lucas.arbackend.service.organisation.OrganisationService;
 import org.lucas.arbackend.service.staff.StaffService;
 import org.lucas.arbackend.util.ValidatedLabel;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,7 +28,23 @@ import org.springframework.web.bind.annotation.*;
 public class AdminController {
 
     private final StaffService staffService;
-    private final CourseService courseService;
+    private final OrganisationService orgService;
+
+    @Operation(summary = "Soft Delete Organisation", description = "Marks the organisation as deleted. It will no longer be accessible via standard lookups.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Organisation deleted successfully"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Organisation not found",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
+    })
+    @DeleteMapping("organisation/{orgID}/delete")
+    public ResponseEntity<Void> deleteOrganisation(@PathVariable Long orgId) {
+        orgService.softDeleteOrg(orgId);
+        return ResponseEntity.noContent().build();
+    }
 
     @Operation(summary = "Add Staff Member", description = "Creates a staff account with a specific role.")
     @ApiResponses(value = {
@@ -53,21 +65,6 @@ public class AdminController {
         return ResponseEntity.ok(staffService.createStaff(request));
     }
 
-    @Operation(summary = "Add Course", description = "Creates a new curriculum course for the organization.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Course created"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
-            @ApiResponse(responseCode = "403", description = "Forbidden: Insufficient permissions",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
-            @ApiResponse(responseCode = "500", description = "Internal Server Error",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
-    })
-    @PostMapping("/course/add")
-    public ResponseEntity<CourseResponse> addCourse(@Valid @RequestBody CourseRequest request) {
-        return ResponseEntity.ok(courseService.createCourse(request));
-    }
-
     @Operation(summary = "List All Staff", description = "Returns a paginated list of all staff members.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Staff retrieved successfully"),
@@ -84,25 +81,7 @@ public class AdminController {
         return ResponseEntity.ok(staffService.getAllStaff(Pageable.ofSize(size).withPage(page)));
     }
 
-    @Operation(summary = "Update Staff Member", description = "Updates the details of a staff member.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Staff updated successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid input",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
-            @ApiResponse(responseCode = "401", description = "Unauthorized",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
-            @ApiResponse(responseCode = "404", description = "Staff member not found",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
-            @ApiResponse(responseCode = "500", description = "Internal Server Error",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
-    })
-    @PreAuthorize("principal.id == #staffId")
-    @PutMapping("/staff/{staffId}/update/details")
-    public ResponseEntity<StaffResponse> updateStaff(@PathVariable Long staffId, @Validated(ValidatedLabel.OnUpdate.class) @RequestBody StaffRequest request) {
-        return ResponseEntity.ok(staffService.updateStaffDetails(staffId, request));
-    }
-
-    @Operation(summary = "Update Staff Member", description = "Updates the details of a staff member.")
+    @Operation(summary = "Update Staff Member Access", description = "Updates the access details of a staff member.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Staff updated successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid input",

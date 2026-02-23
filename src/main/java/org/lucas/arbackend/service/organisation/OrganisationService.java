@@ -155,9 +155,10 @@ public class OrganisationService {
         return orgMapper.mapToOrgResponse(org);
     }
 
-    public void softDeleteOrg() {
+    public void softDeleteOrg(Long orgId) {
 
-        Organisation org = findOrganisation();
+        Organisation org = orgRepo.findById(orgId)
+                .orElseThrow(() -> new EntityNotFoundException("Organisation not found"));
 
         cacheService.evictAuthUser(org.getEmail());
         orgRepo.delete(org);

@@ -129,6 +129,7 @@ CREATE TABLE IF NOT EXISTS api_key (
 CREATE TABLE IF NOT EXISTS course (
                         cou_id BIGINT AUTO_INCREMENT PRIMARY KEY,
                         cou_org_id BIGINT NOT NULL,
+                        cou_stf_id BIGINT NOT NULL,
                         cou_name VARCHAR(255) NOT NULL,
                         cou_image_url VARCHAR(255), -- Optional: URL to course avatar image
                         cou_description TEXT,
@@ -138,8 +139,10 @@ CREATE TABLE IF NOT EXISTS course (
                         updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
                         ended_at DATETIME NULL,
                         CONSTRAINT fk_course_org FOREIGN KEY (cou_org_id) REFERENCES organisation(org_id),
+                        CONSTRAINT fk_course_staff FOREIGN KEY (cou_stf_id) REFERENCES staff(stf_id),
                         -- Index for tenant-specific course management
                         INDEX idx_course_tenant (cou_org_id, cou_id),
+                        INDEX idx_course_creator (cou_stf_id, cou_id),
                         INDEX idx_course_status (ended_at, cou_id)
 ) ENGINE=InnoDB;
 

@@ -36,7 +36,7 @@ public class AuthLookupService {
                                 org.getRole().getName(),
                                 org.getId()
                         ))
-                .orElseGet(() -> staffRepo.findByEmail(email)
+                .orElseGet(() -> staffRepo.findByEmailAndEndedAtIsNull(email)
                         .map(staff -> new CacheDto
                                 (
                                         staff.getId(),

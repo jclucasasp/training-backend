@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @Log4j2
-@RequestMapping("api/v1/organisations")
+@RequestMapping("api/v1/organisation")
 @Tag(name = "2. Organisations", description = "Create, update, and retrieve organisation details.")
 public class OrganisationController {
 
@@ -77,22 +77,6 @@ public class OrganisationController {
     public ResponseEntity<OrganisationResponse> updateProfile(@Validated(ValidatedLabel.OnUpdate.class) @RequestBody OrganisationRequest request) {
         OrganisationResponse response = orgService.updateProfile(request);
         return ResponseEntity.ok(response);
-    }
-
-    @Operation(summary = "Soft Delete Organisation", description = "Marks the organisation as deleted. It will no longer be accessible via standard lookups.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Organisation deleted successfully"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
-            @ApiResponse(responseCode = "404", description = "Organisation not found",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
-            @ApiResponse(responseCode = "500", description = "Internal server error",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
-    })
-    @DeleteMapping("/delete")
-    public ResponseEntity<Void> deleteOrganisation() {
-        orgService.softDeleteOrg();
-        return ResponseEntity.noContent().build();
     }
 
 //    @Operation(summary = "Generate API Key", description = "Generates a new secure API key. The raw key is returned ONLY ONCE for security.")

@@ -1,5 +1,6 @@
 package org.lucas.arbackend.dto.course;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
@@ -7,6 +8,7 @@ import lombok.Data;
 @Data @Builder
 public class ChapterSectionRequest {
 
+    @JsonIgnore
     private Long id;
 
     @NotNull(message = "ChapterSectionRequest title is required")
@@ -25,7 +27,5 @@ public class ChapterSectionRequest {
     private Integer orderIndex;
     @NotNull(message = "Keywords for faster searching, eg Javascript, Anatomy, etc")
     private String tags;
-
-    private CourseChapterResponse chapterResponse;
 
 }

@@ -1,5 +1,6 @@
 package org.lucas.arbackend.dto.course;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
@@ -9,6 +10,7 @@ import java.util.Set;
 @Data @Builder
 public class CourseChapterRequest {
 
+    @JsonIgnore
     private Long id;
 
     @NotNull(message = "CourseModule name is required")

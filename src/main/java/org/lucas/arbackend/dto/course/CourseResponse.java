@@ -11,6 +11,7 @@ public record CourseResponse(
         Long id,
         String name,
         String description,
+        String staffEmail,
         String difficulty,
         String imageUrl,
         String tags,

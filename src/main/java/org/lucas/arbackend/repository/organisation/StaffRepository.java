@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @Repository
 public interface StaffRepository extends JpaRepository<Staff, Long> {
-    Optional<Staff> findByEmail(String email);
+    Optional<Staff> findByEmailAndEndedAtIsNull(String email);
 
     Page<Staff> findByOrganisationId(Long orgId, Pageable pageable);
 

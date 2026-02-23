@@ -6,7 +6,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.lucas.arbackend.dto.course.CourseRequest;
 import org.lucas.arbackend.dto.course.CourseResponse;
 import org.lucas.arbackend.exception.ErrorDetailsResponse;
 import org.lucas.arbackend.service.course.CourseService;
@@ -14,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -42,5 +45,37 @@ public class CourseController {
                                                            @RequestParam(defaultValue = "10") int size,
                                                            @RequestParam(defaultValue = "id") String sort) {
         return ResponseEntity.ok(courseService.getPaginatedCourses(PageRequest.of(page, size, Sort.by(sort))));
+    }
+    // TODO: Check why this is allowing SUPPORT as well as vo validator found for constraint difficultyTypes
+    @Operation(summary = "Add Course", description = "Creates a new curriculum course for the organization.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Course created"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Forbidden: Insufficient permissions",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+    })
+    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR')")
+    @PostMapping("/course/add")
+    public ResponseEntity<CourseResponse> addCourse(@Valid @RequestBody CourseRequest request) {
+        return ResponseEntity.ok(courseService.createCourse(request));
+    }
+
+    @Operation(summary = "Update Course", description = "Update the course and its corresponding chapters and sections.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Course updated"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Forbidden: Insufficient permissions",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+    })
+    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR'),  @courseService.isOwner(#courseId, principal.id)")
+    @PutMapping("{courseId}/update")
+    public ResponseEntity<CourseResponse> updateCourse(@PathVariable Long courseId, @Valid @RequestBody CourseRequest request) {
+        return ResponseEntity.ok(courseService.updateCourse(courseId, request));
     }
 }
