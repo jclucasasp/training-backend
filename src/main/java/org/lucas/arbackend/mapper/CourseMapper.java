@@ -1,9 +1,6 @@
 package org.lucas.arbackend.mapper;
 
-import org.lucas.arbackend.dto.course.CourseChapterRequest;
-import org.lucas.arbackend.dto.course.CourseRequest;
-import org.lucas.arbackend.dto.course.CourseResponse;
-import org.lucas.arbackend.dto.course.ChapterSectionRequest;
+import org.lucas.arbackend.dto.course.*;
 import org.lucas.arbackend.entity.course.ChapterSection;
 import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.course.Chapter;
@@ -21,10 +18,21 @@ public interface CourseMapper {
 
     // MapStruct will automatically look for this if CourseRequest has a List<CourseChapterRequest>
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "chapterSections", source = "sections")
     void updateChapter(CourseChapterRequest dto, @MappingTarget Chapter entity);
 
     @Mapping(target = "id", ignore = true)
     void updateChapterSection(ChapterSectionRequest dto, @MappingTarget ChapterSection entity);
 
+    @Mapping(target = "staffEmail", source = "staff.email")
+    @Mapping(target = "difficulty", source = "course.difficultyTypes")
+    @Mapping(target = "chaptersResponse", source = "course.chapters")
     CourseResponse maptoCourseResponse(Course course);
+
+    @Mapping(target = "sectionsResponse", source = "chapterSections") // Map Set<ChapterSection> to Set<ChapterSectionResponse>
+    CourseChapterResponse mapToChapterResponse(Chapter chapter);
+
+    // 3. Define how ONE Section maps to ONE SectionResponse
+    // (MapStruct handles this automatically if field names match, but you can be explicit)
+    ChapterSectionResponse mapToSectionResponse(ChapterSection section);
 }

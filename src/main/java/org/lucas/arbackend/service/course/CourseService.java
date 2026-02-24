@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -38,8 +37,7 @@ public class CourseService {
 
         Organisation org = findOrganisation();
 
-        Staff staff = staffRepo.findByEmailAndEndedAtIsNull(request.getStaffEmail())
-                .filter(s -> s.getOrganisation().getId().equals(org.getId()))
+        Staff staff = staffRepo.findByEmailAndOrganisationIdAndEndedAtIsNull(request.getStaffEmail(), org.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Staff member not found"));
 
         // Map DTO to Entity
@@ -49,17 +47,34 @@ public class CourseService {
         course.setOrganisation(org);
         course.setStaff(staff);
 
-        // Map Modules & Sections
-        if(course.getChapters() != null) {
-            course.getChapters().forEach(chapter -> {
-                chapter.setCourse(course);
-                if (chapter.getChapterSections() != null) {
-                    chapter.getChapterSections().forEach(ChapterSection ->
-                            ChapterSection.setChapter(chapter));
+        if (request.getChapters() != null) {
+        Set<Chapter> chapters = request.getChapters().stream().map(chapterDto -> {
+            Chapter chapter = new Chapter();
+            // USE THE MAPPER HERE
+            courseMapper.updateChapter(chapterDto, chapter);
 
-                }
-        });
-        }
+            // LINK THE BACK-REFERENCE (Fixes the null column error)
+            chapter.setCourse(course);
+
+            // 3. MANUALLY MAP AND LINK SECTIONS
+            if (chapterDto.getSections() != null) {
+                Set<ChapterSection> sections = chapterDto.getSections().stream().map(sectionDto -> {
+                    ChapterSection section = new ChapterSection();
+                    // USE THE MAPPER HERE
+                    courseMapper.updateChapterSection(sectionDto, section);
+
+                    // LINK THE BACK-REFERENCE
+                    section.setChapter(chapter);
+                    return section;
+                }).collect(Collectors.toSet());
+
+                chapter.setChapterSections(sections);
+            }
+            return chapter;
+        }).collect(Collectors.toSet());
+
+        course.setChapters(chapters);
+    }
 
         Course saved = courseRepo.save(course);
         return courseMapper.maptoCourseResponse(saved);
@@ -74,79 +89,79 @@ public class CourseService {
                 .map(courseMapper::maptoCourseResponse);
     }
 
-    public CourseResponse updateCourse(Long courseId, CourseRequest request) {
-        Long orgId = tenantProvider.get();
+//    public CourseResponse updateCourse(Long courseId, CourseRequest request) {
+//        Long orgId = tenantProvider.get();
+//
+//        Course course = courseRepo.findByIdAndOrganisationIdAndEndedAtIsNull(courseId, orgId)
+//                .orElseThrow(() -> new EntityNotFoundException("Course not found or does not belong to this organization"));
+//
+//        // 1. Update simple Course fields
+//        courseMapper.updateCourse(request, course);
+//
+//        // 2. Update Modules and Sections if provided
+//        if (request.getChapters() != null) {
+//            updateChapters(course, request.getChapters());
+//        }
+//
+//        Course saved = courseRepo.save(course);
+//        return courseMapper.maptoCourseResponse(saved);
+//    }
 
-        Course course = courseRepo.findByIdAndOrganisationIdAndEndedAtIsNull(courseId, orgId)
-                .orElseThrow(() -> new EntityNotFoundException("Course not found or does not belong to this organization"));
-
-        // 1. Update simple Course fields
-        courseMapper.updateCourse(request, course);
-
-        // 2. Update Modules and Sections if provided
-        if (request.getChapters() != null) {
-            updateChapters(course, request.getChapters());
-        }
-
-        Course saved = courseRepo.save(course);
-        return courseMapper.maptoCourseResponse(saved);
-    }
-
-   private void updateChapters(Course course, Set<CourseChapterRequest> chaptersRequest) {
-    // Use a HashMap for O(1) lookups
-    Map<Long, Chapter> existingChaptersMap = course.getChapters().stream()
-            .collect(Collectors.toMap(Chapter::getId, Function.identity()));
-
-    Set<Chapter> updatedChapters = new HashSet<>();
-
-    for (CourseChapterRequest req : chaptersRequest) {
-        Chapter chapter = (req.getId() != null && existingChaptersMap.containsKey(req.getId()))
-                ? existingChaptersMap.get(req.getId()) // Update existing
-                : new Chapter(); // Create new
-
-        // Map fields from DTO to Entity
-        courseMapper.updateChapter(req, chapter);
-        chapter.setCourse(course); // Ensure parent is set
-
-        // Handle Sections recursively
-        if (req.getSections() != null) {
-            updateChapterSections(chapter, req.getSections());
-        }
-
-        updatedChapters.add(chapter);
-    }
-
-    // This single line triggers Hibernate to:
-    // 1. Insert new chapters
-    // 2. Update existing chapters
-    // 3. Delete chapters not in 'updatedChapters' (orphanRemoval)
-    course.setChapters(updatedChapters);
-}
-
-private void updateChapterSections(Chapter chapter, Set<ChapterSectionRequest> sectionRequests) {
-    // If the request explicitly provides a null or empty set,
-    // we might want to clear existing sections depending on business logic.
-    // Assuming null means "no change" and empty means "remove all".
-    if (sectionRequests == null) return;
-
-    Map<Long, ChapterSection> existingMap = chapter.getChapterSections().stream()
-            .collect(Collectors.toMap(ChapterSection::getId, Function.identity()));
-
-    Set<ChapterSection> updatedSections = new HashSet<>();
-
-    for (ChapterSectionRequest req : sectionRequests) {
-        ChapterSection section = (req.getId() != null && existingMap.containsKey(req.getId()))
-                ? existingMap.get(req.getId())
-                : new ChapterSection();
-
-        courseMapper.updateChapterSection(req, section);
-        section.setChapter(chapter);
-        updatedSections.add(section);
-    }
-
-    // Replace the collection to trigger orphanRemoval
-    chapter.setChapterSections(updatedSections);
-}
+//   private void updateChapters(Course course, Set<CourseChapterRequest> chaptersRequest) {
+//    // Use a HashMap for O(1) lookups
+//    Map<Long, Chapter> existingChaptersMap = course.getChapters().stream()
+//            .collect(Collectors.toMap(Chapter::getId, Function.identity()));
+//
+//    Set<Chapter> updatedChapters = new HashSet<>();
+//
+//    for (CourseChapterRequest req : chaptersRequest) {
+//        Chapter chapter = (req.getId() != null && existingChaptersMap.containsKey(req.getId()))
+//                ? existingChaptersMap.get(req.getId()) // Update existing
+//                : new Chapter(); // Create new
+//
+//        // Map fields from DTO to Entity
+//        courseMapper.updateChapter(req, chapter);
+//        chapter.setCourse(course); // Ensure parent is set
+//
+//        // Handle Sections recursively
+//        if (req.getSections() != null) {
+//            updateChapterSections(chapter, req.getSections());
+//        }
+//
+//        updatedChapters.add(chapter);
+//    }
+//
+//    // This single line triggers Hibernate to:
+//    // 1. Insert new chapters
+//    // 2. Update existing chapters
+//    // 3. Delete chapters not in 'updatedChapters' (orphanRemoval)
+//    course.setChapters(updatedChapters);
+//}
+//
+//private void updateChapterSections(Chapter chapter, Set<ChapterSectionRequest> sectionRequests) {
+//    // If the request explicitly provides a null or empty set,
+//    // we might want to clear existing sections depending on business logic.
+//    // Assuming null means "no change" and empty means "remove all".
+//    if (sectionRequests == null) return;
+//
+//    Map<Long, ChapterSection> existingMap = chapter.getChapterSections().stream()
+//            .collect(Collectors.toMap(ChapterSection::getId, Function.identity()));
+//
+//    Set<ChapterSection> updatedSections = new HashSet<>();
+//
+//    for (ChapterSectionRequest req : sectionRequests) {
+//        ChapterSection section = (req.getId() != null && existingMap.containsKey(req.getId()))
+//                ? existingMap.get(req.getId())
+//                : new ChapterSection();
+//
+//        courseMapper.updateChapterSection(req, section);
+//        section.setChapter(chapter);
+//        updatedSections.add(section);
+//    }
+//
+//    // Replace the collection to trigger orphanRemoval
+//    chapter.setChapterSections(updatedSections);
+//}
 
     private void softDeleteCourse(Long courseId, Long orgId) {
 
@@ -155,30 +170,6 @@ private void updateChapterSections(Chapter chapter, Set<ChapterSectionRequest> s
 
         courseRepo.delete(course);
     }
-
-    // Helper mapper
-//    private CourseResponse mapToResponse(Course course) {
-//        return CourseResponse.builder()
-//                .id(course.getId())
-//                .imageUrl(course.getImageUrl())
-//                .name(course.getName())
-//                .description(course.getDescription())
-//                .difficulty(course.getDifficultyTypes().name())
-//                .imageUrl(course.getImageUrl())
-//                .chapterResponses(course.getChapters().stream().map(m -> CourseChapterResponse.builder()
-//                        .id(m.getId())
-//                        .description(m.getDescription())
-//                        .sections(m.getChapterSections().stream().map(s -> ChapterSectionResponse.builder()
-//                                .id(s.getId())
-//                                .title(s.getTitle())
-//                                .duration(s.getDuration())
-//                                .resourceUrl(s.getResourceUrl())
-//                                .resourceMediaType(s.getResourceMediaType())
-//                                .build()).collect(Collectors.toSet()))
-//                        .build()).collect(Collectors.toSet()))
-//                .tags(course.getTags())
-//                .build();
-//    }
 
     @Transactional(readOnly = true)
     private Organisation findOrganisation() {

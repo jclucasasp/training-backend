@@ -22,7 +22,7 @@ public class CourseRequest {
     @NotBlank(message = "Course description is required")
     private String description;
 
-    @NotBlank(message = "Course difficulty is required")
+    @NotNull(message = "Course difficulty is required")
     private DifficultyTypes difficultyTypes; // BEGINNER, INTERMEDIATE, ADVANCED
 
     @NotBlank(message = "Course tags are required")

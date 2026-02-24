@@ -18,7 +18,7 @@ public class ChapterSection extends BaseEntity {
     @Column(name = "chs_id")
     private Long id;
 
-    @Column(name = "chs_title")
+    @Column(name = "chs_title", unique = true, nullable = false)
     private String title;
 
     @Column(name = "chs_content", columnDefinition = "TEXT")
@@ -39,7 +39,7 @@ public class ChapterSection extends BaseEntity {
     @Column(name = "chs_tags", columnDefinition = "TEXT")
     private String tags;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "chs_chapter_id")
     private Chapter chapter;
 }

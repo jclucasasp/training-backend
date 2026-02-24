@@ -21,7 +21,7 @@ public class Chapter extends BaseEntity {
     @Column(name = "cha_id")
     private Long id;
 
-    @Column(name = "cha_name", nullable = false)
+    @Column(name = "cha_name", unique = true, nullable = false)
     private String name;
 
     @Column(name = "cha_description")

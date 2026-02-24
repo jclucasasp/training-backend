@@ -57,25 +57,25 @@ public class CourseController {
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
     })
-    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR')")
+    @PreAuthorize("hasAuthority('ORG_ADMIN') or hasAuthority('COURSE_EDITOR')")
     @PostMapping("/course/add")
     public ResponseEntity<CourseResponse> addCourse(@Valid @RequestBody CourseRequest request) {
         return ResponseEntity.ok(courseService.createCourse(request));
     }
 
-    @Operation(summary = "Update Course", description = "Update the course and its corresponding chapters and sections.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Course updated"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
-            @ApiResponse(responseCode = "403", description = "Forbidden: Insufficient permissions",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
-            @ApiResponse(responseCode = "500", description = "Internal Server Error",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
-    })
-    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR'),  @courseService.isOwner(#courseId, principal.id)")
-    @PutMapping("{courseId}/update")
-    public ResponseEntity<CourseResponse> updateCourse(@PathVariable Long courseId, @Valid @RequestBody CourseRequest request) {
-        return ResponseEntity.ok(courseService.updateCourse(courseId, request));
-    }
+//    @Operation(summary = "Update Course", description = "Update the course and its corresponding chapters and sections.")
+//    @ApiResponses(value = {
+//            @ApiResponse(responseCode = "200", description = "Course updated"),
+//            @ApiResponse(responseCode = "401", description = "Unauthorized",
+//                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+//            @ApiResponse(responseCode = "403", description = "Forbidden: Insufficient permissions",
+//                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+//            @ApiResponse(responseCode = "500", description = "Internal Server Error",
+//                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+//    })
+//    @PreAuthorize("hasAuthority('ORG_ADMIN') or (hasAuthority('COURSE_EDITOR') and @courseService.isOwner(#courseId, principal.id))")
+//    @PutMapping("{courseId}/update")
+//    public ResponseEntity<CourseResponse> updateCourse(@PathVariable Long courseId, @Valid @RequestBody CourseRequest request) {
+//        return ResponseEntity.ok(courseService.updateCourse(courseId, request));
+//    }
 }
