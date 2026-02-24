@@ -46,7 +46,7 @@ public class CourseController {
                                                            @RequestParam(defaultValue = "id") String sort) {
         return ResponseEntity.ok(courseService.getPaginatedCourses(PageRequest.of(page, size, Sort.by(sort))));
     }
-    // TODO: Check why this is allowing SUPPORT as well as vo validator found for constraint difficultyTypes
+
     @Operation(summary = "Add Course", description = "Creates a new curriculum course for the organization.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Course created"),
@@ -63,19 +63,37 @@ public class CourseController {
         return ResponseEntity.ok(courseService.createCourse(request));
     }
 
-//    @Operation(summary = "Update Course", description = "Update the course and its corresponding chapters and sections.")
-//    @ApiResponses(value = {
-//            @ApiResponse(responseCode = "200", description = "Course updated"),
-//            @ApiResponse(responseCode = "401", description = "Unauthorized",
-//                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
-//            @ApiResponse(responseCode = "403", description = "Forbidden: Insufficient permissions",
-//                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
-//            @ApiResponse(responseCode = "500", description = "Internal Server Error",
-//                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
-//    })
-//    @PreAuthorize("hasAuthority('ORG_ADMIN') or (hasAuthority('COURSE_EDITOR') and @courseService.isOwner(#courseId, principal.id))")
-//    @PutMapping("{courseId}/update")
-//    public ResponseEntity<CourseResponse> updateCourse(@PathVariable Long courseId, @Valid @RequestBody CourseRequest request) {
-//        return ResponseEntity.ok(courseService.updateCourse(courseId, request));
-//    }
+    @Operation(summary = "Update Course", description = "Update the course and its corresponding chapters and sections.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Course updated"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Forbidden: Insufficient permissions",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+    })
+    @PreAuthorize("hasAuthority('ORG_ADMIN') or (hasAuthority('COURSE_EDITOR') and @courseService.isOwner(#courseId, principal.id))")
+    @PutMapping("{courseId}/update")
+    public ResponseEntity<CourseResponse> updateCourse(@PathVariable Long courseId, @Valid @RequestBody CourseRequest request) {
+        return ResponseEntity.ok(courseService.updateCourse(courseId, request));
+    }
+
+    @Operation(summary = "Delete Course", description = "Delete the course and its corresponding chapters and sections.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Course deleted"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Forbidden: Insufficient permissions",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+        })
+    @PreAuthorize("hasAuthority('ORG_ADMIN') or (hasAuthority('COURSE_EDITOR') and @courseService.isOwner(#courseId, principal.id))")
+    @DeleteMapping("/{courseId}/delete")
+    public ResponseEntity<Void> deleteCourse(@PathVariable Long courseId) {
+        courseService.softDeleteCourse(courseId);
+        return ResponseEntity.noContent().build();
+    }
+
 }

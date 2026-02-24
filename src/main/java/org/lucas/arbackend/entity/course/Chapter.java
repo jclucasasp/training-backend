@@ -13,7 +13,6 @@ import java.util.Set;
 @Entity
 @Table(name = "chapter")
 @SQLDelete(sql = "UPDATE chapter SET ended_at = CURRENT_TIMESTAMP WHERE cha_id = ?")
-@SQLRestriction("ended_at IS NULL")
 @EntityListeners(AuditingEntityListener.class)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Chapter extends BaseEntity {

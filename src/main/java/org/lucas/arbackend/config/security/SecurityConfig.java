@@ -27,7 +27,6 @@ public class SecurityConfig {
     private final TenantFilter tenantFilter;
     private final CustomAuthenticationExceptionHandler authEntryPointExceptionHandler;
 
-    // TODO: Remove basic auth headers in swagger and security config. Add a login and logout endpoint, etc
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity

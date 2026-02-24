@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 @Transactional
 public class CourseService {
 
-    // TODO : Test if the below methods work
     private final CourseRepository courseRepo;
     private final OrganisationRepository orgRepo;
     private final TenantProvider tenantProvider;
@@ -50,10 +49,8 @@ public class CourseService {
         if (request.getChapters() != null) {
         Set<Chapter> chapters = request.getChapters().stream().map(chapterDto -> {
             Chapter chapter = new Chapter();
-            // USE THE MAPPER HERE
             courseMapper.updateChapter(chapterDto, chapter);
-
-            // LINK THE BACK-REFERENCE (Fixes the null column error)
+            // LINK THE BACK-REFERENCE
             chapter.setCourse(course);
 
             // 3. MANUALLY MAP AND LINK SECTIONS
@@ -70,14 +67,15 @@ public class CourseService {
 
                 chapter.setChapterSections(sections);
             }
+
             return chapter;
         }).collect(Collectors.toSet());
 
         course.setChapters(chapters);
     }
 
-        Course saved = courseRepo.save(course);
-        return courseMapper.maptoCourseResponse(saved);
+        Course newCourse = courseRepo.save(course);
+        return courseMapper.maptoCourseResponse(newCourse);
     }
 
     @Transactional(readOnly = true)
@@ -89,83 +87,71 @@ public class CourseService {
                 .map(courseMapper::maptoCourseResponse);
     }
 
-//    public CourseResponse updateCourse(Long courseId, CourseRequest request) {
-//        Long orgId = tenantProvider.get();
-//
-//        Course course = courseRepo.findByIdAndOrganisationIdAndEndedAtIsNull(courseId, orgId)
-//                .orElseThrow(() -> new EntityNotFoundException("Course not found or does not belong to this organization"));
-//
-//        // 1. Update simple Course fields
-//        courseMapper.updateCourse(request, course);
-//
-//        // 2. Update Modules and Sections if provided
-//        if (request.getChapters() != null) {
-//            updateChapters(course, request.getChapters());
-//        }
-//
-//        Course saved = courseRepo.save(course);
-//        return courseMapper.maptoCourseResponse(saved);
-//    }
-
-//   private void updateChapters(Course course, Set<CourseChapterRequest> chaptersRequest) {
-//    // Use a HashMap for O(1) lookups
-//    Map<Long, Chapter> existingChaptersMap = course.getChapters().stream()
-//            .collect(Collectors.toMap(Chapter::getId, Function.identity()));
-//
-//    Set<Chapter> updatedChapters = new HashSet<>();
-//
-//    for (CourseChapterRequest req : chaptersRequest) {
-//        Chapter chapter = (req.getId() != null && existingChaptersMap.containsKey(req.getId()))
-//                ? existingChaptersMap.get(req.getId()) // Update existing
-//                : new Chapter(); // Create new
-//
-//        // Map fields from DTO to Entity
-//        courseMapper.updateChapter(req, chapter);
-//        chapter.setCourse(course); // Ensure parent is set
-//
-//        // Handle Sections recursively
-//        if (req.getSections() != null) {
-//            updateChapterSections(chapter, req.getSections());
-//        }
-//
-//        updatedChapters.add(chapter);
-//    }
-//
-//    // This single line triggers Hibernate to:
-//    // 1. Insert new chapters
-//    // 2. Update existing chapters
-//    // 3. Delete chapters not in 'updatedChapters' (orphanRemoval)
-//    course.setChapters(updatedChapters);
-//}
-//
-//private void updateChapterSections(Chapter chapter, Set<ChapterSectionRequest> sectionRequests) {
-//    // If the request explicitly provides a null or empty set,
-//    // we might want to clear existing sections depending on business logic.
-//    // Assuming null means "no change" and empty means "remove all".
-//    if (sectionRequests == null) return;
-//
-//    Map<Long, ChapterSection> existingMap = chapter.getChapterSections().stream()
-//            .collect(Collectors.toMap(ChapterSection::getId, Function.identity()));
-//
-//    Set<ChapterSection> updatedSections = new HashSet<>();
-//
-//    for (ChapterSectionRequest req : sectionRequests) {
-//        ChapterSection section = (req.getId() != null && existingMap.containsKey(req.getId()))
-//                ? existingMap.get(req.getId())
-//                : new ChapterSection();
-//
-//        courseMapper.updateChapterSection(req, section);
-//        section.setChapter(chapter);
-//        updatedSections.add(section);
-//    }
-//
-//    // Replace the collection to trigger orphanRemoval
-//    chapter.setChapterSections(updatedSections);
-//}
-
-    private void softDeleteCourse(Long courseId, Long orgId) {
+    public CourseResponse updateCourse(Long courseId, CourseRequest request) {
+        Long orgId = tenantProvider.get();
 
         Course course = courseRepo.findByIdAndOrganisationIdAndEndedAtIsNull(courseId, orgId)
+                .orElseThrow(() -> new EntityNotFoundException("Course not found or does not belong to this organization"));
+
+        // 1. Update simple Course fields
+        courseMapper.updateCourse(request, course);
+
+        // 2. Update Modules and Sections if provided
+        if (request.getChapters() != null) {
+            updateChapters(course, request.getChapters());
+        }
+
+        Course saved = courseRepo.save(course);
+        return courseMapper.maptoCourseResponse(saved);
+    }
+
+   private void updateChapters(Course course, Set<CourseChapterRequest> chaptersRequest) {
+
+        Set<Chapter> chapters = chaptersRequest.stream().map(chapterDto -> {
+                        Chapter chapter = (chapterDto.getId() != null)
+                                ? course.getChapters().stream()
+                                .filter(c -> c.getId().equals(chapterDto.getId())).findFirst()
+                                .orElseThrow(() -> new EntityNotFoundException("Chapter not found"))
+                                : new Chapter();
+
+                        courseMapper.updateChapter(chapterDto, chapter);
+                        chapter.setCourse(course);
+
+                        updateChapterSections(chapter, chapterDto.getSections());
+
+                        return chapter;
+        }).collect(Collectors.toSet());
+
+        course.getChapters().clear();
+        course.getChapters().addAll(chapters);
+   }
+
+private void updateChapterSections(Chapter chapter, Set<ChapterSectionRequest> sectionRequest) {
+    // If the request explicitly provides a null or empty set,
+    // we might want to clear existing sections depending on business logic.
+    // Assuming null means "no change" and empty means "remove all".
+    if (sectionRequest == null) return;
+
+    Set<ChapterSection> updatedSections = sectionRequest.stream().map(sectionDto -> {
+        ChapterSection section = (sectionDto.getId() != null)
+                ? chapter.getChapterSections().stream()
+                .filter(s -> s.getId().equals(sectionDto.getId())).findFirst()
+                .orElseThrow(() -> new EntityNotFoundException("Section not found"))
+                : new ChapterSection();
+
+        courseMapper.updateChapterSection(sectionDto, section);
+        section.setChapter(chapter);
+        return section;
+    }).collect(Collectors.toSet());
+
+    // Replace the collection to trigger orphanRemoval
+    chapter.getChapterSections().clear();
+    chapter.getChapterSections().addAll(updatedSections);
+}
+
+    public void softDeleteCourse(Long courseId) {
+
+        Course course = courseRepo.findByIdAndOrganisationIdAndEndedAtIsNull(courseId, tenantProvider.get())
                 .orElseThrow(() -> new EntityNotFoundException("Course not found"));
 
         courseRepo.delete(course);
