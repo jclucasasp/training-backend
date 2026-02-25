@@ -73,6 +73,8 @@ public class CourseService {
 
         course.setChapters(chapters);
     }
+        Long totalDuration = getTotalDuration(course);
+        course.setEstimatedTotalTime(totalDuration);
 
         Course newCourse = courseRepo.save(course);
         return courseMapper.maptoCourseResponse(newCourse);
@@ -100,6 +102,9 @@ public class CourseService {
         if (request.getChapters() != null) {
             updateChapters(course, request.getChapters());
         }
+
+        Long totalDuration = getTotalDuration(course);
+        course.setEstimatedTotalTime(totalDuration);
 
         Course saved = courseRepo.save(course);
         return courseMapper.maptoCourseResponse(saved);
@@ -170,5 +175,11 @@ private void updateChapterSections(Chapter chapter, Set<ChapterSectionRequest> s
         return courseRepo.findById(courseId)
                 .map(course -> course.getStaff().getId().equals(staffId))
                 .orElse(false);
+    }
+
+    private Long getTotalDuration(Course course) {
+        return course.getChapters().stream()
+                .flatMap(chapter -> chapter.getChapterSections().stream())
+                .mapToLong(section -> section.getDuration() != null ? section.getDuration() : 0).sum();
     }
 }

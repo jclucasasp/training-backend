@@ -3,7 +3,6 @@ package org.lucas.arbackend.entity.course;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.BaseEntity;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -23,8 +22,8 @@ public class Chapter extends BaseEntity {
     @Column(name = "cha_name", unique = true, nullable = false)
     private String name;
 
-    @Column(name = "cha_description")
-    private String description;
+    @Column(name = "cha_summary", nullable = false)
+    private String summary;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cha_course_id")

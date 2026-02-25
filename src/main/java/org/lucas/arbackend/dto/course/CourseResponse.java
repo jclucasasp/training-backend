@@ -10,7 +10,9 @@ import java.util.Set;
 public record CourseResponse(
         Long id,
         String name,
-        String description,
+        Long estimatedTotalTime,
+        String slug,
+        String learningObjectives,
         String staffEmail,
         String difficulty,
         String imageUrl,

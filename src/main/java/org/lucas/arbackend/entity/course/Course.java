@@ -36,11 +36,17 @@ public class Course extends BaseEntity {
     @Column(name = "cou_name", nullable = false)
     private String name;
 
+    @Column(name = "cou_slug", nullable = false, unique = true)
+    private String slug;
+
+    @Column(name = "cou_estimated_total_time")
+    private Long estimatedTotalTime;
+
     @Column(name = "cou_image_url")
     private String imageUrl;
 
-    @Column(name = "cou_description")
-    private String description;
+    @Column(name = "cou_learning_objectives")
+    private String learningObjectives;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "cou_difficulty")
@@ -61,4 +67,15 @@ public class Course extends BaseEntity {
     @Builder.Default
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Chapter> chapters = new HashSet<>();
+
+    // Automatically generate a slug based on the name
+    @PrePersist
+    @PreUpdate
+    public void generateSlug() {
+        if (this.name != null) {
+            this.slug = this.name.toLowerCase()
+                    .replaceAll("[^a-zA-Z0-9\\s]", "")
+                    .replaceAll("\\s+", "-");
+        }
+    }
 }

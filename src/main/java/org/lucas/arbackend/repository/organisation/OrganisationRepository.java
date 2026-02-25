@@ -1,5 +1,6 @@
 package org.lucas.arbackend.repository.organisation;
 
+import org.apache.commons.lang3.concurrent.UncheckedFuture;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,4 +19,6 @@ public interface OrganisationRepository extends JpaRepository<Organisation, Long
     @NonNull
     @EntityGraph(value = "Organisation.withDetails", type = EntityGraph.EntityGraphType.FETCH)
     Optional<Organisation> findById(@NonNull Long orgId);
+
+    Optional<Organisation> findByEmailAndEndedAtIsNull(String email);
 }

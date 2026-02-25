@@ -12,14 +12,16 @@ import org.lucas.arbackend.dto.student.StudentRequest;
 import org.lucas.arbackend.dto.student.StudentResponse;
 import org.lucas.arbackend.exception.ErrorDetailsResponse;
 import org.lucas.arbackend.service.student.StudentService;
+import org.lucas.arbackend.util.ValidatedLabel;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/students")
+@RequestMapping("/api/v1/student")
 @Tag(name = "5. Student Management", description = "Student onboarding and enrollment tracking")
 public class StudentController {
 
@@ -36,9 +38,9 @@ public class StudentController {
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
-    @PostMapping("/org/{orgId}/enroll")
-    public ResponseEntity<EnrollmentResponse> enroll(@PathVariable Long orgId, @RequestBody StudentRequest request) {
-        return ResponseEntity.ok(studentService.enrollStudent(orgId, request));
+    @PostMapping("/enroll")
+    public ResponseEntity<EnrollmentResponse> enroll(@Validated(ValidatedLabel.OnCreate.class) @RequestBody StudentRequest request) {
+        return ResponseEntity.ok(studentService.enrollStudent(request));
     }
 
     @Operation(summary = "Get Student List", description = "Paginated list of all students registered under this tenant.")
@@ -49,7 +51,7 @@ public class StudentController {
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
-    @GetMapping("/org/{orgId}")
+    @GetMapping("/{orgId}")
     public ResponseEntity<Page<StudentResponse>> listStudents(@PathVariable Long orgId, Pageable pageable) {
         return ResponseEntity.ok(studentService.getPaginatedStudents(orgId, pageable));
     }

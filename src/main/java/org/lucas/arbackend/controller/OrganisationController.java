@@ -79,14 +79,14 @@ public class OrganisationController {
         return ResponseEntity.ok(response);
     }
 
-//    @Operation(summary = "Generate API Key", description = "Generates a new secure API key. The raw key is returned ONLY ONCE for security.")
+//    @Operation(summary = "Generate API Key", learningObjectives = "Generates a new secure API key. The raw key is returned ONLY ONCE for security.")
 //    @ApiResponses(value = {
-//            @ApiResponse(responseCode = "200", description = "API Key generated successfully"),
-//            @ApiResponse(responseCode = "403", description = "Access Denied: You do not have permission to generate keys",
+//            @ApiResponse(responseCode = "200", learningObjectives = "API Key generated successfully"),
+//            @ApiResponse(responseCode = "403", learningObjectives = "Access Denied: You do not have permission to generate keys",
 //                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
-//            @ApiResponse(responseCode = "401", description = "Unauthorized",
+//            @ApiResponse(responseCode = "401", learningObjectives = "Unauthorized",
 //                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
-//            @ApiResponse(responseCode = "500", description = "Internal server error",
+//            @ApiResponse(responseCode = "500", learningObjectives = "Internal server error",
 //                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
 //    })
 //    @PostMapping("/api-keys")

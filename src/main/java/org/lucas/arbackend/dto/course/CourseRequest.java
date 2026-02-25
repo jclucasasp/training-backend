@@ -19,8 +19,11 @@ public class CourseRequest {
     @NotBlank(message = "Course name is required")
     private String name;
 
-    @NotBlank(message = "Course description is required")
-    private String description;
+//    @NotBlank(message = "Estimated time to completion required")
+//    private Long estimatedTotalTime;
+
+    @NotBlank(message = "Course learningObjectives is required")
+    private String learningObjectives;
 
     @NotNull(message = "Course difficulty is required")
     private DifficultyTypes difficultyTypes; // BEGINNER, INTERMEDIATE, ADVANCED

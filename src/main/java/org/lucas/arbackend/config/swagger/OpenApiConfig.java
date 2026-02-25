@@ -44,7 +44,7 @@ import org.springframework.context.annotation.Configuration;
 // 2. Define Header-based API Key for Students
 @SecurityScheme(
         name = "X-API-KEY",
-        description = "API auth description for students",
+        description = "API auth learningObjectives for students",
         type = SecuritySchemeType.APIKEY,
         in = SecuritySchemeIn.HEADER
 )

@@ -15,7 +15,7 @@ public class CourseChapterResponse implements Serializable {
 
     private long id;
     private String name;
-    private String description;
+    private String summary;
 
     private Set<ChapterSectionResponse> sectionsResponse;
 }

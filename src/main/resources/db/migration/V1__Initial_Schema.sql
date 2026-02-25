@@ -131,8 +131,10 @@ CREATE TABLE IF NOT EXISTS course (
                         cou_org_id BIGINT NOT NULL,
                         cou_stf_id BIGINT NOT NULL,
                         cou_name VARCHAR(255) NOT NULL,
+                        cou_slug VARCHAR(255) UNIQUE NOT NULL,
+                        cou_estimated_total_time BIGINT,
                         cou_image_url VARCHAR(255), -- Optional: URL to course avatar image
-                        cou_description TEXT,
+                        cou_learning_objectives TEXT,
                         cou_difficulty ENUM('BEGINNER', 'INTERMEDIATE', 'ADVANCED'),
                         cou_tags VARCHAR(255),
                         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -143,16 +145,16 @@ CREATE TABLE IF NOT EXISTS course (
                         -- Index for tenant-specific course management
                         INDEX idx_course_tenant (cou_org_id, cou_id),
                         INDEX idx_course_creator (cou_stf_id, cou_id),
-                        INDEX idx_course_status (ended_at, cou_id)
+                        INDEX idx_course_status (ended_at, cou_id),
+                        INDEX idx_course_slug (cou_slug, cou_org_id)
 ) ENGINE=InnoDB;
 
 -- Enforcing 1 CourseModule per Course via UNIQUE constraint
 CREATE TABLE IF NOT EXISTS chapter (
                         cha_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                        cha_course_id BIGINT
-                            NOT NULL,
+                        cha_course_id BIGINT NOT NULL,
                         cha_name VARCHAR(255) NOT NULL,
-                        cha_description TEXT,
+                        cha_summary  TEXT,
                         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                         updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
                         ended_at DATETIME NULL,

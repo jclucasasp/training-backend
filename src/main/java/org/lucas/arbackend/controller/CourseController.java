@@ -46,7 +46,7 @@ public class CourseController {
                                                            @RequestParam(defaultValue = "id") String sort) {
         return ResponseEntity.ok(courseService.getPaginatedCourses(PageRequest.of(page, size, Sort.by(sort))));
     }
-
+    // TODO: Change this to accept files
     @Operation(summary = "Add Course", description = "Creates a new curriculum course for the organization.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Course created"),

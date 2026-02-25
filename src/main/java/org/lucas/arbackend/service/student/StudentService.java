@@ -42,14 +42,14 @@ public class StudentService {
     // ==========================================
     // 1. ENROLLMENT LOGIC (UPSERT Student)
     // ==========================================
-    public EnrollmentResponse enrollStudent(Long orgId, StudentRequest request) {
+    public EnrollmentResponse enrollStudent(StudentRequest request) {
 
         // Verify Organisation
-        Organisation org = orgRepo.findById(orgId)
+        Organisation org = orgRepo.findById(tenantProvider.get())
                 .orElseThrow(() -> new EntityNotFoundException("Organisation not found"));
 
         // Find or Create student within this Org
-        Student student = studentRepo.findByOrganisationIdAndStudentNumber(orgId, request.getStudentNumber())
+        Student student = studentRepo.findByOrganisationIdAndStudentNumber(org.getId(), request.getStudentNumber())
                 .orElseGet(() -> {
                     Student newStudent = new Student();
                     newStudent.setOrganisation(org);
@@ -60,25 +60,28 @@ public class StudentService {
                 });
 
         // Check if course exists
-        Course course = courseRepo.findByOrganisationIdAndEndedAtIsNull(orgId)
+        Course course = courseRepo.findByOrganisationIdAndEndedAtIsNull(org.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Course not found"));
 
         // Create Enrollment
-        StudentEnrollment enrollment = new StudentEnrollment();
-        enrollment.setStudent(student);
-        enrollment.setCourse(course);
-
-        StudentEnrollment saved = enrollmentRepo.save(enrollment);
+        StudentEnrollment enrollment = enrollmentRepo.findByStudentIdAndCourseId(student.getId(), course.getId())
+                .orElseGet(() -> {
+                            StudentEnrollment newEnrollment = new StudentEnrollment();
+                            newEnrollment.setStudent(student);
+                            newEnrollment.setCourse(course);
+                            return enrollmentRepo.save(newEnrollment);
+                        }
+                );
 
         return EnrollmentResponse.builder()
-                .enrollmentId(saved.getId())
+                .enrollmentId(enrollment.getId())
                 .studentNumber(student.getStudentNumber())
                 .courseName(course.getName())
-                .enrolledAt(saved.getEnrolledAt())
+                .enrolledAt(enrollment.getEnrolledAt())
                 .currentTotalProgress(BigDecimal.ZERO)
                 .build();
     }
-
+    // TODO: Update the actual progress from Course.estimatedCompletionTime
     // ==========================================
     // 2. PROGRESS TRACKING
     // ==========================================

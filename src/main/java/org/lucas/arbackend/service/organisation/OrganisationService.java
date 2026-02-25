@@ -110,7 +110,7 @@ public class OrganisationService {
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(newUser, null, newUser.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
 
-        return orgMapper.mapToOrgResponse(savedOrg);
+        return orgMapper.mapToOrgResponse(savedOrg, apiKeyResponse.rawKey());
 
     }
 

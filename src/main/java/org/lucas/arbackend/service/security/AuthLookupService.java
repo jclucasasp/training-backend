@@ -24,7 +24,7 @@ public class AuthLookupService {
     @Cacheable(value = "auth_user", key = "#email", unless = "#result == null")
     public CacheDto getAuthCacheDto(String email) {
 
-        return orgRepo.findByEmail(email)
+        return orgRepo.findByEmailAndEndedAtIsNull(email)
                 .map(org ->
                         new CacheDto(
                                 org.getId(),

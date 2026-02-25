@@ -29,20 +29,25 @@ public interface OrganisationMapper {
     void updateAddress(OrganisationRequest dto, @MappingTarget OrgAddress entity);
 
     // 4. Return the OrganisationResponse entity
-    @Mapping(target = "orgName", source = "profile.orgName")
-    @Mapping(target = "registrationNumber", source = "profile.registrationNumber")
-    @Mapping(target = "vatNumber", source = "profile.vatNumber")
-    @Mapping(target = "streetAddress", source = "profile.address.street")
-    @Mapping(target = "suburb", source = "profile.address.suburb")
-    @Mapping(target = "city", source = "profile.address.city")
-    @Mapping(target = "state", source = "profile.address.state")
-    @Mapping(target = "zip", source = "profile.address.zip")
-    @Mapping(target = "apiKey", source = "apiKey.hashKey")
+
+    default OrganisationResponse mapToOrgResponse(Organisation org) {
+        return mapToOrgResponse(org, null);
+    };
+
+    @Mapping(target = "orgName", source = "org.profile.orgName")
+    @Mapping(target = "registrationNumber", source = "org.profile.registrationNumber")
+    @Mapping(target = "vatNumber", source = "org.profile.vatNumber")
+    @Mapping(target = "streetAddress", source = "org.profile.address.street")
+    @Mapping(target = "suburb", source = "org.profile.address.suburb")
+    @Mapping(target = "city", source = "org.profile.address.city")
+    @Mapping(target = "state", source = "org.profile.address.state")
+    @Mapping(target = "zip", source = "org.profile.address.zip")
+    @Mapping(target = "apiKey", expression = "java(rawKey != null ? rawKey : org.getApiKey().getHashKey())")
     @Mapping(target = "subscriptionStatus", expression = "java(org.getSubscription().getStatus() == 1)")
-    @Mapping(target = "subscriptionPlan", source = "subscription.subscriptionPlan.plan")
-    @Mapping(target = "subscriptionStartDate", source = "subscription.createdAt")
-    @Mapping(target = "subscriptionEndDate", source = "subscription.endedAt")
-    OrganisationResponse mapToOrgResponse(Organisation org);
+    @Mapping(target = "subscriptionPlan", source = "org.subscription.subscriptionPlan.plan")
+    @Mapping(target = "subscriptionStartDate", source = "org.subscription.createdAt")
+    @Mapping(target = "subscriptionEndDate", source = "org.subscription.endedAt")
+    OrganisationResponse mapToOrgResponse(Organisation org, String rawKey);
 
     // 5. Return the Organisation entity
     @Mapping(target = "id", ignore = true)

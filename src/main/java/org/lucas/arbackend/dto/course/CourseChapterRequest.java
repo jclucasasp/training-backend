@@ -13,12 +13,12 @@ public class CourseChapterRequest {
     @JsonIgnore
     private Long id;
 
-    @NotNull(message = "CourseModule name is required")
+    @NotNull(message = "Chapter name is required")
     private String name;
 
-    @NotNull(message = "CourseModule description is required")
-    private String description;
+    @NotNull(message = "Chapter summary is required")
+    private String summary;
 
-    @NotNull(message = "CourseModule chapterSections are required")
+    @NotNull(message = "Chapter sections are required")
     private Set<ChapterSectionRequest> sections;
 }
