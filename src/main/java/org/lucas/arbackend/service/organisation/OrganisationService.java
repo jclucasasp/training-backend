@@ -90,7 +90,7 @@ public class OrganisationService {
         ApiKey apiKey = new ApiKey();
         ApiKeyResponse apiKeyResponse = apiKeyService.generateKeyForOrg(apiKey);
 
-        if (apiKeyResponse.rawKey().isBlank()) {
+        if (apiKeyResponse.getRawKey().isBlank()) {
             throw new RuntimeException("API Key could not be generated");
         }
 
@@ -110,7 +110,7 @@ public class OrganisationService {
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(newUser, null, newUser.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
 
-        return orgMapper.mapToOrgResponse(savedOrg, apiKeyResponse.rawKey());
+        return orgMapper.mapToOrgResponse(savedOrg, apiKeyResponse.getRawKey());
 
     }
 

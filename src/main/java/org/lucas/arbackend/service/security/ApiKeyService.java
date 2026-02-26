@@ -3,6 +3,7 @@ package org.lucas.arbackend.service.security;
 import lombok.RequiredArgsConstructor;
 import org.lucas.arbackend.dto.security.ApiKeyResponse;
 import org.lucas.arbackend.entity.security.ApiKey;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,8 +29,6 @@ public class ApiKeyService {
         // 3. Save metadata + hash
         apiKey.setPrefix(rawKey.substring(0, 12));
         apiKey.setHashKey(hashedKey); // We never store the raw key
-
-//        apiKeyRepo.save(apiKey);
 
         // 4. Return the RAW key to the user
         return ApiKeyResponse.builder()

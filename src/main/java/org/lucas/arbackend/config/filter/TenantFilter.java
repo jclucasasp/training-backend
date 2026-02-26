@@ -59,11 +59,11 @@ public class TenantFilter extends OncePerRequestFilter {
 
         ApiKeyResponse apiKey = authLookupService.getApiKey(prefix);
 
-        if (!encoder.matches(apiKeyHeader, apiKey.hashedKey())) {
+        if (!encoder.matches(apiKeyHeader, apiKey.getHashedKey())) {
             throw new AccessDeniedException("Invalid API Key");
         }
 
-        Long orgId = apiKey.orgId();
+        Long orgId = apiKey.getOrgId();
         TenantContext.setCurrentTenant(orgId);
 
         // Manually set Student in SecurityContext so @PreAuthorize works

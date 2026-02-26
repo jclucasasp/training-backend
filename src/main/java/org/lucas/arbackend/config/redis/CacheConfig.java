@@ -39,6 +39,7 @@ public class CacheConfig implements CachingConfigurer {
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
         // This tells Jackson to store the class name in the JSON so it can reverse it later
+        // Make sure NOT to use Records as this breaks the .NON_FINAL config
         mapper.activateDefaultTyping(
                 LaissezFaireSubTypeValidator.instance,
                 ObjectMapper.DefaultTyping.NON_FINAL,
@@ -55,13 +56,11 @@ public class CacheConfig implements CachingConfigurer {
         Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
 
         // User login cache
-        cacheConfigurations.put("org_users", defaultConfig.entryTtl(Duration.ofHours(24)));
-        cacheConfigurations.put("staff_users", defaultConfig.entryTtl(Duration.ofHours(24)));
+        cacheConfigurations.put("org_user", defaultConfig.entryTtl(Duration.ofHours(24)));
+        cacheConfigurations.put("staff_user", defaultConfig.entryTtl(Duration.ofHours(24)));
 
         // Other cache
-        cacheConfigurations.put("api_keys", defaultConfig.entryTtl(Duration.ofHours(24)));
-        cacheConfigurations.put("staff", defaultConfig.entryTtl(Duration.ofDays(30)));
-        cacheConfigurations.put("organisation", defaultConfig.entryTtl(Duration.ofDays(30)));
+        cacheConfigurations.put("api_key", defaultConfig.entryTtl(Duration.ofHours(24)));
         cacheConfigurations.put("active_subscriptions", defaultConfig.entryTtl(Duration.ofDays(30)));
 
         return RedisCacheManager.builder(connectionFactory)

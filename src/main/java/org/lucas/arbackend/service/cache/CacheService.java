@@ -20,7 +20,7 @@ public class CacheService {
 
     // Evict a specific org from the subscription cache
     public void evictSubscription(Long orgId) {
-        var cache = cacheManager.getCache("active_subscriptions");
+        var cache = cacheManager.getCache("active_subscription");
         if (cache != null) {
             cache.evict(orgId);
         }
@@ -35,7 +35,7 @@ public class CacheService {
 
     // Evict a specific API key prefix
     public void evictApiKey(String prefix) {
-        var cache = cacheManager.getCache("api_keys");
+        var cache = cacheManager.getCache("api_key");
         if (cache != null) {
             cache.evict(prefix);
         }
