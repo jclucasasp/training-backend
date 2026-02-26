@@ -14,7 +14,9 @@ import org.lucas.arbackend.exception.ErrorDetailsResponse;
 import org.lucas.arbackend.service.student.StudentService;
 import org.lucas.arbackend.util.ValidatedLabel;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -52,7 +54,9 @@ public class StudentController {
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
     @GetMapping("/{orgId}")
-    public ResponseEntity<Page<StudentResponse>> listStudents(@PathVariable Long orgId, Pageable pageable) {
-        return ResponseEntity.ok(studentService.getPaginatedStudents(orgId, pageable));
+    public ResponseEntity<Page<StudentResponse>> listStudents(@RequestParam(defaultValue = "0") int page,
+                                                           @RequestParam(defaultValue = "10") int size,
+                                                           @RequestParam(defaultValue = "id") String sort) {
+        return ResponseEntity.ok(studentService.getPaginatedStudents(PageRequest.of(page, size, Sort.by(sort))));
     }
 }

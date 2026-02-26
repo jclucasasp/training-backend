@@ -11,6 +11,7 @@ import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.student.Student;
 import org.lucas.arbackend.entity.student.StudentEnrollment;
 import org.lucas.arbackend.entity.student.StudentProgress;
+import org.lucas.arbackend.mapper.StudentMapper;
 import org.lucas.arbackend.repository.course.ChapterSectionRepository;
 import org.lucas.arbackend.repository.course.CourseRepository;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
@@ -38,6 +39,7 @@ public class StudentService {
     private final CourseRepository courseRepo;
     private final ChapterSectionRepository sectionRepo;
     private final TenantProvider tenantProvider;
+    private final StudentMapper studentMapper;
 
     // ==========================================
     // 1. ENROLLMENT LOGIC (UPSERT Student)
@@ -52,10 +54,9 @@ public class StudentService {
         Student student = studentRepo.findByOrganisationIdAndStudentNumber(org.getId(), request.getStudentNumber())
                 .orElseGet(() -> {
                     Student newStudent = new Student();
+                    studentMapper.updateStudent(request, newStudent);
                     newStudent.setOrganisation(org);
-                    newStudent.setStudentNumber(request.getStudentNumber());
-                    newStudent.setFirstName(request.getFirstName());
-                    newStudent.setLastName(request.getLastName());
+
                     return studentRepo.save(newStudent);
                 });
 
@@ -146,14 +147,9 @@ public class StudentService {
     }
 
     @Transactional(readOnly = true)
-    public Page<StudentResponse> getPaginatedStudents(Long orgId, Pageable pageable) {
-        return studentRepo.findAllByOrganisationId(orgId, pageable)
-                .map(s -> StudentResponse.builder()
-                        .id(s.getId())
-                        .studentNumber(s.getStudentNumber())
-                        .firstName(s.getFirstName())
-                        .lastName(s.getLastName())
-                        .build());
+    public Page<StudentResponse> getPaginatedStudents(Pageable pageable) {
+        return studentRepo.findAllByOrganisationId(tenantProvider.get(), pageable)
+                .map(studentMapper::maptToStudentResponse);
     }
 
 }
