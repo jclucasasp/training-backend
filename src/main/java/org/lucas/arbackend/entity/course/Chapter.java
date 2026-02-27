@@ -25,6 +25,9 @@ public class Chapter extends BaseEntity {
     @Column(name = "cha_summary", nullable = false)
     private String summary;
 
+    @Column(name = "cha_total_time_minutes")
+    private Integer totalTimeInMinutes;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cha_course_id")
     private Course course;

@@ -1,5 +1,6 @@
 package org.lucas.arbackend.controller;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -14,6 +15,7 @@ import org.lucas.arbackend.entity.security.RoleTypes;
 import org.lucas.arbackend.exception.ErrorDetailsResponse;
 import org.lucas.arbackend.service.organisation.OrganisationService;
 import org.lucas.arbackend.service.staff.StaffService;
+import org.lucas.arbackend.util.AccessLevelViews;
 import org.lucas.arbackend.util.ValidatedLabel;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -60,6 +62,7 @@ public class AdminController {
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
+    @JsonView(AccessLevelViews.Public.class)
     @PostMapping("/staff/add")
     public ResponseEntity<StaffResponse> addStaff(@Validated(ValidatedLabel.OnCreate.class) @RequestBody StaffRequest request) {
         return ResponseEntity.ok(staffService.createStaff(request));

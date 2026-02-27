@@ -132,7 +132,7 @@ CREATE TABLE IF NOT EXISTS course (
                         cou_stf_id BIGINT NOT NULL,
                         cou_name VARCHAR(255) NOT NULL,
                         cou_slug VARCHAR(255) UNIQUE NOT NULL,
-                        cou_estimated_total_time BIGINT,
+                        cou_total_time_minutes INT,
                         cou_image_url VARCHAR(255), -- Optional: URL to course avatar image
                         cou_learning_objectives TEXT,
                         cou_difficulty ENUM('BEGINNER', 'INTERMEDIATE', 'ADVANCED'),
@@ -155,6 +155,7 @@ CREATE TABLE IF NOT EXISTS chapter (
                         cha_course_id BIGINT NOT NULL,
                         cha_name VARCHAR(255) NOT NULL,
                         cha_summary  TEXT,
+                        cha_total_time_minutes INT,
                         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                         updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
                         ended_at DATETIME NULL,
@@ -169,11 +170,11 @@ CREATE TABLE IF NOT EXISTS chapter_section (
                          chs_chapter_id BIGINT NOT NULL,
                          chs_title VARCHAR(255) NOT NULL,
                          chs_content TEXT,
-                         chs_duration INT, -- Optional: Duration in seconds
-                         chs_resource_url VARCHAR(255), -- Optional: URL to external resource
-                         chs_resource_media_type VARCHAR(100), -- Optional: MIME type of resource (e.g., 'video/mp4')
-                         chs_order_index INT NOT NULL, -- For sorted lesson delivery
-                         chs_tags VARCHAR(255), -- Optional: Tags for filtering
+                         chs_duration_minutes INT,
+                         chs_resource_url VARCHAR(255),
+                         chs_resource_media_type VARCHAR(100),
+                         chs_tags VARCHAR(255),
+                         chs_order_index INT NOT NULL,
                          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                          updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
                          ended_at DATETIME NULL,

@@ -3,13 +3,15 @@ package org.lucas.arbackend.dto.organisation;
 import com.fasterxml.jackson.annotation.JsonView;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 import org.lucas.arbackend.util.AccessLevelViews;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-@Data @Builder
+@Getter
+@Builder
 public class StaffResponse implements Serializable {
 
     @Serial

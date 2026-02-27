@@ -23,8 +23,6 @@ public class ChapterSectionRequest {
     private String resourceUrl;
     private String resourceMediaType;
 
-    @NotNull(message = "ChapterSectionRequest order index is required")
-    private Integer orderIndex;
     @NotNull(message = "Keywords for faster searching, eg Javascript, Anatomy, etc")
     private String tags;
 

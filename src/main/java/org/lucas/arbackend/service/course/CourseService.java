@@ -73,8 +73,8 @@ public class CourseService {
 
         course.setChapters(chapters);
     }
-        Long totalDuration = getTotalDuration(course);
-        course.setEstimatedTotalTime(totalDuration);
+        Integer totalDuration = getTotalDuration(course);
+        course.setTotalTimeInMinutes(totalDuration);
 
         Course newCourse = courseRepo.save(course);
         return courseMapper.maptoCourseResponse(newCourse);
@@ -103,8 +103,8 @@ public class CourseService {
             updateChapters(course, request.getChapters());
         }
 
-        Long totalDuration = getTotalDuration(course);
-        course.setEstimatedTotalTime(totalDuration);
+        Integer totalDuration = getTotalDuration(course);
+        course.setTotalTimeInMinutes(totalDuration);
 
         Course saved = courseRepo.save(course);
         return courseMapper.maptoCourseResponse(saved);
@@ -119,9 +119,9 @@ public class CourseService {
                                 .orElseThrow(() -> new EntityNotFoundException("Chapter not found"))
                                 : new Chapter();
 
-                        courseMapper.updateChapter(chapterDto, chapter);
-                        chapter.setCourse(course);
 
+                        courseMapper.updateChapter(chapterDto, chapter);
+                        chapter.setCourse(course);;
                         updateChapterSections(chapter, chapterDto.getSections());
 
                         return chapter;
@@ -145,7 +145,9 @@ private void updateChapterSections(Chapter chapter, Set<ChapterSectionRequest> s
                 : new ChapterSection();
 
         courseMapper.updateChapterSection(sectionDto, section);
+        chapter.setTotalTimeInMinutes(chapter.getTotalTimeInMinutes() + section.getDurationInMinutes());
         section.setChapter(chapter);
+
         return section;
     }).collect(Collectors.toSet());
 
@@ -177,9 +179,9 @@ private void updateChapterSections(Chapter chapter, Set<ChapterSectionRequest> s
                 .orElse(false);
     }
 
-    private Long getTotalDuration(Course course) {
+    private Integer getTotalDuration(Course course) {
         return course.getChapters().stream()
                 .flatMap(chapter -> chapter.getChapterSections().stream())
-                .mapToLong(section -> section.getDuration() != null ? section.getDuration() : 0).sum();
+                .mapToInt(section -> section.getDurationInMinutes() != null ? section.getDurationInMinutes() : 0).sum();
     }
 }

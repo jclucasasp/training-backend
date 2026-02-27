@@ -39,8 +39,8 @@ public class Course extends BaseEntity {
     @Column(name = "cou_slug", nullable = false, unique = true)
     private String slug;
 
-    @Column(name = "cou_estimated_total_time")
-    private Long estimatedTotalTime;
+    @Column(name = "cou_total_time_minutes")
+    private Integer totalTimeInMinutes;
 
     @Column(name = "cou_image_url")
     private String imageUrl;

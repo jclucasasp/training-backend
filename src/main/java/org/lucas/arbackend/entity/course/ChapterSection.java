@@ -3,7 +3,6 @@ package org.lucas.arbackend.entity.course;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.BaseEntity;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -23,8 +22,8 @@ public class ChapterSection extends BaseEntity {
     @Column(name = "chs_content", columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "chs_duration")
-    private Integer duration;
+    @Column(name = "chs_duration_minutes")
+    private Integer durationInMinutes;
 
     @Column(name = "chs_resource_url")
     private String resourceUrl;

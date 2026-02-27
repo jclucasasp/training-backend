@@ -3,6 +3,7 @@ package org.lucas.arbackend.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,7 +17,7 @@ public abstract class ContactBaseEntity extends BaseEntity {
     @Column(name = "last_name", nullable = false)
     private String lastName;
 
-    @Email
+    @Email()
     @Column(name = "email", nullable = false, unique = true)
     private String email;
 
