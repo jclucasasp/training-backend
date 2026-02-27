@@ -18,15 +18,18 @@ public interface CourseMapper {
 
     // MapStruct will automatically look for this if CourseRequest has a List<CourseChapterRequest>
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "chapterSections", source = "sections")
+    @Mapping(target = "chapterSections", ignore = true)
+    @Mapping(target = "totalTimeInMinutes", ignore = true)
     void updateChapter(CourseChapterRequest dto, @MappingTarget Chapter entity);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "durationInMinutes", source = "durationInMinutes")
     void updateChapterSection(ChapterSectionRequest dto, @MappingTarget ChapterSection entity);
 
     @Mapping(target = "staffEmail", source = "staff.email")
     @Mapping(target = "difficulty", source = "course.difficultyTypes")
-    @Mapping(target = "chaptersResponse", source = "course.chapters")
+    @Mapping(target = "chaptersResponse", source = "chapters")
+    @Mapping(target = "totalTimeInMinutes", source = "totalTimeInMinutes")
     CourseResponse maptoCourseResponse(Course course);
 
     @Mapping(target = "sectionsResponse", source = "chapterSections") // Map Set<ChapterSection> to Set<ChapterSectionResponse>

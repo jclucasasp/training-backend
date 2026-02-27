@@ -41,6 +41,8 @@ public class CourseService {
 
         // Map DTO to Entity
         Course course = new Course();
+//        course.setTotalTimeInMinutes(0);
+
         courseMapper.updateCourse(request, course);
 
         course.setOrganisation(org);
@@ -49,6 +51,8 @@ public class CourseService {
         if (request.getChapters() != null) {
         Set<Chapter> chapters = request.getChapters().stream().map(chapterDto -> {
             Chapter chapter = new Chapter();
+
+//            chapter.setTotalTimeInMinutes(0);
             courseMapper.updateChapter(chapterDto, chapter);
             // LINK THE BACK-REFERENCE
             chapter.setCourse(course);
@@ -61,6 +65,10 @@ public class CourseService {
                     courseMapper.updateChapterSection(sectionDto, section);
 
                     // LINK THE BACK-REFERENCE
+//                    if (chapter.getTotalTimeInMinutes() != null){
+//                        chapter.setTotalTimeInMinutes(chapter.getTotalTimeInMinutes() + sectionDto.getDurationInMinutes());
+//                    }
+
                     section.setChapter(chapter);
                     return section;
                 }).collect(Collectors.toSet());
@@ -135,7 +143,7 @@ private void updateChapterSections(Chapter chapter, Set<ChapterSectionRequest> s
     // If the request explicitly provides a null or empty set,
     // we might want to clear existing sections depending on business logic.
     // Assuming null means "no change" and empty means "remove all".
-    if (sectionRequest == null) return;
+    if (sectionRequest == null)  return;
 
     Set<ChapterSection> updatedSections = sectionRequest.stream().map(sectionDto -> {
         ChapterSection section = (sectionDto.getId() != null)
@@ -145,7 +153,6 @@ private void updateChapterSections(Chapter chapter, Set<ChapterSectionRequest> s
                 : new ChapterSection();
 
         courseMapper.updateChapterSection(sectionDto, section);
-        chapter.setTotalTimeInMinutes(chapter.getTotalTimeInMinutes() + section.getDurationInMinutes());
         section.setChapter(chapter);
 
         return section;
@@ -154,6 +161,12 @@ private void updateChapterSections(Chapter chapter, Set<ChapterSectionRequest> s
     // Replace the collection to trigger orphanRemoval
     chapter.getChapterSections().clear();
     chapter.getChapterSections().addAll(updatedSections);
+
+    int totalChapterTime = updatedSections.stream()
+            .mapToInt(s -> s.getDurationInMinutes() != null ? s.getDurationInMinutes() : 0)
+            .sum();
+    chapter.setTotalTimeInMinutes(totalChapterTime);
+
 }
 
     public void softDeleteCourse(Long courseId) {

@@ -18,7 +18,7 @@ public class ChapterSectionRequest {
     private String content;
 
     @NotNull(message = "ChapterSectionRequest duration is required")
-    private Integer duration;
+    private Integer durationInMinutes;
 
     private String resourceUrl;
     private String resourceMediaType;

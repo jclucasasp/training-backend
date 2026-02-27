@@ -3,12 +3,14 @@ package org.lucas.arbackend.entity.course;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.BaseEntity;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "chapter_section")
 @SQLDelete(sql = "UPDATE chapter_section SET ended_at = CURRENT_TIMESTAMP WHERE chs_id = ?")
+@SQLRestriction("ended_at IS NULL")
 @EntityListeners(AuditingEntityListener.class)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class ChapterSection extends BaseEntity {
