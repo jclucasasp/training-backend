@@ -174,7 +174,7 @@ CREATE TABLE IF NOT EXISTS chapter_section (
                          chs_resource_url VARCHAR(255),
                          chs_resource_media_type VARCHAR(100),
                          chs_tags VARCHAR(255),
-                         chs_order_index INT NOT NULL,
+                         chs_order_index INT,
                          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                          updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
                          ended_at DATETIME NULL,
