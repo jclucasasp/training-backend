@@ -156,11 +156,13 @@ CREATE TABLE IF NOT EXISTS chapter (
                         cha_name VARCHAR(255) NOT NULL,
                         cha_summary  TEXT,
                         cha_total_time_minutes INT,
+                        cha_order_index INT,
                         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                         updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
                         ended_at DATETIME NULL,
                         CONSTRAINT fk_module_course FOREIGN KEY (cha_course_id) REFERENCES course(cou_id),
                         -- Index for Course -> CourseModule join
+                        INDEX idx_chapter_order (cha_course_id, cha_order_index),
                         INDEX idx_module_course_fk (cha_course_id),
                         INDEX idx_module_status (ended_at, cha_id)
 ) ENGINE=InnoDB;

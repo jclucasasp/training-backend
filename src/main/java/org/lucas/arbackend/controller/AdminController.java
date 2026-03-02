@@ -78,7 +78,7 @@ public class AdminController {
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
-    @GetMapping("/staff/all")
+    @GetMapping("/staff")
     public ResponseEntity<Page<StaffResponse>> getAllStaff(@RequestParam(defaultValue = "0") int page,
                                                            @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(staffService.getAllStaff(Pageable.ofSize(size).withPage(page)));

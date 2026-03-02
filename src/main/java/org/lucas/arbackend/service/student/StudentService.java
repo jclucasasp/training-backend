@@ -61,7 +61,7 @@ public class StudentService {
                 });
 
         // Check if course exists
-        Course course = courseRepo.findByOrganisationIdAndEndedAtIsNull(org.getId())
+        Course course = courseRepo.findByOrganisationIdAndSlugAndEndedAtIsNull(org.getId(), request.getSlug())
                 .orElseThrow(() -> new EntityNotFoundException("Course not found"));
 
         // Create Enrollment

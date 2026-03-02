@@ -17,9 +17,6 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     Optional<Course> findByIdAndOrganisationIdAndEndedAtIsNull(Long id, Long orgId);
 
     @EntityGraph(value = "Course.withChapterAndSections", type = EntityGraph.EntityGraphType.LOAD)
-    Optional<Course> findByOrganisationIdAndEndedAtIsNull(Long orgId);
-
-    @EntityGraph(value = "Course.withChapterAndSections", type = EntityGraph.EntityGraphType.LOAD)
-    Optional<Course> findBySlugAndOrganisationIdAndEndedAtIsNull(String slug, Long orgId);
+    Optional<Course> findByOrganisationIdAndSlugAndEndedAtIsNull(Long orgId, String slug);
 
 }

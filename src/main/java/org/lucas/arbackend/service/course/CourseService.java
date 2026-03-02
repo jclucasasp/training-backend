@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Service
@@ -49,40 +50,46 @@ public class CourseService {
         course.setStaff(staff);
 
         if (request.getChapters() != null) {
-        Set<Chapter> chapters = request.getChapters().stream().map(chapterDto -> {
-            Chapter chapter = new Chapter();
+            AtomicInteger chapterIndex = new AtomicInteger(0);
 
-//            chapter.setTotalTimeInMinutes(0);
-            courseMapper.updateChapter(chapterDto, chapter);
-            // LINK THE BACK-REFERENCE
-            chapter.setCourse(course);
+            Set<Chapter> chapters = request.getChapters().stream().map(chapterDto -> {
+                Chapter chapter = new Chapter();
 
-            // 3. MANUALLY MAP AND LINK SECTIONS
-            if (chapterDto.getSections() != null) {
-                List<ChapterSection> sections = chapterDto.getSections().stream().map(sectionDto -> {
-                    ChapterSection section = new ChapterSection();
-                    // USE THE MAPPER HERE
-                    courseMapper.updateChapterSection(sectionDto, section);
+                courseMapper.updateChapter(chapterDto, chapter);
+                // LINK THE BACK-REFERENCE
+                chapter.setCourse(course);
+                chapter.setOrderIndex(chapterIndex.getAndIncrement());
 
-                    // LINK THE BACK-REFERENCE
-//                    if (chapter.getTotalTimeInMinutes() != null){
-//                        chapter.setTotalTimeInMinutes(chapter.getTotalTimeInMinutes() + sectionDto.getDurationInMinutes());
-//                    }
+                // 3. MANUALLY MAP AND LINK SECTIONS
+                if (chapterDto.getSections() != null) {
+                    AtomicInteger sectionIndex = new AtomicInteger(0);
 
-                    section.setChapter(chapter);
-                    return section;
-                }).toList();
+                    List<ChapterSection> sections = chapterDto.getSections().stream().map(sectionDto -> {
+                        ChapterSection section = new ChapterSection();
+                        // USE THE MAPPER HERE
+                        courseMapper.updateChapterSection(sectionDto, section);
 
-                chapter.setChapterSections(sections);
-            }
+                        section.setChapter(chapter);
+                        section.setOrderIndex(sectionIndex.getAndIncrement());
 
-            return chapter;
-        }).collect(Collectors.toSet());
+                        return section;
+                    }).toList();
 
-        course.setChapters(chapters);
+                    // Calculate the total minutes for a chapter
+                    Integer totalChapterMinutes = getTotalDuration(sections);
+                    course.setTotalTimeInMinutes(totalChapterMinutes);
+
+                    chapter.setChapterSections(sections);
+                }
+
+                return chapter;
+            }).collect(Collectors.toSet());
+
+            course.setChapters(chapters);
     }
-        Integer totalDuration = getTotalDuration(course);
-        course.setTotalTimeInMinutes(totalDuration);
+        // Calculate the total minutes for the course
+        Integer totalCourseMinutes = getTotalDuration(course.getChapters());
+        course.setTotalTimeInMinutes(totalCourseMinutes);
 
         Course newCourse = courseRepo.save(course);
         return courseMapper.maptoCourseResponse(newCourse);
@@ -111,8 +118,8 @@ public class CourseService {
             updateChapters(course, request.getChapters());
         }
 
-        Integer totalDuration = getTotalDuration(course);
-        course.setTotalTimeInMinutes(totalDuration);
+        Integer totalCourseMinutes = getTotalDuration(course.getChapters());
+        course.setTotalTimeInMinutes(totalCourseMinutes);
 
         Course saved = courseRepo.save(course);
         return courseMapper.maptoCourseResponse(saved);
@@ -120,6 +127,7 @@ public class CourseService {
 
    private void updateChapters(Course course, List<CourseChapterRequest> chaptersRequest) {
 
+        AtomicInteger index = new AtomicInteger();
         List<Chapter> chapters = chaptersRequest.stream().map(chapterDto -> {
                         Chapter chapter = (chapterDto.getId() != null)
                                 ? course.getChapters().stream()
@@ -127,9 +135,10 @@ public class CourseService {
                                 .orElseThrow(() -> new EntityNotFoundException("Chapter not found"))
                                 : new Chapter();
 
-
                         courseMapper.updateChapter(chapterDto, chapter);
-                        chapter.setCourse(course);;
+                        chapter.setCourse(course);
+                        chapter.setOrderIndex(index.getAndIncrement());
+
                         updateChapterSections(chapter, chapterDto.getSections());
 
                         return chapter;
@@ -145,6 +154,7 @@ private void updateChapterSections(Chapter chapter, List<ChapterSectionRequest> 
     // Assuming null means "no change" and empty means "remove all".
     if (sectionRequest == null)  return;
 
+    AtomicInteger index = new AtomicInteger();
     List<ChapterSection> updatedSections = sectionRequest.stream().map(sectionDto -> {
         ChapterSection section = (sectionDto.getId() != null)
                 ? chapter.getChapterSections().stream()
@@ -153,6 +163,8 @@ private void updateChapterSections(Chapter chapter, List<ChapterSectionRequest> 
                 : new ChapterSection();
         courseMapper.updateChapterSection(sectionDto, section);
         section.setChapter(chapter);
+        // This sets the index order
+        section.setOrderIndex(index.getAndIncrement());
 
         return section;
     }).toList();
@@ -161,9 +173,10 @@ private void updateChapterSections(Chapter chapter, List<ChapterSectionRequest> 
     chapter.getChapterSections().clear();
     chapter.getChapterSections().addAll(updatedSections);
 
-    int totalChapterTime = updatedSections.stream()
-            .mapToInt(s -> s.getDurationInMinutes() != null ? s.getDurationInMinutes() : 0)
-            .sum();
+//    int totalChapterTime = updatedSections.stream()
+//            .mapToInt(s -> s.getDurationInMinutes() != null ? s.getDurationInMinutes() : 0)
+//            .sum();
+    int totalChapterTime = getTotalDuration(chapter.getChapterSections());
     chapter.setTotalTimeInMinutes(totalChapterTime);
 }
 
@@ -190,9 +203,14 @@ private void updateChapterSections(Chapter chapter, List<ChapterSectionRequest> 
                 .orElse(false);
     }
 
-    private Integer getTotalDuration(Course course) {
-        return course.getChapters().stream()
+    private Integer getTotalDuration(Set<Chapter> chapters) {
+        return chapters.stream()
                 .flatMap(chapter -> chapter.getChapterSections().stream())
+                .mapToInt(section -> section.getDurationInMinutes() != null ? section.getDurationInMinutes() : 0).sum();
+    }
+
+    private Integer getTotalDuration(List<ChapterSection> sections) {
+        return sections.stream()
                 .mapToInt(section -> section.getDurationInMinutes() != null ? section.getDurationInMinutes() : 0).sum();
     }
 }

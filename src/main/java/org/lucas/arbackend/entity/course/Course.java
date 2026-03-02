@@ -67,6 +67,7 @@ public class Course extends BaseEntity {
 
     @Builder.Default
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("orderIndex ASC")
     private Set<Chapter> chapters = new HashSet<>();
 
     // Automatically generate a slug based on the name
