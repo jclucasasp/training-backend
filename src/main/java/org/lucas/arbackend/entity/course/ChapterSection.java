@@ -21,7 +21,7 @@ public class ChapterSection extends BaseEntity {
     @Column(name = "chs_title", unique = true, nullable = false)
     private String title;
 
-    @Column(name = "chs_content", columnDefinition = "TEXT")
+    @Column(name = "chs_content", nullable = false, columnDefinition = "TEXT")
     private String content;
 
     @Column(name = "chs_duration_minutes")

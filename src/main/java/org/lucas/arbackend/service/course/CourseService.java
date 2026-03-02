@@ -59,7 +59,7 @@ public class CourseService {
 
             // 3. MANUALLY MAP AND LINK SECTIONS
             if (chapterDto.getSections() != null) {
-                Set<ChapterSection> sections = chapterDto.getSections().stream().map(sectionDto -> {
+                List<ChapterSection> sections = chapterDto.getSections().stream().map(sectionDto -> {
                     ChapterSection section = new ChapterSection();
                     // USE THE MAPPER HERE
                     courseMapper.updateChapterSection(sectionDto, section);
@@ -71,7 +71,7 @@ public class CourseService {
 
                     section.setChapter(chapter);
                     return section;
-                }).collect(Collectors.toSet());
+                }).toList();
 
                 chapter.setChapterSections(sections);
             }
@@ -118,9 +118,9 @@ public class CourseService {
         return courseMapper.maptoCourseResponse(saved);
     }
 
-   private void updateChapters(Course course, Set<CourseChapterRequest> chaptersRequest) {
+   private void updateChapters(Course course, List<CourseChapterRequest> chaptersRequest) {
 
-        Set<Chapter> chapters = chaptersRequest.stream().map(chapterDto -> {
+        List<Chapter> chapters = chaptersRequest.stream().map(chapterDto -> {
                         Chapter chapter = (chapterDto.getId() != null)
                                 ? course.getChapters().stream()
                                 .filter(c -> c.getId().equals(chapterDto.getId())).findFirst()
@@ -133,30 +133,29 @@ public class CourseService {
                         updateChapterSections(chapter, chapterDto.getSections());
 
                         return chapter;
-        }).collect(Collectors.toSet());
+        }).toList();
 
         course.getChapters().clear();
         course.getChapters().addAll(chapters);
    }
 
-private void updateChapterSections(Chapter chapter, Set<ChapterSectionRequest> sectionRequest) {
-    // If the request explicitly provides a null or empty set,
+private void updateChapterSections(Chapter chapter, List<ChapterSectionRequest> sectionRequest) {
+    // If the request explicitly provides a null or empty list,
     // we might want to clear existing sections depending on business logic.
     // Assuming null means "no change" and empty means "remove all".
     if (sectionRequest == null)  return;
 
-    Set<ChapterSection> updatedSections = sectionRequest.stream().map(sectionDto -> {
+    List<ChapterSection> updatedSections = sectionRequest.stream().map(sectionDto -> {
         ChapterSection section = (sectionDto.getId() != null)
                 ? chapter.getChapterSections().stream()
                 .filter(s -> s.getId().equals(sectionDto.getId())).findFirst()
                 .orElseThrow(() -> new EntityNotFoundException("Section not found"))
                 : new ChapterSection();
-
         courseMapper.updateChapterSection(sectionDto, section);
         section.setChapter(chapter);
 
         return section;
-    }).collect(Collectors.toSet());
+    }).toList();
 
     // Replace the collection to trigger orphanRemoval
     chapter.getChapterSections().clear();
@@ -166,7 +165,6 @@ private void updateChapterSections(Chapter chapter, Set<ChapterSectionRequest> s
             .mapToInt(s -> s.getDurationInMinutes() != null ? s.getDurationInMinutes() : 0)
             .sum();
     chapter.setTotalTimeInMinutes(totalChapterTime);
-
 }
 
     public void softDeleteCourse(Long courseId) {

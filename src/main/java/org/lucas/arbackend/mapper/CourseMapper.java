@@ -19,7 +19,6 @@ public interface CourseMapper {
     // MapStruct will automatically look for this if CourseRequest has a List<CourseChapterRequest>
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "chapterSections", ignore = true)
-    @Mapping(target = "totalTimeInMinutes", ignore = true)
     void updateChapter(CourseChapterRequest dto, @MappingTarget Chapter entity);
 
     @Mapping(target = "id", ignore = true)
@@ -37,5 +36,6 @@ public interface CourseMapper {
 
     // 3. Define how ONE Section maps to ONE SectionResponse
     // (MapStruct handles this automatically if field names match, but you can be explicit)
+    @Mapping(target = "content", source = "content")
     ChapterSectionResponse mapToSectionResponse(ChapterSection section);
 }

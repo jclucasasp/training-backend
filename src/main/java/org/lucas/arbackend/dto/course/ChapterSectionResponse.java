@@ -9,6 +9,7 @@ import java.io.Serializable;
 public record ChapterSectionResponse (
         long id,
         String title,
+        String content,
         Integer durationInMinutes,
         String resourceUrl,
         String resourceMediaType,

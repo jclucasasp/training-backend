@@ -15,13 +15,14 @@ import java.util.Set;
 @Entity
 @NamedEntityGraph(name = "Course.withChapterAndSections",
         attributeNodes = {
-        @NamedAttributeNode("chapters"),
-        @NamedAttributeNode(value = "chapters", subgraph = "chapterSections")
+                @NamedAttributeNode("chapters"),
+                @NamedAttributeNode(value = "chapters", subgraph = "chapterSections")
 },
-subgraphs = { @NamedSubgraph(name = "chapterSections",
-        attributeNodes = {
-        @NamedAttributeNode("chapterSections")
-})
+subgraphs = {
+        @NamedSubgraph(name = "chapterSections",
+                attributeNodes = {
+                        @NamedAttributeNode("chapterSections")
+                })
 })
 @Table(name = "course")
 @SQLDelete(sql = "UPDATE course SET ended_at = CURRENT_TIMESTAMP WHERE cou_id = ?")

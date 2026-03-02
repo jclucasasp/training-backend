@@ -7,8 +7,7 @@ import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.BaseEntity;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Table(name = "chapter")
@@ -24,7 +23,7 @@ public class Chapter extends BaseEntity {
     @Column(name = "cha_name", unique = true, nullable = false)
     private String name;
 
-    @Column(name = "cha_summary", nullable = false)
+    @Column(name = "cha_summary", nullable = false, columnDefinition = "TEXT")
     private String summary;
 
     @Column(name = "cha_total_time_minutes")
@@ -37,5 +36,5 @@ public class Chapter extends BaseEntity {
     @Builder.Default
     @OneToMany(mappedBy = "chapter",fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orderIndex ASC")
-    private Set<ChapterSection> chapterSections = new HashSet<>();
+    private List<ChapterSection> chapterSections = new ArrayList<>();
 }

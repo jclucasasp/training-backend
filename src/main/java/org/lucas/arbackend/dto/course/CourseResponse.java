@@ -4,7 +4,7 @@ import lombok.Builder;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.Set;
+import java.util.List;
 
 @Builder
 public record CourseResponse(
@@ -17,7 +17,7 @@ public record CourseResponse(
         String difficulty,
         String imageUrl,
         String tags,
-        Set<CourseChapterResponse> chaptersResponse
+        List<CourseChapterResponse> chaptersResponse
 ) implements Serializable {
 
     @Serial

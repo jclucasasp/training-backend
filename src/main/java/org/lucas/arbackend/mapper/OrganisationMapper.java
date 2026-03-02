@@ -43,7 +43,8 @@ public interface OrganisationMapper {
     @Mapping(target = "state", source = "org.profile.address.state")
     @Mapping(target = "zip", source = "org.profile.address.zip")
     @Mapping(target = "apiKey", expression = "java(rawKey != null ? rawKey : org.getApiKey().getHashKey())")
-    @Mapping(target = "subscriptionStatus", expression = "java(org.getSubscription().getStatus() == 1)")
+//    @Mapping(target = "subscriptionStatus", expression = "java(org.getSubscription().getStatus() == 1)")
+    @Mapping(target = "subscriptionStatus", source = "org.subscription.status")
     @Mapping(target = "subscriptionPlan", source = "org.subscription.subscriptionPlan.plan")
     @Mapping(target = "subscriptionStartDate", source = "org.subscription.createdAt")
     @Mapping(target = "subscriptionEndDate", source = "org.subscription.endedAt")
@@ -53,4 +54,9 @@ public interface OrganisationMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "password", ignore = true) // Handle encoding in service
     Organisation mapToOrganisation(OrganisationRequest dto);
+
+    default String mapSubscriptionStatus(Integer status) {
+        if (status == 0) return "EXPIRED";
+        return status == 1 ? "ACTIVE" : "INACTIVE";
+    }
 }

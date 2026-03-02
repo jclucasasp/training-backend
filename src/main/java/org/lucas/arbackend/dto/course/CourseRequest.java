@@ -8,7 +8,7 @@ import lombok.Data;
 import org.lucas.arbackend.entity.course.DifficultyTypes;
 import org.lucas.arbackend.util.ValidatedLabel;
 
-import java.util.Set;
+import java.util.List;
 
 @Data @Builder
 public class CourseRequest {
@@ -16,21 +16,21 @@ public class CourseRequest {
     @Email
     private String staffEmail;
 
-    @NotBlank(message = "Course name is required")
+    @NotBlank(message = "Course name is required", groups = ValidatedLabel.OnCreate.class)
     private String name;
 
-    @NotBlank(message = "Course learningObjectives is required")
+    @NotBlank(message = "Course learningObjectives is required", groups = ValidatedLabel.OnCreate.class)
     private String learningObjectives;
 
-    @NotNull(message = "Course difficulty is required")
+    @NotNull(message = "Course difficulty is required", groups = ValidatedLabel.OnCreate.class)
     private DifficultyTypes difficultyTypes; // BEGINNER, INTERMEDIATE, ADVANCED
 
-    @NotBlank(message = "Course tags are required")
+    @NotBlank(message = "Course tags are required", groups = ValidatedLabel.OnCreate.class)
     private String tags;
 
     private String imageUrl;
 
-    @NotNull(message = "Course courseModules are required")
-    private Set<CourseChapterRequest> chapters;
+    @NotNull(message = "Course courseModules are required", groups = ValidatedLabel.OnCreate.class)
+    private List<CourseChapterRequest> chapters;
 }
 

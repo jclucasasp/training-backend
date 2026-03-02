@@ -4,7 +4,7 @@ import lombok.Builder;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.Set;
+import java.util.List;
 
 @Builder
 public record CourseChapterResponse(
@@ -12,7 +12,7 @@ public record CourseChapterResponse(
         String name,
         String summary,
         Integer totalTimeInMinutes,
-        Set<ChapterSectionResponse> sectionsResponse
+        List<ChapterSectionResponse> sectionsResponse
 
 ) implements Serializable {
     @Serial

@@ -53,7 +53,7 @@ public class OrganisationResponse implements Serializable {
         @JsonView(AccessLevelViews.Public.class)
         private LocalDateTime subscriptionStartDate;
         @JsonView(AccessLevelViews.Public.class)
-        private Boolean subscriptionStatus;
+        private String subscriptionStatus;
         @JsonView(AccessLevelViews.Public.class)
         private LocalDateTime subscriptionEndDate;
 
