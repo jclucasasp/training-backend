@@ -10,6 +10,10 @@ import java.util.List;
 public record CourseResponse(
         Long id,
         String name,
+        String shortDescription,
+        String intendedAudience,
+        String requirements,
+        String status,
         Integer totalTimeInMinutes,
         String slug,
         String learningObjectives,

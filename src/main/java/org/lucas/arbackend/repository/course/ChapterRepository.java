@@ -11,4 +11,5 @@ public interface ChapterRepository extends JpaRepository<Chapter, Long> {
     // Used when editing a specific courseModule to ensure it belongs to the right course
     @Query("SELECT m FROM Chapter m WHERE m.id = :chapterId AND m.course.id = :courseId")
     Optional<Chapter> findByIdAndCourseId(@Param("chapterId") Long moduleId, @Param("courseId") Long courseId);
+
 }

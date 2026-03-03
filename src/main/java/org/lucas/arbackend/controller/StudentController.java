@@ -1,6 +1,7 @@
 package org.lucas.arbackend.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -44,6 +45,33 @@ public class StudentController {
     @PostMapping("/enroll")
     public ResponseEntity<EnrollmentResponse> enroll(@Validated(ValidatedLabel.OnCreate.class) @RequestBody StudentRequest request) {
         return ResponseEntity.ok(studentService.enrollStudent(request));
+    }
+
+    @Operation(
+            summary = "Register Student for Quiz",
+            description = "Links a student to a specific quiz. Both must belong to the same organisation as the authenticated user."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Student successfully registered for the quiz"),
+            @ApiResponse(responseCode = "400", description = "Invalid student number or quiz ID provided",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Cross-tenant access denied",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Student or Quiz not found",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
+    })
+    @PreAuthorize("hasAuthority('ORG_ADMIN') or hasAuthority('COURSE_EDITOR') or hasAuthority('STUDENT')")
+    @PostMapping("/{studentNumber}/quiz/{quizId}/register")
+    public ResponseEntity<Void> registerForQuiz(
+            @Parameter(description = "The unique student number", example = "STU-12345")
+            @PathVariable String studentNumber,
+            @Parameter(description = "The ID of the quiz", example = "1")
+            @PathVariable Long quizId) {
+
+        studentService.registerStudentForQuiz(studentNumber, quizId);
+        return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "Get Student List", description = "Paginated list of all students registered under this tenant.")

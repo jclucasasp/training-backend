@@ -32,19 +32,19 @@ services:
           cpus: "0.1"
           memory: 64M
 
-  rabbitmq:
-    image: 'rabbitmq:4.0-management'
-    container_name: rabbit_mq
-    restart: unless-stopped
-    environment:
-      - 'RABBITMQ_DEFAULT_USER=guest'
-      - 'RABBITMQ_DEFAULT_PASS=guest'
-      - 'RABBITMQ_DEFAULT_VHOST=myvhost'
-    ports:
-      - '5672:5672'
-      - '15672:15672'
-    volumes:
-      - 'rabbitmq_data:/var/lib/rabitmq'
+#  rabbitmq:
+#    image: 'rabbitmq:4.0-management'
+#    container_name: rabbit_mq
+#    restart: unless-stopped
+#    environment:
+#      - 'RABBITMQ_DEFAULT_USER=guest'
+#      - 'RABBITMQ_DEFAULT_PASS=guest'
+#      - 'RABBITMQ_DEFAULT_VHOST=myvhost'
+#    ports:
+#      - '5672:5672'
+#      - '15672:15672'
+#    volumes:
+#      - 'rabbitmq_data:/var/lib/rabitmq'
 
   redis:
     image: 'redis:8.4-alpine'
@@ -61,5 +61,5 @@ services:
 
 volumes:
   mariadb_data:
-  rabbitmq_data:
+#  rabbitmq_data:
   redis_data:

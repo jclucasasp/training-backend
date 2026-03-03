@@ -5,6 +5,8 @@ import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.BaseEntity;
+import org.lucas.arbackend.entity.course.misc.Quiz;
+import org.lucas.arbackend.entity.course.misc.StatusTypes;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.util.*;
@@ -26,6 +28,11 @@ public class Chapter extends BaseEntity {
     @Column(name = "cha_summary", nullable = false, columnDefinition = "TEXT")
     private String summary;
 
+     @Enumerated(EnumType.STRING)
+    @Column(name = "cha_status")
+    @Builder.Default
+    private StatusTypes status = StatusTypes.DRAFT;
+
     @Column(name = "cha_total_time_minutes")
     private Integer totalTimeInMinutes;
 
@@ -40,4 +47,12 @@ public class Chapter extends BaseEntity {
     @OneToMany(mappedBy = "chapter",fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orderIndex ASC")
     private List<ChapterSection> chapterSections = new ArrayList<>();
+
+    @ManyToMany
+    @JoinTable(
+        name = "chapter_quizzes",
+        joinColumns = @JoinColumn(name = "cha_id"),
+        inverseJoinColumns = @JoinColumn(name = "quiz_id")
+    )
+    private Set<Quiz> quizzes = new HashSet<>();
 }

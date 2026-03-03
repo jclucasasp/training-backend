@@ -1,6 +1,7 @@
 package org.lucas.arbackend.dto.course;
 
 import lombok.Builder;
+import org.lucas.arbackend.dto.course.misc.QuizResponse;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -11,8 +12,10 @@ public record CourseChapterResponse(
         long id,
         String name,
         String summary,
+        String status,
         Integer totalTimeInMinutes,
-        List<ChapterSectionResponse> sectionsResponse
+        List<ChapterSectionResponse> sectionsResponse,
+        List<QuizResponse> quizzes
 
 ) implements Serializable {
     @Serial

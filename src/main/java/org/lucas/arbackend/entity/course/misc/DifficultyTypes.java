@@ -1,4 +1,4 @@
-package org.lucas.arbackend.entity.course;
+package org.lucas.arbackend.entity.course.misc;
 
 import lombok.Getter;
 

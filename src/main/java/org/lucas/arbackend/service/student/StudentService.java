@@ -8,12 +8,16 @@ import org.lucas.arbackend.dto.student.StudentResponse;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.course.ChapterSection;
 import org.lucas.arbackend.entity.course.Course;
+import org.lucas.arbackend.entity.course.misc.Quiz;
+import org.lucas.arbackend.entity.course.StudentQuiz;
 import org.lucas.arbackend.entity.student.Student;
 import org.lucas.arbackend.entity.student.StudentEnrollment;
 import org.lucas.arbackend.entity.student.StudentProgress;
 import org.lucas.arbackend.mapper.StudentMapper;
 import org.lucas.arbackend.repository.course.ChapterSectionRepository;
 import org.lucas.arbackend.repository.course.CourseRepository;
+import org.lucas.arbackend.repository.course.QuizRepository;
+import org.lucas.arbackend.repository.course.StudentQuizRepository;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.student.StudentEnrollmentRepository;
 import org.lucas.arbackend.repository.student.StudentProgressRepository;
@@ -40,6 +44,8 @@ public class StudentService {
     private final ChapterSectionRepository sectionRepo;
     private final TenantProvider tenantProvider;
     private final StudentMapper studentMapper;
+    private final QuizRepository quizRepo;
+    private final StudentQuizRepository studentQuizRepo;
 
     // ==========================================
     // 1. ENROLLMENT LOGIC (UPSERT Student)
@@ -152,4 +158,27 @@ public class StudentService {
                 .map(studentMapper::maptToStudentResponse);
     }
 
+    public void registerStudentForQuiz(String studentNumber, Long quizId) {
+        Student student = studentRepo.findByStudentNumber(studentNumber)
+                .orElseThrow(() -> new EntityNotFoundException("Student not found"));
+
+        Quiz quiz = quizRepo.findByIdAndOrganisationIdAndEndedAtIsNull(quizId, tenantProvider.get())
+                .orElseThrow(() -> new EntityNotFoundException("Quiz not found or belongs to another organisation"));
+
+        boolean isEnrolled = enrollmentRepo.findByStudentIdAndCourseId(student.getId(), quiz.getCourse().getId()).isPresent();
+        if (!isEnrolled) {
+            throw new IllegalStateException("Student must be enrolled in a course to be assigned to a quiz");
+        }
+
+        if (studentQuizRepo.existsByStudentAndQuiz(student, quiz)) {
+            throw new IllegalStateException("Student is already registered for this quiz");
+        }
+
+        StudentQuiz assignment = StudentQuiz.builder()
+                        .student(student)
+                                .quiz(quiz)
+                                        .build();
+
+        quizRepo.save(quiz);
+    }
 }

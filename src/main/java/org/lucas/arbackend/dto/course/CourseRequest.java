@@ -5,7 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
-import org.lucas.arbackend.entity.course.DifficultyTypes;
+import org.lucas.arbackend.entity.course.misc.DifficultyTypes;
+import org.lucas.arbackend.entity.course.misc.StatusTypes;
 import org.lucas.arbackend.util.ValidatedLabel;
 
 import java.util.List;
@@ -18,6 +19,18 @@ public class CourseRequest {
 
     @NotBlank(message = "Course name is required", groups = ValidatedLabel.OnCreate.class)
     private String name;
+
+    @NotBlank(message = "Course shortDescription is required", groups = ValidatedLabel.OnCreate.class)
+    private String shortDescription;
+
+    @NotBlank(message = "Please specify who the intended course is for", groups = ValidatedLabel.OnCreate.class)
+    private String intendedAudience;
+
+    @NotBlank(message = "Course requirements is required", groups = ValidatedLabel.OnCreate.class)
+    private String requirements;
+
+    @NotBlank(message = "Course status is required", groups = ValidatedLabel.OnCreate.class)
+    private StatusTypes status;
 
     @NotBlank(message = "Course learningObjectives is required", groups = ValidatedLabel.OnCreate.class)
     private String learningObjectives;

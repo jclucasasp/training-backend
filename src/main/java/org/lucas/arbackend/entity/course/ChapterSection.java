@@ -5,7 +5,11 @@ import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.BaseEntity;
+import org.lucas.arbackend.entity.course.misc.Attachment;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "chapter_section")
@@ -23,6 +27,12 @@ public class ChapterSection extends BaseEntity {
 
     @Column(name = "chs_content", nullable = false, columnDefinition = "TEXT")
     private String content;
+
+     @Column(name = "chs_is_preview")
+    private boolean isPreview = false;
+
+     @Column(name = "chs_subtitles_url")
+    private String subtitlesUrl;
 
     @Column(name = "chs_duration_minutes")
     private Integer durationInMinutes;
@@ -42,4 +52,7 @@ public class ChapterSection extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "chs_chapter_id")
     private Chapter chapter;
+
+    @OneToMany(mappedBy = "chapterSection", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Attachment> attachments = new ArrayList<>();
 }

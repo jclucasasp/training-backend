@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
+import org.lucas.arbackend.entity.course.misc.StatusTypes;
 import org.lucas.arbackend.util.ValidatedLabel;
 
 import java.util.List;
@@ -20,6 +21,10 @@ public class CourseChapterRequest {
     @NotNull(message = "Chapter summary is required", groups = ValidatedLabel.OnCreate.class)
     private String summary;
 
+    private StatusTypes status;
+
     @NotNull(message = "Chapter sections are required", groups = ValidatedLabel.OnCreate.class)
     private List<ChapterSectionRequest> sections;
+
+    private List<Long> quizIds;
 }

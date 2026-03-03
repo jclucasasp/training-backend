@@ -8,8 +8,11 @@ import org.lucas.arbackend.entity.Organisation.Staff;
 import org.lucas.arbackend.entity.course.Chapter;
 import org.lucas.arbackend.entity.course.ChapterSection;
 import org.lucas.arbackend.entity.course.Course;
+import org.lucas.arbackend.entity.course.misc.Quiz;
 import org.lucas.arbackend.mapper.CourseMapper;
+import org.lucas.arbackend.repository.course.ChapterRepository;
 import org.lucas.arbackend.repository.course.CourseRepository;
+import org.lucas.arbackend.repository.course.QuizRepository;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.StaffRepository;
 import org.lucas.arbackend.util.TenantProvider;
@@ -32,6 +35,8 @@ public class CourseService {
     private final TenantProvider tenantProvider;
     private final CourseMapper courseMapper;
     private final StaffRepository staffRepo;
+    private final QuizRepository quizRepo;
+    private final ChapterRepository chapterRepo;
 
     public CourseResponse createCourse(CourseRequest request) {
 
@@ -42,10 +47,7 @@ public class CourseService {
 
         // Map DTO to Entity
         Course course = new Course();
-//        course.setTotalTimeInMinutes(0);
-
         courseMapper.updateCourse(request, course);
-
         course.setOrganisation(org);
         course.setStaff(staff);
 
@@ -173,9 +175,6 @@ private void updateChapterSections(Chapter chapter, List<ChapterSectionRequest> 
     chapter.getChapterSections().clear();
     chapter.getChapterSections().addAll(updatedSections);
 
-//    int totalChapterTime = updatedSections.stream()
-//            .mapToInt(s -> s.getDurationInMinutes() != null ? s.getDurationInMinutes() : 0)
-//            .sum();
     int totalChapterTime = getTotalDuration(chapter.getChapterSections());
     chapter.setTotalTimeInMinutes(totalChapterTime);
 }
@@ -186,6 +185,17 @@ private void updateChapterSections(Chapter chapter, List<ChapterSectionRequest> 
                 .orElseThrow(() -> new EntityNotFoundException("Course not found"));
 
         courseRepo.delete(course);
+    }
+
+    public void addQuizToChapter(Long chapterId, Long quizId) {
+        Chapter chapter = chapterRepo.findById(chapterId)
+                .orElseThrow(() -> new EntityNotFoundException("Chapter not found"));
+
+        Quiz quiz = quizRepo.findByIdAndOrganisationIdAndEndedAtIsNull(quizId, tenantProvider.get())
+                .orElseThrow(() -> new EntityNotFoundException("Quiz not found"));
+
+        chapter.getQuizzes().add(quiz);
+        chapterRepo.save(chapter);
     }
 
     @Transactional(readOnly = true)

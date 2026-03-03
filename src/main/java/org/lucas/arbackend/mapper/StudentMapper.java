@@ -11,8 +11,10 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface StudentMapper {
 
+    @Mapping(target = "studentQuizzes", source = "studentQuizzes")
     StudentResponse maptToStudentResponse(Student entity);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "studentQuizzes", ignore = true)
     void updateStudent(StudentRequest dto, @MappingTarget Student entity);
 }

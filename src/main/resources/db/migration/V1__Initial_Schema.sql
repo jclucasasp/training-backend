@@ -131,7 +131,11 @@ CREATE TABLE IF NOT EXISTS course (
                         cou_org_id BIGINT NOT NULL,
                         cou_stf_id BIGINT NOT NULL,
                         cou_name VARCHAR(255) NOT NULL,
-                        cou_slug VARCHAR(255) UNIQUE NOT NULL,
+                        cou_short_description TEXT,
+                        cou_intended_audience TEXT,
+                        cou_requirements TEXT,
+                        cou_status ENUM('DRAFT', 'PUBLISHED', 'ARCHIVED') DEFAULT 'DRAFT',
+                        cou_slug VARCHAR(255) NOT NULL,
                         cou_total_time_minutes INT,
                         cou_image_url VARCHAR(255), -- Optional: URL to course avatar image
                         cou_learning_objectives TEXT,
@@ -140,6 +144,8 @@ CREATE TABLE IF NOT EXISTS course (
                         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                         updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
                         ended_at DATETIME NULL,
+                        -- Ensure that other courses with the same slug are not created within the org
+                        CONSTRAINT fk_course_slug UNIQUE (cou_id, cou_slug),
                         CONSTRAINT fk_course_org FOREIGN KEY (cou_org_id) REFERENCES organisation(org_id),
                         CONSTRAINT fk_course_staff FOREIGN KEY (cou_stf_id) REFERENCES staff(stf_id),
                         -- Index for tenant-specific course management
@@ -155,6 +161,7 @@ CREATE TABLE IF NOT EXISTS chapter (
                         cha_course_id BIGINT NOT NULL,
                         cha_name VARCHAR(255) NOT NULL,
                         cha_summary  TEXT,
+                        cha_status ENUM('DRAFT', 'PUBLISHED', 'ARCHIVED') DEFAULT 'DRAFT',
                         cha_total_time_minutes INT,
                         cha_order_index INT,
                         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -172,6 +179,8 @@ CREATE TABLE IF NOT EXISTS chapter_section (
                          chs_chapter_id BIGINT NOT NULL,
                          chs_title VARCHAR(255) NOT NULL,
                          chs_content TEXT,
+                         chs_is_preview TINYINT(1) DEFAULT 0,
+                         chs_subtitles_url VARCHAR(255),
                          chs_duration_minutes INT,
                          chs_resource_url VARCHAR(255),
                          chs_resource_media_type VARCHAR(100),
@@ -180,10 +189,42 @@ CREATE TABLE IF NOT EXISTS chapter_section (
                          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                          updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
                          ended_at DATETIME NULL,
-                         CONSTRAINT fk_section_module FOREIGN KEY (chs_chapter_id) REFERENCES chapter(cha_id),
-                         -- Index for fetching chapterSectionRequests in order
-                         INDEX idx_section_order (chs_chapter_id, chs_order_index),
-                         INDEX idx_section_status (ended_at, chs_id)
+                         CONSTRAINT fk_chs_chapter FOREIGN KEY (chs_chapter_id) REFERENCES chapter(cha_id),
+                         UNIQUE INDEX idx_unique_section_title (chs_chapter_id, chs_title)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS attachment (
+    att_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    url VARCHAR(255) NOT NULL,
+    att_chs_id BIGINT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
+    ended_at DATETIME NULL,
+    CONSTRAINT fk_attachment_section FOREIGN KEY (att_chs_id) REFERENCES chapter_section(chs_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS quiz (
+    quiz_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    quiz_org_id BIGINT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    quiz_passing_score INT,
+    quiz_course_id BIGINT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
+    ended_at DATETIME NULL,
+    -- Ensure quiz title is unique within a specific course
+    CONSTRAINT fk_quiz_course_ref FOREIGN KEY (quiz_course_id) REFERENCES course(cou_id),
+    CONSTRAINT fk_quiz_org_ref FOREIGN KEY (quiz_org_id) REFERENCES organisation(org_id),
+    UNIQUE INDEX idx_unique_quiz_title (quiz_course_id, title)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS chapter_quizzes (
+    cha_id BIGINT NOT NULL,
+    quiz_id BIGINT NOT NULL,
+    PRIMARY KEY (cha_id, quiz_id),
+    CONSTRAINT fk_cq_chapter FOREIGN KEY (cha_id) REFERENCES chapter(cha_id),
+    CONSTRAINT fk_cq_quiz FOREIGN KEY (quiz_id) REFERENCES quiz(quiz_id)
 ) ENGINE=InnoDB;
 
 -- ==========================================
@@ -218,18 +259,25 @@ CREATE TABLE IF NOT EXISTS student_enrollment (
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS student_progress (
-                                  stp_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                                  stp_student_enrollment_id BIGINT NULL,
-                                  stp_section_id BIGINT NULL,
-                                  stp_percentage DECIMAL(5,2) DEFAULT 0.00,
-                                  stp_is_completed BOOLEAN DEFAULT FALSE,
-                                  stp_last_accessed_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                                  stp_updated_at DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-                                  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                                  updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
-                                  ended_at DATETIME NULL,
-                                 CONSTRAINT fk_sp_enrollment FOREIGN KEY (stp_student_enrollment_id) REFERENCES student_enrollment(ste_id),
-                                 CONSTRAINT fk_sp_section FOREIGN KEY (stp_section_id) REFERENCES chapter_section(chs_id),
-                                 -- Ensure a student only has ONE progress record per section per enrollment
-                                 UNIQUE INDEX idx_unique_enrollment_section (stp_student_enrollment_id, stp_section_id)
+    stp_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    stp_student_enrollment_id BIGINT NULL,
+    stp_section_id BIGINT NULL,
+    stp_percentage DECIMAL(5,2) DEFAULT 0.00,
+    stp_is_completed BOOLEAN DEFAULT FALSE,
+    stp_last_accessed_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    stp_updated_at DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
+    ended_at DATETIME NULL,
+    CONSTRAINT fk_stp_enrollment_ref FOREIGN KEY (stp_student_enrollment_id) REFERENCES student_enrollment(ste_id),
+    CONSTRAINT fk_stp_section_ref FOREIGN KEY (stp_section_id) REFERENCES chapter_section(chs_id),
+    UNIQUE INDEX idx_unique_stp (stp_student_enrollment_id, stp_section_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS student_quizzes (
+    quiz_id BIGINT NOT NULL,
+    stu_id BIGINT NOT NULL,
+    PRIMARY KEY (quiz_id, stu_id),
+    CONSTRAINT fk_sq_quiz FOREIGN KEY (quiz_id) REFERENCES quiz(quiz_id),
+    CONSTRAINT fk_sq_student FOREIGN KEY (stu_id) REFERENCES student(stu_id)
 ) ENGINE=InnoDB;

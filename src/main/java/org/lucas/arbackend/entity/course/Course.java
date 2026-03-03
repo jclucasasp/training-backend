@@ -7,6 +7,8 @@ import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.BaseEntity;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.Organisation.Staff;
+import org.lucas.arbackend.entity.course.misc.DifficultyTypes;
+import org.lucas.arbackend.entity.course.misc.StatusTypes;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.util.HashSet;
@@ -36,6 +38,20 @@ public class Course extends BaseEntity {
 
     @Column(name = "cou_name", nullable = false)
     private String name;
+
+    @Column(name = "cou_short_description", columnDefinition = "TEXT")
+    private String shortDescription;
+
+    @Column(name = "cou_intended_audience", columnDefinition = "TEXT")
+    private String intendedAudience;
+
+    @Column(name = "cou_requirements", columnDefinition = "TEXT")
+    private String requirements;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "cou_status")
+    @Builder.Default
+    private StatusTypes status = StatusTypes.DRAFT;
 
     @Column(name = "cou_slug", nullable = false, unique = true)
     private String slug;

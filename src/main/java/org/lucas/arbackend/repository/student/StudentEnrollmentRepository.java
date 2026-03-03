@@ -1,6 +1,7 @@
 package org.lucas.arbackend.repository.student;
 
 import org.lucas.arbackend.entity.course.ChapterSection;
+import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.student.Student;
 import org.lucas.arbackend.entity.student.StudentEnrollment;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,4 +15,5 @@ public interface StudentEnrollmentRepository extends JpaRepository<StudentEnroll
     Optional<StudentEnrollment> findByStudentIdAndCourseId(Long id, Long courseId);
 
     Optional<StudentEnrollment> findByStudentAndChapterSection(Student student, ChapterSection section);
+
 }
