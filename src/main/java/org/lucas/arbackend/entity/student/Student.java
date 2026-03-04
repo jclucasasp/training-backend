@@ -7,7 +7,8 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.BaseEntity;
 import org.lucas.arbackend.entity.Organisation.Organisation;
-import org.lucas.arbackend.entity.course.StudentQuiz;
+import org.lucas.arbackend.entity.course.Course;
+import org.lucas.arbackend.entity.quiz.StudentQuiz;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.util.HashSet;
@@ -38,6 +39,14 @@ public class Student extends BaseEntity {
 
     @Column(name = "stu_student_number", nullable = false)
     private String studentNumber;
+
+    @ManyToMany
+    @JoinTable(
+            name = "student_courses",
+            joinColumns = @JoinColumn(name = "stu_id"),
+            inverseJoinColumns = @JoinColumn(name = "course_id")
+    )
+    private Set<Course> enrolledCourses = new HashSet<>();
 
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<StudentQuiz> studentQuizzes = new HashSet<>();

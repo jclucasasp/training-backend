@@ -1,8 +1,7 @@
 package org.lucas.arbackend.dto.student;
 
 import lombok.Builder;
-import org.lucas.arbackend.dto.course.misc.QuizResponse;
-import org.lucas.arbackend.entity.course.StudentQuiz;
+import org.lucas.arbackend.entity.quiz.StudentQuiz;
 
 import java.io.Serial;
 import java.io.Serializable;

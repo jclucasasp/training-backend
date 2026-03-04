@@ -1,4 +1,4 @@
-package org.lucas.arbackend.dto.course.misc;
+package org.lucas.arbackend.dto.quiz;
 
 import java.io.Serial;
 import java.io.Serializable;

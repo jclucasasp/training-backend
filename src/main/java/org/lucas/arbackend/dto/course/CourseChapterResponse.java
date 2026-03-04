@@ -1,7 +1,7 @@
 package org.lucas.arbackend.dto.course;
 
 import lombok.Builder;
-import org.lucas.arbackend.dto.course.misc.QuizResponse;
+import org.lucas.arbackend.dto.quiz.QuizResponse;
 
 import java.io.Serial;
 import java.io.Serializable;

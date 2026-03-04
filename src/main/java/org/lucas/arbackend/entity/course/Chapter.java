@@ -5,7 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.BaseEntity;
-import org.lucas.arbackend.entity.course.misc.Quiz;
+import org.lucas.arbackend.entity.quiz.Quiz;
 import org.lucas.arbackend.entity.course.misc.StatusTypes;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 

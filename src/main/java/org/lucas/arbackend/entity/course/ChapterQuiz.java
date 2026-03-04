@@ -4,7 +4,10 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
-import org.lucas.arbackend.entity.course.misc.Quiz;
+import org.lucas.arbackend.entity.BaseEntity;
+import org.lucas.arbackend.entity.Organisation.Organisation;
+import org.lucas.arbackend.entity.quiz.Quiz;
+import org.lucas.arbackend.util.TenantEntity;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
@@ -13,7 +16,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @SQLRestriction("ended_at IS NULL")
 @EntityListeners(AuditingEntityListener.class)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-public class ChapterQuiz {
+public class ChapterQuiz extends BaseEntity implements TenantEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -24,4 +27,18 @@ public class ChapterQuiz {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "quiz_id", nullable = false)
     private Quiz quiz;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "quiz_org_id")
+    Organisation organisation;
+
+        @Override
+    public void setOrganisation(Organisation organisation) {
+        this.organisation = organisation;
+    }
+
+    @Override
+    public Organisation getOrganisation() {
+        return this.organisation;
+    }
 }

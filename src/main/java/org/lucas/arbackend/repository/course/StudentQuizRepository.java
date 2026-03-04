@@ -1,7 +1,7 @@
 package org.lucas.arbackend.repository.course;
 
-import org.lucas.arbackend.entity.course.misc.Quiz;
-import org.lucas.arbackend.entity.course.StudentQuiz;
+import org.lucas.arbackend.entity.quiz.Quiz;
+import org.lucas.arbackend.entity.quiz.StudentQuiz;
 import org.lucas.arbackend.entity.student.Student;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
