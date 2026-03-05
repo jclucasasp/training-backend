@@ -184,8 +184,9 @@ CREATE TABLE IF NOT EXISTS chapter_section (
 CREATE TABLE IF NOT EXISTS attachment (
     att_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     att_org_id BIGINT NOT NULL, -- Added for isolation
-    name VARCHAR(255) NOT NULL,
-    url VARCHAR(255) NOT NULL,
+    att_file_name VARCHAR(255) NOT NULL,
+    att_file_type VARCHAR(255) NOT NULL,
+    att_file_url VARCHAR(255) NOT NULL,
     att_chs_id BIGINT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
@@ -269,6 +270,7 @@ CREATE TABLE IF NOT EXISTS student_enrollment (
     ste_student_id BIGINT NOT NULL,
     ste_course_id BIGINT NOT NULL,
     ste_current_section_id BIGINT NULL,
+    ste_total_progress DECIMAL(5,2) DEFAULT 0.00,
     ste_enrolled_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     ste_completed_at DATETIME NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

@@ -74,7 +74,7 @@ The application implements multi-tenancy using a tenant filter that extracts the
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone <repository-fileUrl>
 cd ar-backend
 ```
 

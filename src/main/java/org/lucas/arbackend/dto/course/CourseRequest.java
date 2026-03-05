@@ -17,7 +17,7 @@ public class CourseRequest {
     @Email
     private String staffEmail;
 
-    @NotBlank(message = "Course name is required", groups = ValidatedLabel.OnCreate.class)
+    @NotBlank(message = "Course fileName is required", groups = ValidatedLabel.OnCreate.class)
     private String name;
 
     @NotBlank(message = "Course shortDescription is required", groups = ValidatedLabel.OnCreate.class)

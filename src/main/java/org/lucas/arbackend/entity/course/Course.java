@@ -59,9 +59,9 @@ public class Course extends BaseEntity {
     @Column(name = "cou_requirements", columnDefinition = "TEXT")
     private String requirements;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "cou_status")
     @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(name = "cou_status", columnDefinition = "ENUM('DRAFT', 'PUBLISHED', 'ARCHIVED') DEFAULT 'DRAFT'")
     private StatusTypes status = StatusTypes.DRAFT;
 
     @Column(name = "cou_slug", nullable = false, unique = true)
@@ -88,7 +88,7 @@ public class Course extends BaseEntity {
     @OrderBy("orderIndex ASC")
     private Set<Chapter> chapters = new HashSet<>();
 
-    // Automatically generate a slug based on the name
+    // Automatically generate a slug based on the fileName
     @PrePersist
     @PreUpdate
     public void generateSlug() {

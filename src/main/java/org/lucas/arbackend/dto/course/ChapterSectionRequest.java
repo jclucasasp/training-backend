@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
-import org.lucas.arbackend.dto.course.misc.AttachmentRequest;
+import org.lucas.arbackend.dto.course.attachment.AttachmentRequest;
 import org.lucas.arbackend.util.ValidatedLabel;
 
 import java.util.List;

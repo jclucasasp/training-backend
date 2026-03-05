@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import org.springframework.context.annotation.Configuration;
 
-// TODO: Update the url once live.
+// TODO: Update the fileUrl once live.
 @Configuration
 @OpenAPIDefinition(
         info = @Info(
@@ -39,7 +39,7 @@ import org.springframework.context.annotation.Configuration;
         description = "Authentication via JSESSIONID cookie after login",
         type = SecuritySchemeType.APIKEY,
         in = SecuritySchemeIn.COOKIE,
-        paramName = "JSESSIONID" // The actual cookie name used by Spring/Redis
+        paramName = "JSESSIONID" // The actual cookie fileName used by Spring/Redis
 )
 // 2. Define Header-based API Key for Students
 @SecurityScheme(

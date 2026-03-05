@@ -24,11 +24,14 @@ public class Attachment extends BaseEntity implements TenantEntity {
     @JoinColumn(name = "att_org_id")
     private Organisation organisation;
 
-    @Column(name = "att_name")
-    private String name;
+    @Column(name = "att_file_name")
+    private String fileName;
 
-    @Column(name = "att_url")
-    private String url;
+    @Column(name = "att_file_type")
+    private String fileType;
+
+    @Column(name = "att_file_url")
+    private String fileUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "att_chs_id")

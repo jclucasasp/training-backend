@@ -31,6 +31,11 @@ public class QuizQuestion extends BaseEntity implements TenantEntity {
     @Column(name = "qq_text", nullable = false, columnDefinition = "TEXT")
     private String text;
 
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(name = "qq_type", nullable = false, columnDefinition = "ENUM('MULTIPLE_CHOICE', 'TRUE_FALSE') DEFAULT 'MULTIPLE_CHOICE'")
+    private QuizTypes type = QuizTypes.MULTIPLE_CHOICE;
+
     @Column(name = "qq_order_index")
     private Integer orderIndex;
 

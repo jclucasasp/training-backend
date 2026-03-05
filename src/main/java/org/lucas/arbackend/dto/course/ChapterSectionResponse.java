@@ -1,7 +1,7 @@
 package org.lucas.arbackend.dto.course;
 
 import lombok.Builder;
-import org.lucas.arbackend.dto.course.misc.AttachmentResponse;
+import org.lucas.arbackend.dto.course.attachment.AttachmentResponse;
 
 import java.io.Serial;
 import java.io.Serializable;

@@ -34,9 +34,9 @@ public class Chapter extends BaseEntity implements TenantEntity {
     @Column(name = "cha_summary", nullable = false, columnDefinition = "TEXT")
     private String summary;
 
-     @Enumerated(EnumType.STRING)
-    @Column(name = "cha_status")
     @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(name = "cha_status", columnDefinition = "ENUM('DRAFT', 'PUBLISHED', 'ARCHIVED') DEFAULT 'DRAFT'")
     private StatusTypes status = StatusTypes.DRAFT;
 
     @Column(name = "cha_total_time_minutes")

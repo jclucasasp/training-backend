@@ -9,6 +9,7 @@ import org.lucas.arbackend.entity.BaseEntity;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.quiz.StudentQuiz;
+import org.lucas.arbackend.util.TenantEntity;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.util.HashSet;
@@ -22,7 +23,7 @@ import java.util.Set;
 @SQLRestriction("ended_at IS NULL")
 @EntityListeners(AuditingEntityListener.class)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-public class Student extends BaseEntity {
+public class Student extends BaseEntity implements TenantEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "stu_id")
     private Long id;
@@ -50,5 +51,15 @@ public class Student extends BaseEntity {
 
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<StudentQuiz> studentQuizzes = new HashSet<>();
+
+    @Override
+    public Organisation getOrganisation() {
+        return this.organisation;
+    }
+
+    @Override
+    public void setOrganisation(Organisation organisation) {
+        this.organisation = organisation;
+    }
 
 }

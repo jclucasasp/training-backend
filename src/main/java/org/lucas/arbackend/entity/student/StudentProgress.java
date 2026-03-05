@@ -5,7 +5,9 @@ import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.BaseEntity;
+import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.course.ChapterSection;
+import org.lucas.arbackend.util.TenantEntity;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
@@ -16,10 +18,14 @@ import java.time.LocalDateTime;
 @SQLRestriction("ended_at IS NULL")
 @EntityListeners(AuditingEntityListener.class)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-public class StudentProgress extends BaseEntity {
+public class StudentProgress extends BaseEntity implements TenantEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "stp_id")
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "stp_org_id")
+    private Organisation organisation;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "stp_student_enrollment_id")
@@ -39,4 +45,14 @@ public class StudentProgress extends BaseEntity {
 
     @Column(name = "stp_last_access_at")
     private LocalDateTime lastAccessedAt;
+
+    @Override
+    public Organisation getOrganisation() {
+        return this.organisation;
+    }
+
+    @Override
+    public void setOrganisation(Organisation organisation) {
+        this.organisation = organisation;
+    }
 }

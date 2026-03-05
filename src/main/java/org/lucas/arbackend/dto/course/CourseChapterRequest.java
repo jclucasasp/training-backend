@@ -15,7 +15,7 @@ public class CourseChapterRequest {
     @JsonIgnore
     private Long id;
 
-    @NotNull(message = "Chapter name is required", groups = ValidatedLabel.OnCreate.class)
+    @NotNull(message = "Chapter fileName is required", groups = ValidatedLabel.OnCreate.class)
     private String name;
 
     @NotNull(message = "Chapter summary is required", groups = ValidatedLabel.OnCreate.class)

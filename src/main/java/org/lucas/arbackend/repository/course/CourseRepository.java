@@ -10,7 +10,6 @@ import java.util.Optional;
 
 public interface CourseRepository extends JpaRepository<Course, Long> {
     // Optimized pagination for an Organisation's courses
-    @EntityGraph(value = "Course.withChapterAndSections", type = EntityGraph.EntityGraphType.LOAD)
     Page<Course> findAllByOrganisationIdAndEndedAtIsNull(Long orgId, Pageable pageable);
 
     @EntityGraph(value = "Course.withChapterAndSections", type = EntityGraph.EntityGraphType.LOAD)

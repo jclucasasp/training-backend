@@ -11,10 +11,10 @@ public class StudentRequest {
     @NotNull(message = "Student number is required", groups = ValidatedLabel.OnCreate.class)
     private String studentNumber;
 
-    @NotNull(message = "First name is required", groups = ValidatedLabel.OnCreate.class)
+    @NotNull(message = "First fileName is required", groups = ValidatedLabel.OnCreate.class)
     private String firstName;
 
-    @NotNull(message = "Last name is required", groups = ValidatedLabel.OnCreate.class)
+    @NotNull(message = "Last fileName is required", groups = ValidatedLabel.OnCreate.class)
     private String lastName;
 
     @NotNull(message = "Course slug is required", groups = ValidatedLabel.OnCreate.class)

@@ -25,12 +25,6 @@ public class Quiz extends BaseEntity implements TenantEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "quiz_title", nullable = false)
-    private String title;
-
-    @Column(name = "quiz_passing_score")
-    private Integer passingScore;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "quiz_org_id")
     Organisation organisation;
@@ -38,6 +32,12 @@ public class Quiz extends BaseEntity implements TenantEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "quiz_course_id")
     private Course course;
+
+    @Column(name = "quiz_title", nullable = false)
+    private String title;
+
+    @Column(name = "quiz_passing_score")
+    private Integer passingScore;
 
     @OneToMany(mappedBy = "quiz")
     private Set<StudentQuiz> studentQuizzes = new HashSet<>();

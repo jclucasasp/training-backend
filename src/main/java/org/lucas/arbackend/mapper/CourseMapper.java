@@ -1,7 +1,7 @@
 package org.lucas.arbackend.mapper;
 
 import org.lucas.arbackend.dto.course.*;
-import org.lucas.arbackend.dto.course.misc.AttachmentRequest;
+import org.lucas.arbackend.dto.course.attachment.AttachmentRequest;
 import org.lucas.arbackend.entity.course.ChapterSection;
 import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.course.Chapter;

@@ -40,7 +40,7 @@ public class CacheConfig implements CachingConfigurer {
         // This makes dates readable as ISO-8601 strings (e.g., "2023-10-27T10:15:30").
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-        // This tells Jackson to store the class name in the JSON so it can reverse it later
+        // This tells Jackson to store the class fileName in the JSON so it can reverse it later
         // Make sure NOT to use Records as this breaks the .NON_FINAL config
         mapper.activateDefaultTyping(
                 LaissezFaireSubTypeValidator.instance,

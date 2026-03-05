@@ -24,7 +24,7 @@
 # Optional ENV vars
 # -----------------
 #   JAVA_HOME - location of a JDK home dir, required when download maven via java source
-#   MVNW_REPOURL - repo url base for downloading maven distribution
+#   MVNW_REPOURL - repo fileUrl base for downloading maven distribution
 #   MVNW_USERNAME/MVNW_PASSWORD - user and password for downloading maven
 #   MVNW_VERBOSE - true: enable verbose log; debug: trace the mvnw script; others: silence the output
 # ----------------------------------------------------------------------------
@@ -256,10 +256,10 @@ else
   tar xzf${__MVNW_QUIET_TAR:+"$__MVNW_QUIET_TAR"} "$TMP_DOWNLOAD_DIR/$distributionUrlName" -C "$TMP_DOWNLOAD_DIR" || die "failed to untar"
 fi
 
-# Find the actual extracted directory name (handles snapshots where filename != directory name)
+# Find the actual extracted directory fileName (handles snapshots where filename != directory fileName)
 actualDistributionDir=""
 
-# First try the expected directory name (for regular distributions)
+# First try the expected directory fileName (for regular distributions)
 if [ -d "$TMP_DOWNLOAD_DIR/$distributionUrlNameMain" ]; then
   if [ -f "$TMP_DOWNLOAD_DIR/$distributionUrlNameMain/bin/$MVN_CMD" ]; then
     actualDistributionDir="$distributionUrlNameMain"

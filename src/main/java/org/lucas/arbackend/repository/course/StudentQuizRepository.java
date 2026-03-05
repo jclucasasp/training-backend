@@ -6,7 +6,12 @@ import org.lucas.arbackend.entity.student.Student;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.lang.ScopedValue;
+import java.util.Optional;
+
 @Repository
 public interface StudentQuizRepository extends JpaRepository<StudentQuiz, Long> {
         boolean existsByStudentAndQuiz(Student student, Quiz quiz);
+
+    Optional<StudentQuiz> findByStudentOrganisationIdAndStudentStudentNumberAndQuizId(Long id, String studentNumber, Long quizId);
 }

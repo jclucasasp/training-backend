@@ -12,7 +12,7 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface StaffMapper {
 
-    @Mapping(target = "role", source = "role.name")
+    @Mapping(target = "role", source = "role.fileName")
     StaffResponse maptoStaffResponse(Staff entity);
 
     @Mapping(target = "id", ignore = true)

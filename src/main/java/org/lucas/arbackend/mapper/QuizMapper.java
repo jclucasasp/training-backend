@@ -20,12 +20,17 @@ imports = {
 public interface QuizMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "course", source = "courseId")
+    @Mapping(target = "organisation", ignore = true)
     Quiz toEntity(QuizRequest request, @Context MappingContext ctx);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "organisation", ignore = true)
+    @Mapping(target = "quiz", ignore = true)
     QuizQuestion toQuestionEntity(QuestionRequest request, @Context MappingContext ctx);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "organisation", ignore = true)
+    @Mapping(target = "question", ignore = true)
     QuizQuestionOption toOptionEntity(OptionRequest request, @Context MappingContext ctx);
 
     // This handles Quiz, QuizQuestion, and QuizQuestionOption automatically

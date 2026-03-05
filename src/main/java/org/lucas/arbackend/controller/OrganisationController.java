@@ -61,7 +61,7 @@ public class OrganisationController {
         return ResponseEntity.ok(orgService.getOrganisationDetails());
     }
 
-    @Operation(summary = "Update Profile", description = "Updates the business registration number, VAT number, and display name.")
+    @Operation(summary = "Update Profile", description = "Updates the business registration number, VAT number, and display fileName.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Profile updated successfully"),
             @ApiResponse(responseCode = "400", description = "Validation error in the request body",
