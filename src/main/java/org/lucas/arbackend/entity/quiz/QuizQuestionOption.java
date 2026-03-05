@@ -18,12 +18,12 @@ public class QuizQuestionOption implements TenantEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "qto_question_id", nullable = false)
-    private QuizQuestion question;
+    @JoinColumn(name = "qto_org_id")
+    private Organisation organisation;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "qto_quiz_id")
-    private Organisation organisation;
+    @JoinColumn(name = "qto_question_id", nullable = false)
+    private QuizQuestion question;
 
     @Column(name = "qto_text", nullable = false, columnDefinition = "TEXT")
     private String text;

@@ -22,10 +22,10 @@ public class Staff extends ContactBaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "stf_org_id")
-    @JsonIgnore
+//    @JsonIgnore
     private Organisation organisation;
 
-    @ManyToOne(fetch = FetchType.EAGER) // Roles are usually small, EAGER is fine here
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "stf_role_id")
     private Role role;
 

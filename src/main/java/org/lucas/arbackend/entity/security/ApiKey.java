@@ -20,16 +20,16 @@ public class ApiKey extends BaseEntity {
     @Column(name = "apk_org_id")
     private Long orgId;
 
-    @OneToOne(fetch = FetchType.EAGER)
-    @MapsId // Ensures ApiKey ID is the same as Organisation ID
-    @JoinColumn(name = "apk_org_id")
-    @JsonIgnore
-    private Organisation organisation;
-
     @Column(name = "apk_prefix", nullable = false, length = 12)
     private String prefix;
 
-    @JsonIgnore
+    @OneToOne(fetch = FetchType.EAGER)
+    @MapsId // Ensures ApiKey ID is the same as Organisation ID
+    @JoinColumn(name = "apk_org_id")
+//    @JsonIgnore
+    private Organisation organisation;
+
+//    @JsonIgnore
     @Column(name = "apk_key_hash", unique = true, nullable = false)
     private String hashKey;
 }

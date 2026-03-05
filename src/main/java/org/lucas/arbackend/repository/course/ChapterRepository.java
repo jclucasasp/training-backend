@@ -12,4 +12,5 @@ public interface ChapterRepository extends JpaRepository<Chapter, Long> {
     @Query("SELECT m FROM Chapter m WHERE m.id = :chapterId AND m.course.id = :courseId")
     Optional<Chapter> findByIdAndCourseId(@Param("chapterId") Long moduleId, @Param("courseId") Long courseId);
 
+    Optional<Chapter> findByIdAndOrganisationId(Long chapterId, Long orgId);
 }

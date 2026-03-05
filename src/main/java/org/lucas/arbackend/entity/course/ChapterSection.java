@@ -5,7 +5,9 @@ import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.BaseEntity;
+import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.course.misc.Attachment;
+import org.lucas.arbackend.util.TenantEntity;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.util.ArrayList;
@@ -17,10 +19,18 @@ import java.util.List;
 @SQLRestriction("ended_at IS NULL")
 @EntityListeners(AuditingEntityListener.class)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-public class ChapterSection extends BaseEntity {
+public class ChapterSection extends BaseEntity implements TenantEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "chs_id")
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "chs_org_id")
+    Organisation organisation;
+
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "chs_chapter_id")
+    private Chapter chapter;
 
     @Column(name = "chs_title", unique = true, nullable = false)
     private String title;
@@ -43,16 +53,22 @@ public class ChapterSection extends BaseEntity {
     @Column(name = "chs_resource_media_type")
     private String resourceMediaType;
 
-    @Column(name = "chs_order_index")
-    private Integer orderIndex;
-
     @Column(name = "chs_tags", columnDefinition = "TEXT")
     private String tags;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(name = "chs_chapter_id")
-    private Chapter chapter;
+    @Column(name = "chs_order_index")
+    private Integer orderIndex;
 
     @OneToMany(mappedBy = "chapterSection", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Attachment> attachments = new ArrayList<>();
+
+    @Override
+    public Organisation getOrganisation() {
+        return this.organisation;
+    }
+
+    @Override
+    public void setOrganisation(Organisation organisation) {
+        this.organisation = organisation;
+    }
 }

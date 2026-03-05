@@ -10,6 +10,7 @@ import org.lucas.arbackend.entity.course.ChapterSection;
 import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.quiz.Quiz;
 import org.lucas.arbackend.mapper.CourseMapper;
+import org.lucas.arbackend.mapper.context.MappingContext;
 import org.lucas.arbackend.repository.course.ChapterRepository;
 import org.lucas.arbackend.repository.course.CourseRepository;
 import org.lucas.arbackend.repository.quiz.QuizRepository;
@@ -45,19 +46,18 @@ public class CourseService {
         Staff staff = staffRepo.findByEmailAndOrganisationIdAndEndedAtIsNull(request.getStaffEmail(), org.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Staff member not found"));
 
+        MappingContext ctx = new MappingContext(org, null, staff);
         // Map DTO to Entity
         Course course = new Course();
-        courseMapper.updateCourse(request, course);
-        course.setOrganisation(org);
+        courseMapper.updateCourse(request, course, ctx);
         course.setStaff(staff);
 
         if (request.getChapters() != null) {
             AtomicInteger chapterIndex = new AtomicInteger(0);
-
             Set<Chapter> chapters = request.getChapters().stream().map(chapterDto -> {
                 Chapter chapter = new Chapter();
 
-                courseMapper.updateChapter(chapterDto, chapter);
+                courseMapper.updateChapter(chapterDto, chapter, ctx);
                 // LINK THE BACK-REFERENCE
                 chapter.setCourse(course);
                 chapter.setOrderIndex(chapterIndex.getAndIncrement());
@@ -65,12 +65,10 @@ public class CourseService {
                 // 3. MANUALLY MAP AND LINK SECTIONS
                 if (chapterDto.getSections() != null) {
                     AtomicInteger sectionIndex = new AtomicInteger(0);
-
                     List<ChapterSection> sections = chapterDto.getSections().stream().map(sectionDto -> {
                         ChapterSection section = new ChapterSection();
-                        // USE THE MAPPER HERE
-                        courseMapper.updateChapterSection(sectionDto, section);
 
+                        courseMapper.updateChapterSection(sectionDto, section, ctx);
                         section.setChapter(chapter);
                         section.setOrderIndex(sectionIndex.getAndIncrement());
 
@@ -90,11 +88,9 @@ public class CourseService {
             course.setChapters(chapters);
     }
         // Calculate the total minutes for the course
-        Integer totalCourseMinutes = getTotalDuration(course.getChapters());
-        course.setTotalTimeInMinutes(totalCourseMinutes);
+        course.setTotalTimeInMinutes(getTotalDuration(course.getChapters()));
 
-        Course newCourse = courseRepo.save(course);
-        return courseMapper.maptoCourseResponse(newCourse);
+        return courseMapper.maptoCourseResponse(courseRepo.save(course));
     }
 
     @Transactional(readOnly = true)
@@ -107,27 +103,25 @@ public class CourseService {
     }
 
     public CourseResponse updateCourse(Long courseId, CourseRequest request) {
-        Long orgId = tenantProvider.get();
-
-        Course course = courseRepo.findByIdAndOrganisationIdAndEndedAtIsNull(courseId, orgId)
+        Organisation org = findOrganisation();
+        Course course = courseRepo.findByIdAndOrganisationIdAndEndedAtIsNull(courseId, org.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Course not found or does not belong to this organization"));
 
+        MappingContext ctx = new MappingContext(org, null, course.getStaff());
         // 1. Update simple Course fields
-        courseMapper.updateCourse(request, course);
+        courseMapper.updateCourse(request, course, ctx);
 
         // 2. Update Modules and Sections if provided
         if (request.getChapters() != null) {
-            updateChapters(course, request.getChapters());
+            updateChapters(course, request.getChapters(), ctx);
         }
 
-        Integer totalCourseMinutes = getTotalDuration(course.getChapters());
-        course.setTotalTimeInMinutes(totalCourseMinutes);
+        course.setTotalTimeInMinutes(getTotalDuration(course.getChapters()));
 
-        Course saved = courseRepo.save(course);
-        return courseMapper.maptoCourseResponse(saved);
+        return courseMapper.maptoCourseResponse(courseRepo.save(course));
     }
 
-   private void updateChapters(Course course, List<CourseChapterRequest> chaptersRequest) {
+   private void updateChapters(Course course, List<CourseChapterRequest> chaptersRequest, MappingContext ctx) {
 
         AtomicInteger index = new AtomicInteger();
         List<Chapter> chapters = chaptersRequest.stream().map(chapterDto -> {
@@ -137,11 +131,11 @@ public class CourseService {
                                 .orElseThrow(() -> new EntityNotFoundException("Chapter not found"))
                                 : new Chapter();
 
-                        courseMapper.updateChapter(chapterDto, chapter);
+                        courseMapper.updateChapter(chapterDto, chapter, ctx);
                         chapter.setCourse(course);
                         chapter.setOrderIndex(index.getAndIncrement());
 
-                        updateChapterSections(chapter, chapterDto.getSections());
+                        updateChapterSections(chapter, chapterDto.getSections(), ctx);
 
                         return chapter;
         }).toList();
@@ -150,7 +144,7 @@ public class CourseService {
         course.getChapters().addAll(chapters);
    }
 
-private void updateChapterSections(Chapter chapter, List<ChapterSectionRequest> sectionRequest) {
+private void updateChapterSections(Chapter chapter, List<ChapterSectionRequest> sectionRequest, MappingContext ctx) {
     // If the request explicitly provides a null or empty list,
     // we might want to clear existing sections depending on business logic.
     // Assuming null means "no change" and empty means "remove all".
@@ -163,9 +157,8 @@ private void updateChapterSections(Chapter chapter, List<ChapterSectionRequest> 
                 .filter(s -> s.getId().equals(sectionDto.getId())).findFirst()
                 .orElseThrow(() -> new EntityNotFoundException("Section not found"))
                 : new ChapterSection();
-        courseMapper.updateChapterSection(sectionDto, section);
+        courseMapper.updateChapterSection(sectionDto, section, ctx);
         section.setChapter(chapter);
-        // This sets the index order
         section.setOrderIndex(index.getAndIncrement());
 
         return section;
@@ -174,9 +167,7 @@ private void updateChapterSections(Chapter chapter, List<ChapterSectionRequest> 
     // Replace the collection to trigger orphanRemoval
     chapter.getChapterSections().clear();
     chapter.getChapterSections().addAll(updatedSections);
-
-    int totalChapterTime = getTotalDuration(chapter.getChapterSections());
-    chapter.setTotalTimeInMinutes(totalChapterTime);
+    chapter.setTotalTimeInMinutes(getTotalDuration(chapter.getChapterSections()));
 }
 
     public void softDeleteCourse(Long courseId) {
@@ -188,7 +179,7 @@ private void updateChapterSections(Chapter chapter, List<ChapterSectionRequest> 
     }
 
     public void addQuizToChapter(Long chapterId, Long quizId) {
-        Chapter chapter = chapterRepo.findById(chapterId)
+        Chapter chapter = chapterRepo.findByIdAndOrganisationId(chapterId, tenantProvider.get())
                 .orElseThrow(() -> new EntityNotFoundException("Chapter not found"));
 
         Quiz quiz = quizRepo.findByIdAndOrganisationIdAndEndedAtIsNull(quizId, tenantProvider.get())

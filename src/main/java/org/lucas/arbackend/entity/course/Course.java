@@ -35,6 +35,14 @@ public class Course extends BaseEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "cou_id")
     private Long id;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cou_org_id")
+    private Organisation organisation;
+
+    // TODO: Create an admin endpoint to reassign courses to staff
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cou_stf_id")
+    private Staff staff;
 
     @Column(name = "cou_name", nullable = false)
     private String name;
@@ -71,15 +79,6 @@ public class Course extends BaseEntity {
 
     @Column(name = "cou_tags")
     private String tags;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cou_org_id")
-    private Organisation organisation;
-
-    // TODO: Create an admin endpoint to reassign courses to staff
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cou_stf_id")
-    private Staff staff;
 
     @Builder.Default
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)

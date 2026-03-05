@@ -1,6 +1,7 @@
 package org.lucas.arbackend.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -94,6 +95,19 @@ public class CourseController {
     public ResponseEntity<Void> deleteCourse(@PathVariable Long courseId) {
         courseService.softDeleteCourse(courseId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/chapters/{chapterId}/quizzes/{quizId}")
+    @Operation(
+        summary = "Add a quiz to a chapter",
+        description = "Links an existing quiz to a specific chapter within a course. Validates tenant ownership for both."
+    )
+    public ResponseEntity<Void> addQuizToChapter(
+            @PathVariable @Parameter(description = "The ID of the Chapter") Long chapterId,
+            @PathVariable @Parameter(description = "The ID of the Quiz to be added") Long quizId
+    ) {
+        courseService.addQuizToChapter(chapterId, quizId);
+        return ResponseEntity.ok().build();
     }
 
 }
