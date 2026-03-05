@@ -17,13 +17,16 @@ import java.util.Set;
 @Entity
 @NamedEntityGraph(name = "Course.withChapterAndSections",
         attributeNodes = {
-                @NamedAttributeNode("chapters"),
                 @NamedAttributeNode(value = "chapters", subgraph = "chapterSections")
 },
 subgraphs = {
         @NamedSubgraph(name = "chapterSections",
                 attributeNodes = {
-                        @NamedAttributeNode("chapterSections")
+                        @NamedAttributeNode(value = "chapterSections", subgraph = "attachments")
+                }),
+        @NamedSubgraph(name = "attachments",
+                attributeNodes = {
+                        @NamedAttributeNode("attachments")
                 })
 })
 @Table(name = "course")

@@ -1,9 +1,11 @@
 package org.lucas.arbackend.mapper;
 
 import org.lucas.arbackend.dto.course.*;
+import org.lucas.arbackend.dto.course.misc.AttachmentRequest;
 import org.lucas.arbackend.entity.course.ChapterSection;
 import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.course.Chapter;
+import org.lucas.arbackend.entity.course.misc.Attachment;
 import org.lucas.arbackend.mapper.context.MappingContext;
 import org.lucas.arbackend.util.TenantEntity;
 import org.mapstruct.*;
@@ -30,6 +32,11 @@ public interface CourseMapper {
     @Mapping(target = "durationInMinutes", source = "durationInMinutes")
     @Mapping(target = "organisation", ignore = true)
     void updateChapterSection(ChapterSectionRequest dto, @MappingTarget ChapterSection entity, @Context MappingContext ctx);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "organisation", ignore = true)
+    @Mapping(target = "chapterSection", ignore = true)
+    void updateAttachment(AttachmentRequest dto, @MappingTarget Attachment entity, @Context MappingContext ctx);
 
     @Mapping(target = "staffEmail", source = "staff.email")
     @Mapping(target = "difficulty", source = "course.difficultyTypes")

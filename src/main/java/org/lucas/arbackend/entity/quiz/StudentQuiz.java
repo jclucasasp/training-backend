@@ -23,7 +23,7 @@ public class StudentQuiz implements TenantEntity {
     private Quiz quiz;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sq_org_id") // Organisation for multi-tenancy
+    @JoinColumn(name = "sq_org_id")
     private Organisation organisation;
 
     @Override

@@ -8,6 +8,7 @@ import org.lucas.arbackend.entity.Organisation.Staff;
 import org.lucas.arbackend.entity.course.Chapter;
 import org.lucas.arbackend.entity.course.ChapterSection;
 import org.lucas.arbackend.entity.course.Course;
+import org.lucas.arbackend.entity.course.misc.Attachment;
 import org.lucas.arbackend.entity.quiz.Quiz;
 import org.lucas.arbackend.mapper.CourseMapper;
 import org.lucas.arbackend.mapper.context.MappingContext;
@@ -161,6 +162,22 @@ private void updateChapterSections(Chapter chapter, List<ChapterSectionRequest> 
         section.setChapter(chapter);
         section.setOrderIndex(index.getAndIncrement());
 
+        if (sectionDto.getAttachments() != null) {
+            List<Attachment> attachments = sectionDto.getAttachments().stream().map(attDto -> {
+                Attachment attachment = (attDto.getId() != null && sectionDto.getAttachments() != null)
+                        ? section.getAttachments().stream()
+                        .filter(a -> a.getId().equals(attDto.getId())).findFirst()
+                        .orElse(new Attachment())
+                        : new Attachment();
+                courseMapper.updateAttachment(attDto, attachment, ctx);
+                attachment.setChapterSection(section);
+                return attachment;
+            }).toList();
+
+            section.getAttachments().clear();
+            section.getAttachments().addAll(attachments);
+        }
+
         return section;
     }).toList();
 
@@ -188,6 +205,15 @@ private void updateChapterSections(Chapter chapter, List<ChapterSectionRequest> 
         chapter.getQuizzes().add(quiz);
         chapterRepo.save(chapter);
     }
+
+    public void removeQuizFromChapter(Long chapterId, Long quizId) {
+    Chapter chapter = chapterRepo.findByIdAndOrganisationId(chapterId, tenantProvider.get())
+            .orElseThrow(() -> new EntityNotFoundException("Chapter not found"));
+
+    // Remove by ID from the Set
+    chapter.getQuizzes().removeIf(q -> q.getId().equals(quizId));
+    chapterRepo.save(chapter);
+}
 
     @Transactional(readOnly = true)
     private Organisation findOrganisation() {

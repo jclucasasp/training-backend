@@ -110,4 +110,18 @@ public class CourseController {
         return ResponseEntity.ok().build();
     }
 
+     @DeleteMapping("/{chapterId}/quizzes/{quizId}")
+    @Operation(
+        summary = "Remove quiz from chapter",
+        description = "Unlinks a quiz from a chapter. Does not delete the quiz entity itself."
+    )
+    public ResponseEntity<Void> removeQuizFromChapter(
+            @PathVariable Long chapterId,
+            @PathVariable Long quizId
+    ) {
+        // Implementation logic: chapter.getQuizzes().removeIf(q -> q.getId().equals(quizId))
+        courseService.removeQuizFromChapter(chapterId, quizId);
+        return ResponseEntity.noContent().build();
+    }
+
 }
