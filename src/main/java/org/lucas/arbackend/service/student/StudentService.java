@@ -1,7 +1,12 @@
 package org.lucas.arbackend.service.student;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.lucas.arbackend.dto.quiz.AnswerDTO;
+import org.lucas.arbackend.dto.quiz.QuizAttemptResponse;
+import org.lucas.arbackend.dto.quiz.QuizSubmissionRequest;
 import org.lucas.arbackend.dto.student.EnrollmentResponse;
 import org.lucas.arbackend.dto.student.StudentRequest;
 import org.lucas.arbackend.dto.student.StudentResponse;
@@ -9,7 +14,9 @@ import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.course.ChapterSection;
 import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.quiz.Quiz;
+import org.lucas.arbackend.entity.quiz.QuizQuestion;
 import org.lucas.arbackend.entity.quiz.StudentQuiz;
+import org.lucas.arbackend.entity.quiz.StudentQuizAttempt;
 import org.lucas.arbackend.entity.student.Student;
 import org.lucas.arbackend.entity.student.StudentEnrollment;
 import org.lucas.arbackend.entity.student.StudentProgress;
@@ -17,15 +24,17 @@ import org.lucas.arbackend.mapper.StudentMapper;
 import org.lucas.arbackend.mapper.context.MappingContext;
 import org.lucas.arbackend.repository.course.ChapterSectionRepository;
 import org.lucas.arbackend.repository.course.CourseRepository;
-import org.lucas.arbackend.repository.quiz.QuizRepository;
 import org.lucas.arbackend.repository.course.StudentQuizRepository;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
+import org.lucas.arbackend.repository.quiz.QuizRepository;
+import org.lucas.arbackend.repository.quiz.StudentQuizAttemptRepository;
 import org.lucas.arbackend.repository.student.StudentEnrollmentRepository;
 import org.lucas.arbackend.repository.student.StudentProgressRepository;
 import org.lucas.arbackend.repository.student.StudentRepository;
 import org.lucas.arbackend.util.TenantProvider;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,6 +58,10 @@ public class StudentService {
     private final StudentMapper studentMapper;
     private final QuizRepository quizRepo;
     private final StudentQuizRepository studentQuizRepo;
+    private final StudentQuizAttemptRepository attemptRepo;
+    private final ObjectMapper objectMapper;
+    private final StudentQuizAttemptRepository studentQuizAttemptRepo;
+
 
     // ==========================================
     // 1. ENROLLMENT LOGIC (UPSERT Student)
@@ -89,7 +102,7 @@ public class StudentService {
                 .studentNumber(student.getStudentNumber())
                 .courseName(course.getName())
                 .enrolledAt(enrollment.getEnrolledAt())
-                .totalProgress(BigDecimal.ZERO)
+                .currentTotalProgress(BigDecimal.ZERO)
                 .build();
     }
 
@@ -206,37 +219,62 @@ public class StudentService {
         studentQuizRepo.save(assignment);
     }
 
-     // ==========================================
+    // ==========================================
     // 3. RESUME & QUIZ SUBMISSION
     // ==========================================
 
     @Transactional(readOnly = true)
     public EnrollmentResponse getResumeDetails(String studentNumber, String courseSlug) {
-     StudentEnrollment enrollment = findEnrollment(studentNumber, courseSlug);
+        StudentEnrollment enrollment = findEnrollment(studentNumber, courseSlug);
 
         return EnrollmentResponse.builder()
                 .enrollmentId(enrollment.getId())
                 .courseName(enrollment.getCourse().getName())
-                .totalProgress(enrollment.getTotalProgress())
+                .currentTotalProgress(enrollment.getTotalProgress())
                 // Provide the ID of the section they last viewed
                 .lastSectionId(enrollment.getChapterSection() != null ? enrollment.getChapterSection().getId() : null)
                 .build();
     }
 
     @Transactional
-    public void submitQuiz(String studentNumber, Long quizId, BigDecimal score) {
+    public BigDecimal submitAndGradeQuiz(String studentNumber, Long quizId, QuizSubmissionRequest request) {
         StudentQuiz studentQuiz = findStudentQuiz(studentNumber, quizId);
+        Quiz quiz = studentQuiz.getQuiz();
 
-        studentQuiz.setScore(score);
-        studentQuiz.setCompletedAt(LocalDateTime.now());
+        int totalQuestions = quiz.getQuestions().size();
+        if (totalQuestions == 0) throw new IllegalStateException("Quiz has no questions");
+        int passingScore = quiz.getPassingScore();
+        int correctAnswers = 0;
 
-        // If score is above a certain threshold, you could mark it as passed
-        studentQuiz.setPassed(score.compareTo(BigDecimal.valueOf(70)) >= 0);
+        for (AnswerDTO submitted : request.getAnswers()) {
+            boolean isCorrect = quiz.getQuestions().stream()
+                    .filter(q -> q.getId().equals(submitted.getQuestionId()))
+                    .flatMap(q -> q.getOptions().stream())
+                    .anyMatch(opt -> opt.getId().equals(submitted.getSelectedOptionId()) && opt.isCorrect());
 
-        studentQuizRepo.save(studentQuiz);
+            if (isCorrect) correctAnswers++;
+        }
+
+        // 4. Calculate Final Score
+        BigDecimal score = BigDecimal.valueOf((correctAnswers / (double) totalQuestions) * 100)
+                .setScale(2, RoundingMode.HALF_UP);
+
+        // 5. Persist the Attempt
+        StudentQuizAttempt attempt = StudentQuizAttempt.builder()
+                .organisation(studentQuiz.getOrganisation())
+                .student(studentQuiz.getStudent())
+                .quiz(quiz)
+                .score(score)
+                .isPassed(score.compareTo(BigDecimal.valueOf(passingScore)) >= 0) // Pass mark 70%
+                .completedAt(LocalDateTime.now())
+                .submittedAnswersJson(convertToJson(request.getAnswers())) // Helper to stringify
+                .build();
+
+        attemptRepo.save(attempt);
+        return score;
     }
 
- @Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public List<EnrollmentResponse> getStudentDashboard(String studentNumber) {
         Long orgId = tenantProvider.get();
         return enrollmentRepo.findAllByStudentOrganisationIdAndStudentStudentNumber(orgId, studentNumber)
@@ -244,10 +282,77 @@ public class StudentService {
                 .map(e -> EnrollmentResponse.builder()
                         .enrollmentId(e.getId())
                         .courseName(e.getCourse().getName())
-                        .totalProgress(e.getTotalProgress()) // This saves us from having to map through the studentProgresses set on every view
+                        .currentTotalProgress(e.getTotalProgress()) // This saves us from having to map through the studentProgresses set on every view
                         .enrolledAt(e.getEnrolledAt())
                         .build())
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public String getAttemptReview(String studentNumber, Long attemptId) {
+        StudentQuizAttempt attempt = attemptRepo.findByIdAndStudentNumber(attemptId, studentNumber, tenantProvider.get())
+                .orElseThrow(() -> new EntityNotFoundException("Attempt not found"));
+
+        return attempt.getSubmittedAnswersJson();
+    }
+
+     @Transactional(readOnly = true)
+    public List<QuizAttemptResponse> getQuizAttempts(String studentNumber, Long quizId) {
+        Long orgId = tenantProvider.get();
+
+        // 1. Find the student in this Org
+        Student student = studentRepo.findByOrganisationIdAndStudentNumber(orgId, studentNumber)
+                .orElseThrow(() -> new EntityNotFoundException("Student not found in this organisation"));
+
+        // 2. Fetch all attempts for this student/quiz combination
+        // We use a specific repository method to ensure multi-tenant safety
+        return attemptRepo.findAllByOrganisationIdAndStudentIdAndQuizIdOrderByCompletedAtDesc(
+                orgId, student.getId(), quizId)
+                .stream()
+                .map(attempt -> QuizAttemptResponse.builder()
+                        .attemptId(attempt.getId())
+                        .quizId(attempt.getQuiz().getId())
+                        .score(attempt.getScore())
+                        .isPassed(attempt.isPassed())
+                        .completedAt(attempt.getCompletedAt())
+                        // We leave 'answers' null here to keep the list response small
+                        .build())
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public QuizAttemptResponse getAttemptDetails(Long attemptId) {
+        Long currentOrgId = tenantProvider.get();
+
+        StudentQuizAttempt attempt = attemptRepo.findById(attemptId)
+                .filter(a -> a.getOrganisation().getId().equals(currentOrgId))
+                .orElseThrow(() -> new EntityNotFoundException("Attempt not found or access denied"));
+
+        Object parsedAnswers = null;
+        try {
+            // Parse the JSON string back into a Map or List for the frontend
+            parsedAnswers = objectMapper.readValue(attempt.getSubmittedAnswersJson(), Object.class);
+        } catch (JsonProcessingException e) {
+            // Fallback if JSON is malformed
+            parsedAnswers = attempt.getSubmittedAnswersJson();
+        }
+
+        return QuizAttemptResponse.builder()
+                .attemptId(attempt.getId())
+                .quizId(attempt.getQuiz().getId())
+                .score(attempt.getScore())
+                .isPassed(attempt.isPassed())
+                .completedAt(attempt.getCompletedAt())
+                .answers(parsedAnswers)
+                .build();
+    }
+
+    private String convertToJson(Object answers) {
+        try {
+            return objectMapper.writeValueAsString(answers);
+        } catch (JsonProcessingException e) {
+            return "[]";
+        }
     }
 
     private Organisation findOrganisation() {

@@ -1,6 +1,7 @@
 package org.lucas.arbackend.dto.student;
 
 import lombok.Builder;
+import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.quiz.StudentQuiz;
 
 import java.io.Serial;
@@ -13,6 +14,7 @@ public record StudentResponse (
         String studentNumber,
         String firstName,
         String lastName,
+        Organisation organisation,
         List<StudentQuiz> studentQuizzes
 ) implements Serializable {
 

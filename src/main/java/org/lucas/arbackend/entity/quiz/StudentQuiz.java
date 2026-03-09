@@ -7,6 +7,9 @@ import org.lucas.arbackend.entity.student.Student;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.util.TenantEntity;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "student_quizzes")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
@@ -15,16 +18,19 @@ public class StudentQuiz implements TenantEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sq_org_id")
+    private Organisation organisation;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "stu_id", nullable = false)
     private Student student;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "quiz_id", nullable = false)
+    @JoinColumn(name = "sq_quiz_id", nullable = false)
     private Quiz quiz;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sq_org_id")
-    private Organisation organisation;
+    @Column(name = "stq_assigned_at", updatable = false)
+    LocalDateTime assignedAt = LocalDateTime.now();
 
     @Override
     public void setOrganisation(Organisation organisation) {

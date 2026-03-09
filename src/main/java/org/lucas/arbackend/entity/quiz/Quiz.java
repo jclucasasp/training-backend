@@ -8,7 +8,6 @@ import org.lucas.arbackend.entity.BaseEntity;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.course.ChapterQuiz;
 import org.lucas.arbackend.entity.course.Course;
-import org.lucas.arbackend.entity.quiz.StudentQuiz;
 import org.lucas.arbackend.util.TenantEntity;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -17,6 +16,14 @@ import java.util.Set;
 
 @Entity
 @Table(name = "quiz")
+@NamedEntityGraph(
+    name = "Quiz.questionsAndOptions",
+    attributeNodes = @NamedAttributeNode(value = "questions", subgraph = "questions-subgraph"),
+    subgraphs = @NamedSubgraph(
+        name = "questions-subgraph",
+        attributeNodes = @NamedAttributeNode("options")
+    )
+)
 @SQLDelete(sql = "UPDATE student SET ended_at = CURRENT_TIMESTAMP WHERE stu_id = ?")
 @SQLRestriction("ended_at IS NULL")
 @EntityListeners(AuditingEntityListener.class)

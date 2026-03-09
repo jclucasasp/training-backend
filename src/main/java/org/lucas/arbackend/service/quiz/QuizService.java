@@ -26,6 +26,8 @@ import org.lucas.arbackend.util.TenantProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -85,14 +87,15 @@ public class QuizService {
             if (isCorrect) correct++;
         }
 
-        int score = (int) ((correct / (double) total) * 100);
+        BigDecimal score = BigDecimal.valueOf((correct / (double) total) * 100)
+                .setScale(2, RoundingMode.HALF_UP);
 
         StudentQuizAttempt attempt = StudentQuizAttempt.builder()
                 .organisation(student.getOrganisation())
                 .student(student)
                 .quiz(quiz)
                 .score(score)
-                .isPassed(score >= quiz.getPassingScore())
+                .isPassed(score.compareTo(BigDecimal.valueOf(quiz.getPassingScore())) >= 0)
                 .completedAt(LocalDateTime.now())
                 .build();
 

@@ -300,29 +300,32 @@ CREATE TABLE IF NOT EXISTS student_progress (
 
 -- This table tracks WHICH quizzes a student is ASSIGNED or ALLOWED to take
 CREATE TABLE IF NOT EXISTS student_quizzes (
-    quiz_id BIGINT NOT NULL,
-    stu_id BIGINT NOT NULL,
-    PRIMARY KEY (quiz_id, stu_id),
-    CONSTRAINT fk_sq_quiz FOREIGN KEY (quiz_id) REFERENCES quiz(quiz_id) ON DELETE CASCADE,
-    CONSTRAINT fk_sq_student FOREIGN KEY (stu_id) REFERENCES student(stu_id) ON DELETE CASCADE
+    stq_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    stq_org_id BIGINT NOT NULL,
+    stq_quiz_id BIGINT NOT NULL,
+    stq_student_id BIGINT NOT NULL,
+    stq_assigned_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_sq_org FOREIGN KEY (stq_org_id) REFERENCES organisation(org_id),
+    CONSTRAINT fk_sq_quiz FOREIGN KEY (stq_quiz_id) REFERENCES quiz(quiz_id) ON DELETE CASCADE,
+    CONSTRAINT fk_sq_student FOREIGN KEY (stq_student_id) REFERENCES student(stu_id) ON DELETE CASCADE,
+    UNIQUE KEY uq_student_quiz (stq_student_id, stq_quiz_id) -- Prevents double registration
 ) ENGINE=InnoDB;
 
 -- NEW: Tracks the actual ATTEMPT and SCORE of the quiz
 CREATE TABLE IF NOT EXISTS student_quiz_attempt (
     sqa_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    sqa_org_id BIGINT NOT NULL, -- Added for isolation
+    sqa_org_id BIGINT NOT NULL,
     sqa_student_id BIGINT NOT NULL,
     sqa_quiz_id BIGINT NOT NULL,
-    sqa_score INT NOT NULL,
+    sqa_score DECIMAL(5,2) NOT NULL, -- Changed to DECIMAL for precision (e.g., 85.50)
     sqa_is_passed BOOLEAN DEFAULT FALSE,
-    sqa_responses_json TEXT, -- Store exactly what the student answered for auditing
+    sqa_submitted_answers_json JSON, -- Using JSON type for better querying if on MySQL 5.7+
     sqa_started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     sqa_completed_at DATETIME NULL,
     CONSTRAINT fk_sqa_org FOREIGN KEY (sqa_org_id) REFERENCES organisation(org_id),
     CONSTRAINT fk_sqa_student FOREIGN KEY (sqa_student_id) REFERENCES student(stu_id),
     CONSTRAINT fk_sqa_quiz FOREIGN KEY (sqa_quiz_id) REFERENCES quiz(quiz_id)
 ) ENGINE=InnoDB;
-
 -- ==========================================
 -- 7. COURSE Q&A / DISCUSSIONS
 -- ==========================================

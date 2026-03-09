@@ -12,7 +12,7 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface StaffMapper {
 
-    @Mapping(target = "role", source = "role.fileName")
+    @Mapping(target = "role", source = "role.name")
     StaffResponse maptoStaffResponse(Staff entity);
 
     @Mapping(target = "id", ignore = true)
@@ -22,4 +22,12 @@ public interface StaffMapper {
 
     @Mapping(target = "id", ignore = true)
     void updateRole(StaffRequest dto, @MappingTarget Role entity);
+
+    default String mapRoleToString(Role role) {
+        if (role == null) {
+            return null;
+        }
+
+        return role.getName();
+    }
 }

@@ -8,6 +8,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.lucas.arbackend.dto.quiz.QuizAttemptResponse;
+import org.lucas.arbackend.dto.quiz.QuizSubmissionRequest;
 import org.lucas.arbackend.dto.student.EnrollmentResponse;
 import org.lucas.arbackend.dto.student.StudentRequest;
 import org.lucas.arbackend.dto.student.StudentResponse;
@@ -16,12 +18,15 @@ import org.lucas.arbackend.service.student.StudentService;
 import org.lucas.arbackend.util.ValidatedLabel;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -72,6 +77,120 @@ public class StudentController {
 
         studentService.registerStudentForQuiz(studentNumber, quizId);
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(
+            summary = "Update student course progress",
+            description = "Updates the progress percentage for a specific section and recalculates the total course progress. Accessible by Students, Admins, and Support."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Progress updated successfully"),
+            @ApiResponse(responseCode = "404", description = "Student or Section not found"),
+            @ApiResponse(responseCode = "403", description = "Access denied")
+    })
+    @PreAuthorize("hasAuthority('STUDENT') or hasAuthority('ORG_ADMIN') or hasAuthority('COURSE_EDITOR') or hasAuthority('SUPPORT')")
+    @PatchMapping("/{studentNumber}/progress")
+    public ResponseEntity<Void> updateProgress(
+            @Parameter(description = "The student's unique number") @PathVariable String studentNumber,
+            @Parameter(description = "The ID of the chapter section") @RequestParam Long sectionId,
+            @Parameter(description = "Progress percentage (0.0 to 100.0)") @RequestParam Double percentage) {
+        studentService.updateProgress(studentNumber, sectionId, percentage);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Get student learning dashboard",
+            description = "Retrieves a list of all course enrollments and current progress for a specific student."
+    )
+    @GetMapping("/{studentNumber}/dashboard")
+    @PreAuthorize("hasAuthority('STUDENT') or hasAuthority('ORG_ADMIN') or hasAuthority('COURSE_EDITOR') or hasAuthority('SUPPORT')")
+    public ResponseEntity<List<EnrollmentResponse>> getDashboard(
+            @Parameter(description = "The student's unique number") @PathVariable String studentNumber) {
+        return ResponseEntity.ok(studentService.getStudentDashboard(studentNumber));
+    }
+
+    @Operation(
+            summary = "Resume course from last viewed section",
+            description = "Returns enrollment details including the lastSectionId for a specific course to allow the student to resume where they left off."
+    )
+    @GetMapping("/{studentNumber}/resume/{courseSlug}")
+    @PreAuthorize("hasAuthority('STUDENT')")
+    public ResponseEntity<EnrollmentResponse> resumeCourse(
+            @Parameter(description = "The student's unique number") @PathVariable String studentNumber,
+            @Parameter(description = "The URL slug of the course") @PathVariable String courseSlug) {
+        return ResponseEntity.ok(studentService.getResumeDetails(studentNumber, courseSlug));
+    }
+
+    @Operation(
+            summary = "Submit and grade a quiz",
+            description = "Receives student answers, grades them on the server, creates an attempt record, and returns the final calculated score."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Quiz graded successfully",
+                    content = @Content(schema = @Schema(implementation = BigDecimal.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid submission data"),
+            @ApiResponse(responseCode = "403", description = "Student is not registered for this quiz")
+    })
+    @PostMapping("/{studentNumber}/quizzes/{quizId}/submit")
+    @PreAuthorize("hasAuthority('STUDENT')")
+    public ResponseEntity<BigDecimal> submitQuiz(
+            @Parameter(description = "The student's unique number") @PathVariable String studentNumber,
+            @Parameter(description = "The ID of the quiz") @PathVariable Long quizId,
+            @RequestBody @Validated QuizSubmissionRequest request) {
+        return ResponseEntity.ok(studentService.submitAndGradeQuiz(studentNumber, quizId, request));
+    }
+
+ @Operation(
+        summary = "Get quiz attempt history",
+        description = "Retrieves a list of all previous attempts made by a specific student for a specific quiz. Useful for showing a history table."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved attempt history"),
+        @ApiResponse(responseCode = "404", description = "Student or Quiz not found")
+    })
+    @GetMapping("/{studentNumber}/quizzes/{quizId}/attempts")
+    public ResponseEntity<List<QuizAttemptResponse>> getQuizAttempts(
+            @Parameter(description = "Unique student identifier") @PathVariable String studentNumber,
+            @Parameter(description = "ID of the quiz") @PathVariable Long quizId) {
+        return ResponseEntity.ok(studentService.getQuizAttempts(studentNumber, quizId));
+    }
+
+    @Operation(
+        summary = "Get specific attempt details",
+        description = "Retrieves the full details of a single attempt, including the calculated score and the submitted answers (JSON)."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved attempt details"),
+        @ApiResponse(responseCode = "403", description = "Access denied - Attempt belongs to another organization"),
+        @ApiResponse(responseCode = "404", description = "Attempt ID not found")
+    })
+    @GetMapping("/attempts/{attemptId}")
+    public ResponseEntity<QuizAttemptResponse> getAttemptDetail(
+            @Parameter(description = "The unique ID of the quiz attempt") @PathVariable Long attemptId) {
+        return ResponseEntity.ok(studentService.getAttemptDetails(attemptId));
+    }
+
+    @Operation(
+            summary = "Review a specific quiz attempt",
+            description = "Returns the raw JSON of submitted answers for a specific attempt. Requires tenant-level access."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Attempt found and returned",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "403", description = "Access denied - Attempt belongs to another organization"),
+            @ApiResponse(responseCode = "404", description = "Attempt not found")
+    })
+    @GetMapping("/{studentNumber}/attempts/{attemptId}/review")
+    public ResponseEntity<String> getAttemptReview(
+            @Parameter(description = "The unique student number") @PathVariable String studentNumber,
+            @Parameter(description = "The ID of the specific quiz attempt") @PathVariable Long attemptId) {
+
+        String jsonReview = studentService.getAttemptReview(studentNumber, attemptId);
+
+        // We return it as a String, but tell the browser/Postman it is JSON
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(jsonReview);
     }
 
     @Operation(summary = "Get Student List", description = "Paginated list of all students registered under this tenant.")

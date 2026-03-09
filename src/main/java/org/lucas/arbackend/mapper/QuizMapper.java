@@ -4,7 +4,6 @@ import org.lucas.arbackend.dto.quiz.OptionRequest;
 import org.lucas.arbackend.dto.quiz.QuestionRequest;
 import org.lucas.arbackend.dto.quiz.QuizRequest;
 import org.lucas.arbackend.dto.quiz.QuizResponse;
-import org.lucas.arbackend.entity.BaseEntity;
 import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.quiz.Quiz;
 import org.lucas.arbackend.entity.quiz.QuizQuestion;
