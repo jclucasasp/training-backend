@@ -2,17 +2,11 @@ package org.lucas.arbackend.service.quiz;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.lucas.arbackend.dto.quiz.QuizRequest;
-import org.lucas.arbackend.dto.quiz.QuizResponse;
-import org.lucas.arbackend.dto.quiz.QuizResultResponse;
-import org.lucas.arbackend.dto.quiz.QuizSubmission;
+import org.lucas.arbackend.dto.quiz.*;
 import org.lucas.arbackend.entity.Organisation.Staff;
 import org.lucas.arbackend.entity.course.Chapter;
 import org.lucas.arbackend.entity.course.ChapterQuiz;
-import org.lucas.arbackend.entity.quiz.Quiz;
-import org.lucas.arbackend.entity.quiz.QuizQuestion;
-import org.lucas.arbackend.entity.quiz.StudentQuiz;
-import org.lucas.arbackend.entity.quiz.StudentQuizAttempt;
+import org.lucas.arbackend.entity.quiz.*;
 import org.lucas.arbackend.entity.student.Student;
 import org.lucas.arbackend.mapper.QuizMapper;
 import org.lucas.arbackend.mapper.context.MappingContext;
@@ -67,15 +61,13 @@ public class QuizService {
         return quizMapper.toResponse(quizRepo.save(quiz));
     }
 
-    public QuizResponse getQuizById(Long id) {
-        Quiz quiz = quizRepo.findByIdAndOrganisationId(id, tenantProvider.get())
-                .orElseThrow(() -> new EntityNotFoundException("Quiz not found"));
+    public QuizResponse getQuizById(Long quizId) {
+        Quiz quiz = getQuiz(quizId);
         return quizMapper.toResponse(quiz);
     }
 
     public QuizResultResponse submitAttempt(Long quizId, Student student, QuizSubmission submission) {
-        Quiz quiz = quizRepo.findByIdAndOrganisationId(quizId, tenantProvider.get())
-                .orElseThrow(() -> new EntityNotFoundException("Quiz not found"));
+        Quiz quiz = getQuiz(quizId);
 
         int total = quiz.getQuestions().size();
         long correct = 0;
@@ -104,11 +96,10 @@ public class QuizService {
     }
 
     public void assignQuizToChapter(Long quizId, Long chapterId) {
-    Quiz quiz = quizRepo.findByIdAndOrganisationId(quizId, tenantProvider.get())
-            .orElseThrow(() -> new EntityNotFoundException("Quiz not found"));
+    Quiz quiz = getQuiz(quizId);
 
     // Assuming you have a ChapterRepository
-    Chapter chapter = chapterRepo.findById(chapterId)
+    Chapter chapter = chapterRepo.findByIdAndOrganisationId(chapterId, tenantProvider.get())
             .orElseThrow(() -> new EntityNotFoundException("Chapter not found"));
 
     ChapterQuiz assignment = ChapterQuiz.builder()
@@ -120,13 +111,84 @@ public class QuizService {
     chapterQuizRepo.save(assignment);
 }
 
+    public void addQuestionToQuiz(Long quizId, QuestionRequest request) {
+        Quiz quiz = getQuiz(quizId); // Already uses tenantProvider.get()
+
+        // Map the DTO to Question Entity
+        // Using a manual mapping here or a mapper method
+        QuizQuestion question = QuizQuestion.builder()
+                .text(request.getText())
+                .quiz(quiz)
+                .organisation(quiz.getOrganisation())
+                .build();
+
+        // Map and link options
+        request.getOptions().forEach(opt -> {
+            QuizQuestionOption option = QuizQuestionOption.builder()
+                    .text(opt.getText())
+                    .isCorrect(opt.isCorrect())
+                    .question(question)
+                    .build();
+            question.getOptions().add(option);
+        });
+
+        quiz.getQuestions().add(question);
+        quizRepo.save(quiz); // Cascades to the new question and options
+    }
+
+    public void updateQuestion(Long quizId, Long questionId, QuestionRequest request) {
+        // 1. Fetch the quiz to verify ownership/tenant
+        Quiz quiz = getQuiz(quizId);
+
+        // 2. Find the specific question
+        QuizQuestion question = quiz.getQuestions().stream()
+                .filter(q -> q.getId().equals(questionId))
+                .findFirst()
+                .orElseThrow(() -> new EntityNotFoundException("Question not found in this quiz"));
+
+        // 3. Update fields
+        question.setText(request.getText());
+
+        // 4. Update Options (Cleanest way: Clear and re-add if the list is small)
+        question.getOptions().clear();
+        request.getOptions().forEach(opt -> {
+            question.getOptions().add(QuizQuestionOption.builder()
+                    .text(opt.getText())
+                    .isCorrect(opt.isCorrect())
+                    .question(question)
+                    .build());
+        });
+
+        quizRepo.save(quiz);
+    }
+
+    public void removeQuestion(Long quizId, Long questionId) {
+        Quiz quiz = getQuiz(quizId);
+
+        boolean removed = quiz.getQuestions().removeIf(q -> q.getId().equals(questionId));
+
+        if (!removed) {
+            throw new EntityNotFoundException("Question not found");
+        }
+
+        quizRepo.save(quiz);
+    }
+
+    public QuizResponse updateQuizMetadata(Long quizId, QuizRequest request) {
+        Quiz quiz = getQuiz(quizId);
+
+        quiz.setTitle(request.getTitle());
+        quiz.setPassingScore(request.getPassingScore());
+        // Update other metadata fields as needed
+
+        return quizMapper.toResponse(quizRepo.save(quiz));
+    }
+
     public void assignQuizToEnrolledStudents(Long quizId, Long courseId) {
-    Quiz quiz = quizRepo.findByIdAndOrganisationId(quizId, tenantProvider.get())
-            .orElseThrow(() -> new EntityNotFoundException("Quiz not found"));
+    Quiz quiz = getQuiz(quizId);
 
     // Fetch students enrolled in the course
-    List<Student> enrolledStudents = studentRepo.findAllByEnrolledCourses(courseId)
-            .orElseThrow(() -> new EntityNotFoundException("Course not found"));
+    List<Student> enrolledStudents = getEnrolledStudents(courseId);
 
     List<StudentQuiz> assignments = enrolledStudents.stream()
         .map(student -> StudentQuiz.builder()
@@ -137,6 +199,16 @@ public class QuizService {
         .toList();
 
     studentQuizRepo.saveAll(assignments);
+    }
+
+    private Quiz getQuiz(Long quizId) {
+        return quizRepo.findByIdAndOrganisationId(quizId, tenantProvider.get())
+                .orElseThrow(() -> new EntityNotFoundException("Quiz not found"));
+    }
+
+    private List<Student> getEnrolledStudents(Long courseId) {
+        return studentRepo.findAllByEnrolledCourses(courseId)
+            .orElseThrow(() -> new EntityNotFoundException("Course not found"));
     }
 
 }
