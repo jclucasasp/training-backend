@@ -269,7 +269,7 @@ CREATE TABLE IF NOT EXISTS student_enrollment (
     ste_org_id BIGINT NOT NULL, -- Added for isolation
     ste_student_id BIGINT NOT NULL,
     ste_course_id BIGINT NOT NULL,
-    ste_current_section_id BIGINT NULL,
+    ste_chapter_section_id BIGINT NULL,
     ste_total_progress DECIMAL(5,2) DEFAULT 0.00,
     ste_enrolled_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     ste_completed_at DATETIME NULL,
@@ -278,7 +278,8 @@ CREATE TABLE IF NOT EXISTS student_enrollment (
     ended_at DATETIME NULL,
     CONSTRAINT fk_ste_org FOREIGN KEY (ste_org_id) REFERENCES organisation(org_id),
     CONSTRAINT fk_ste_student FOREIGN KEY (ste_student_id) REFERENCES student(stu_id),
-    CONSTRAINT fk_ste_course FOREIGN KEY (ste_course_id) REFERENCES course(cou_id)
+    CONSTRAINT fk_ste_course FOREIGN KEY (ste_course_id) REFERENCES course(cou_id),
+    CONSTRAINT fk_ste_chapter_section FOREIGN KEY (ste_chapter_section_id) REFERENCES chapter_section(chs_id)
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS student_progress (

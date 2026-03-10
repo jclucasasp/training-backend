@@ -14,7 +14,6 @@ import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.course.ChapterSection;
 import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.quiz.Quiz;
-import org.lucas.arbackend.entity.quiz.QuizQuestion;
 import org.lucas.arbackend.entity.quiz.StudentQuiz;
 import org.lucas.arbackend.entity.quiz.StudentQuizAttempt;
 import org.lucas.arbackend.entity.student.Student;
@@ -34,7 +33,6 @@ import org.lucas.arbackend.repository.student.StudentRepository;
 import org.lucas.arbackend.util.TenantProvider;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -114,14 +112,14 @@ public class StudentService {
         // 1. Context Resolution (Org & Student)
         Organisation org = findOrganisation();
 
-        Student student = findStudent(studentNumber, org);
+        Student student = findStudent(org.getId(), studentNumber);
 
         // 2. Resolve the Section first (needed for both Enrollment lookup and Progress)
         ChapterSection currentSection = sectionRepo.findById(sectionId)
                 .orElseThrow(() -> new EntityNotFoundException("Section not found"));
 
         // 3. Find Enrollment (Scoped by Student and the Course this section belongs to)
-        StudentEnrollment enrollment = findEnrollment(student, currentSection);
+        StudentEnrollment enrollment = findEnrollment(org.getId(), student.getId(), currentSection.getId());
 
         // 4. Update the "Pointer" for Resume functionality
         enrollment.setChapterSection(currentSection);
@@ -197,7 +195,7 @@ public class StudentService {
     public void registerStudentForQuiz(String studentNumber, Long quizId) {
         Organisation org = findOrganisation();
 
-        Student student = findStudent(studentNumber, org);
+        Student student = findStudent(org.getId(), studentNumber);
 
         Quiz quiz = findQuiz(quizId, org.getId());
 
@@ -277,7 +275,7 @@ public class StudentService {
     @Transactional(readOnly = true)
     public List<EnrollmentResponse> getStudentDashboard(String studentNumber) {
         Long orgId = tenantProvider.get();
-        return enrollmentRepo.findAllByStudentOrganisationIdAndStudentStudentNumber(orgId, studentNumber)
+        return enrollmentRepo.findAllByStudentNumber(orgId, studentNumber)
                 .stream()
                 .map(e -> EnrollmentResponse.builder()
                         .enrollmentId(e.getId())
@@ -306,7 +304,7 @@ public class StudentService {
 
         // 2. Fetch all attempts for this student/quiz combination
         // We use a specific repository method to ensure multi-tenant safety
-        return attemptRepo.findAllByOrganisationIdAndStudentIdAndQuizIdOrderByCompletedAtDesc(
+        return attemptRepo.findRecentAttempts(
                 orgId, student.getId(), quizId)
                 .stream()
                 .map(attempt -> QuizAttemptResponse.builder()
@@ -361,24 +359,24 @@ public class StudentService {
     }
 
     private StudentEnrollment findEnrollment(String studentNumber, String courseSlug){
-        return enrollmentRepo.findByStudentOrganisationIdAndStudentStudentNumberAndCourseSlug(
+        return enrollmentRepo.findByCourseSlug(
                         tenantProvider.get(), studentNumber, courseSlug)
                 .orElseThrow(() -> new EntityNotFoundException("Enrollment not found"));
     }
 
-    private StudentEnrollment findEnrollment(Student student, ChapterSection currentSection){
-        return enrollmentRepo.findByStudentAndChapterSection(student, currentSection)
+    private StudentEnrollment findEnrollment(Long orgId, Long studentId, Long sectionId){
+        return enrollmentRepo.findBySectionId(orgId, studentId, sectionId)
                 .orElseThrow(() -> new EntityNotFoundException("No active enrollment found for this course section"));
     }
 
     private StudentQuiz findStudentQuiz(String studentNumber, Long quizId){
-        return studentQuizRepo.findByStudentOrganisationIdAndStudentStudentNumberAndQuizId(
+        return studentQuizRepo.findRegistration(
                         tenantProvider.get(), studentNumber, quizId)
                 .orElseThrow(() -> new EntityNotFoundException("Student is not registered for this quiz"));
     }
 
-    private Student findStudent(String studentNumber, Organisation org) {
-        return studentRepo.findByOrganisationAndStudentNumber(org, studentNumber)
+    private Student findStudent(Long orgId, String studentNumber) {
+        return studentRepo.findByOrganisationIdAndStudentNumber(orgId, studentNumber)
                 .orElseThrow(() -> new EntityNotFoundException("Student not found"));
     }
 

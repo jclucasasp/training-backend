@@ -25,5 +25,6 @@ public interface StudentQuizAttemptRepository extends JpaRepository<StudentQuizA
             @Param("studentNumber") String studentNumber,
             @Param("orgId") Long orgId);
 
-    Collection<StudentQuizAttempt> findAllByOrganisationIdAndStudentIdAndQuizIdOrderByCompletedAtDesc(Long orgId, Long id, Long quizId);
+     @Query("SELECT sqa FROM student_quiz_attempts WHERE sqa.organisation_id = :orgId AND sqa.student_id = :studentId AND sqa.quiz_id = :quizId ORDER BY DESC")
+    List<StudentQuizAttempt> findRecentAttempts(@Param("orgId") Long orgId, @Param("studentId") Long studentId, @Param("quizId") Long quizId);
 }

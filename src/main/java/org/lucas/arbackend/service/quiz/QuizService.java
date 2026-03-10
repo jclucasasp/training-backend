@@ -23,7 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -207,8 +209,12 @@ public class QuizService {
     }
 
     private List<Student> getEnrolledStudents(Long courseId) {
-        return studentRepo.findAllByEnrolledCourses(courseId)
-            .orElseThrow(() -> new EntityNotFoundException("Course not found"));
+        List<Student> students = studentRepo.findAllByEnrolledCourses(tenantProvider.get(), courseId);
+        if (students.isEmpty()) {
+            throw new EntityNotFoundException("No students enrolled in the course");
+        }
+
+        return students;
     }
 
 }
