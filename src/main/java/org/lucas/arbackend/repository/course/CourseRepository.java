@@ -18,4 +18,6 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     @EntityGraph(value = "Course.withChapterAndSections", type = EntityGraph.EntityGraphType.LOAD)
     Optional<Course> findByOrganisationIdAndSlugAndEndedAtIsNull(Long orgId, String slug);
 
+    boolean existsByIdAndOrganisationId(Long courseId, Long orgId);
+
 }

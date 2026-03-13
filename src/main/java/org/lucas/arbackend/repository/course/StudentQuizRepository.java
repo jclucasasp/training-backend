@@ -16,4 +16,6 @@ public interface StudentQuizRepository extends JpaRepository<StudentQuiz, Long> 
 
         @Query("SELECT sq from StudentQuiz sq WHERE sq.student.organisation.id = :orgId AND sq.student.studentNumber = :studentNumber AND sq.quiz.id = :quizId")
         Optional<StudentQuiz> findRegistration(@Param("orgId") Long orgId, @Param(("studentNumber")) String studentNumber, @Param("quizId") Long quizId);
+
+    boolean existsByStudentIdAndQuizId(Long id, Long quizId);
 }

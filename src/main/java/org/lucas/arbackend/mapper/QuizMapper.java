@@ -18,13 +18,15 @@ imports = {
 })
 public interface QuizMapper {
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "course", source = "courseId")
+    @Mapping(target = "course", ignore = true)
     @Mapping(target = "organisation", ignore = true)
+    @Mapping(target = "questions", source = "questions")
     Quiz toEntity(QuizRequest request, @Context MappingContext ctx);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "organisation", ignore = true)
     @Mapping(target = "quiz", ignore = true)
+    @Mapping(target = "options", source = "options")
     QuizQuestion toQuestionEntity(QuestionRequest request, @Context MappingContext ctx);
 
     @Mapping(target = "id", ignore = true)
@@ -40,12 +42,12 @@ public interface QuizMapper {
         }
     }
 
-    default Course mapIdToCourse(Long id) {
-        if (id == null) return null;
-        Course course = new Course();
-        course.setId(id);
-        return course;
-    }
+//    default Course mapIdToCourse(Long id) {
+//        if (id == null) return null;
+//        Course course = new Course();
+//        course.setId(id);
+//        return course;
+//    }
 
     QuizResponse toResponse(Quiz quiz);
 }

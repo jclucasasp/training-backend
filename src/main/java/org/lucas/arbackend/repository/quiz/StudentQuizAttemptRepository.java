@@ -29,5 +29,5 @@ public interface StudentQuizAttemptRepository extends JpaRepository<StudentQuizA
      @Query("SELECT sqa FROM StudentQuizAttempt sqa WHERE sqa.organisation.id = :orgId AND sqa.student.id = :studentId AND sqa.quiz.id = :quizId ORDER BY sqa.completedAt DESC")
     List<StudentQuizAttempt> findRecentAttempts(@Param("orgId") Long orgId, @Param("studentId") Long studentId, @Param("quizId") Long quizId);
 
-    long countByStudentIdAndQuizId(Quiz quiz, Long id);
+    long countByStudentIdAndQuizId(Long studentId, Long quizId);
 }

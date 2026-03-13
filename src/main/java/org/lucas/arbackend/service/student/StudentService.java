@@ -244,7 +244,7 @@ public class StudentService {
         StudentQuiz studentQuiz = findStudentQuiz(studentNumber, quizId);
         Quiz quiz = studentQuiz.getQuiz();
 
-        long existingAttempts = attemptRepo.countByStudentIdAndQuizId(studentQuiz.getQuiz(), quiz.getId());
+        long existingAttempts = attemptRepo.countByStudentIdAndQuizId(studentQuiz.getStudent().getId(), quiz.getId());
 
         if (existingAttempts >= quiz.getMaxAttempts()) {
             throw new IllegalStateException("Student has exceeded the maximum number of attempts for this quiz");

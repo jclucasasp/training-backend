@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.lucas.arbackend.util.ValidatedLabel;
 
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -21,4 +23,7 @@ public class QuizRequest {
 
     private Long courseId;
     private Long chapterId;
+
+    @NotBlank(message = "Quiz must have at least one question", groups = ValidatedLabel.OnCreate.class)
+    private List<QuestionRequest> questions;
 }
