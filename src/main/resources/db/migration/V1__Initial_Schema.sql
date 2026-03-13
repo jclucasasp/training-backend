@@ -205,6 +205,7 @@ CREATE TABLE IF NOT EXISTS quiz (
     quiz_course_id BIGINT NOT NULL,
     title VARCHAR(255) NOT NULL,
     quiz_passing_score INT,
+    quiz_max_attempts INT DEFAULT 3,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
     ended_at DATETIME NULL,

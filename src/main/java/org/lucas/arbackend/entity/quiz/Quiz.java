@@ -43,6 +43,9 @@ public class Quiz extends BaseEntity implements TenantEntity {
     @Column(name = "quiz_title", nullable = false)
     private String title;
 
+    @Column(name = "quiz_max_attempts", nullable = false)
+    private Integer maxAttempts = 0;
+
     @Column(name = "quiz_passing_score")
     private Integer passingScore;
 

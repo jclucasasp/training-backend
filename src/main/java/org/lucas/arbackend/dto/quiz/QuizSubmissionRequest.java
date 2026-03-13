@@ -5,8 +5,9 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
 
 @Getter @Setter
 public class QuizSubmissionRequest {
-   private List<AnswerDTO> answers;
+   private Set<AnswerDTO> answers;
 }

@@ -1,5 +1,6 @@
 package org.lucas.arbackend.repository.quiz;
 
+import org.lucas.arbackend.entity.quiz.Quiz;
 import org.lucas.arbackend.entity.quiz.StudentQuizAttempt;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -25,6 +26,8 @@ public interface StudentQuizAttemptRepository extends JpaRepository<StudentQuizA
             @Param("studentNumber") String studentNumber,
             @Param("orgId") Long orgId);
 
-     @Query("SELECT sqa FROM student_quiz_attempts WHERE sqa.organisation_id = :orgId AND sqa.student_id = :studentId AND sqa.quiz_id = :quizId ORDER BY DESC")
+     @Query("SELECT sqa FROM StudentQuizAttempt sqa WHERE sqa.organisation.id = :orgId AND sqa.student.id = :studentId AND sqa.quiz.id = :quizId ORDER BY sqa.completedAt DESC")
     List<StudentQuizAttempt> findRecentAttempts(@Param("orgId") Long orgId, @Param("studentId") Long studentId, @Param("quizId") Long quizId);
+
+    long countByStudentIdAndQuizId(Quiz quiz, Long id);
 }

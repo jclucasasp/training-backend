@@ -7,6 +7,7 @@ import java.util.List;
 public record QuizResponse(
         Long id,
         String title,
+        Integer maxAttempts,
         Integer passingScore,
         Long courseId,
         List<Long> chapterIds,

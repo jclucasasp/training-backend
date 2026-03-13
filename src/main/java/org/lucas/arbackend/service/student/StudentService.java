@@ -14,6 +14,7 @@ import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.course.ChapterSection;
 import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.quiz.Quiz;
+import org.lucas.arbackend.entity.quiz.QuizQuestion;
 import org.lucas.arbackend.entity.quiz.StudentQuiz;
 import org.lucas.arbackend.entity.quiz.StudentQuizAttempt;
 import org.lucas.arbackend.entity.student.Student;
@@ -39,7 +40,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -239,22 +244,42 @@ public class StudentService {
         StudentQuiz studentQuiz = findStudentQuiz(studentNumber, quizId);
         Quiz quiz = studentQuiz.getQuiz();
 
-        int totalQuestions = quiz.getQuestions().size();
-        if (totalQuestions == 0) throw new IllegalStateException("Quiz has no questions");
+        long existingAttempts = attemptRepo.countByStudentIdAndQuizId(studentQuiz.getQuiz(), quiz.getId());
+
+        if (existingAttempts >= quiz.getMaxAttempts()) {
+            throw new IllegalStateException("Student has exceeded the maximum number of attempts for this quiz");
+        }
+
+        Map<Long, QuizQuestion> quizMap = quiz.getQuestions().stream()
+                .collect(Collectors.toMap(QuizQuestion::getId, q -> q));
+
+        if (quizMap.isEmpty()) throw new IllegalStateException("Quiz has no questions");
+
         int passingScore = quiz.getPassingScore();
         int correctAnswers = 0;
 
+        Set<Long> processedQuestions = new HashSet<>();
+
         for (AnswerDTO submitted : request.getAnswers()) {
-            boolean isCorrect = quiz.getQuestions().stream()
-                    .filter(q -> q.getId().equals(submitted.getQuestionId()))
-                    .flatMap(q -> q.getOptions().stream())
+            Long qId = submitted.getQuestionId();
+            // Security Check: Ignore if we've already graded this question OR it's not in the quiz
+            if (processedQuestions.contains(qId) || !quizMap.containsKey(qId)) {
+                continue;
+            }
+
+            QuizQuestion question = quizMap.get(qId);
+            // Validation: Verify if the submitted option is correct AND belongs to THIS question
+            boolean isCorrect = question.getOptions().stream()
                     .anyMatch(opt -> opt.getId().equals(submitted.getSelectedOptionId()) && opt.isCorrect());
 
-            if (isCorrect) correctAnswers++;
+            if (isCorrect) {
+                correctAnswers++;
+            }
+                processedQuestions.add(qId);
         }
 
         // 4. Calculate Final Score
-        BigDecimal score = BigDecimal.valueOf((correctAnswers / (double) totalQuestions) * 100)
+        BigDecimal score = BigDecimal.valueOf((correctAnswers / (double) quizMap.size()) * 100)
                 .setScale(2, RoundingMode.HALF_UP);
 
         // 5. Persist the Attempt

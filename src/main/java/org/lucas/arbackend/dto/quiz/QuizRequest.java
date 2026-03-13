@@ -11,9 +11,14 @@ import org.lucas.arbackend.util.ValidatedLabel;
 @Builder
 public class QuizRequest {
     @NotBlank(message = "Title cannot be blank", groups = ValidatedLabel.OnCreate.class)
-     private  String title;
+    private  String title;
 
+    @NotBlank(message = "Max attempts cannot be blank", groups = ValidatedLabel.OnCreate.class)
+    private Integer maxAttempts;
+
+    @NotBlank(message = "Passing score cannot be blank", groups = ValidatedLabel.OnCreate.class)
     private Integer passingScore;
+
     private Long courseId;
     private Long chapterId;
 }
