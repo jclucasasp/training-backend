@@ -3,6 +3,7 @@ package org.lucas.arbackend.dto.organisation;
 import jakarta.validation.constraints.*;
 import lombok.Builder;
 import lombok.Data;
+import org.lucas.arbackend.entity.security.RoleTypes;
 import org.lucas.arbackend.util.ValidatedLabel;
 
 @Data @Builder
@@ -30,7 +31,7 @@ public class StaffRequest {
     private String password;
 
     @NotNull(message = "Staff role is required", groups = ValidatedLabel.OnCreate.class)
-    private String role;
+    private RoleTypes role;
 
 }
 

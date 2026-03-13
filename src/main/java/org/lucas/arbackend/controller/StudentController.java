@@ -121,24 +121,6 @@ public class StudentController {
         return ResponseEntity.ok(studentService.getResumeDetails(studentNumber, courseSlug));
     }
 
-    @Operation(
-            summary = "Submit and grade a quiz",
-            description = "Receives student answers, grades them on the server, creates an attempt record, and returns the final calculated score."
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Quiz graded successfully",
-                    content = @Content(schema = @Schema(implementation = BigDecimal.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid submission data"),
-            @ApiResponse(responseCode = "403", description = "Student is not registered for this quiz")
-    })
-    @PostMapping("/{studentNumber}/quizzes/{quizId}/submit")
-    @PreAuthorize("hasAuthority('STUDENT')")
-    public ResponseEntity<BigDecimal> submitQuiz(
-            @Parameter(description = "The student's unique number") @PathVariable String studentNumber,
-            @Parameter(description = "The ID of the quiz") @PathVariable Long quizId,
-            @RequestBody @Validated QuizSubmissionRequest request) {
-        return ResponseEntity.ok(studentService.submitAndGradeQuiz(studentNumber, quizId, request));
-    }
 
  @Operation(
         summary = "Get quiz attempt history",

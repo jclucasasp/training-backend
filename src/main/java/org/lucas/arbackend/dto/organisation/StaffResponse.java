@@ -2,8 +2,8 @@ package org.lucas.arbackend.dto.organisation;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import lombok.Builder;
-import lombok.Data;
 import lombok.Getter;
+import org.lucas.arbackend.entity.security.RoleTypes;
 import org.lucas.arbackend.util.AccessLevelViews;
 
 import java.io.Serial;
@@ -28,7 +28,7 @@ public class StaffResponse implements Serializable {
     @JsonView(AccessLevelViews.Public.class)
     private String contactNumber;
     @JsonView(AccessLevelViews.Public.class)
-    private String role;
+    private RoleTypes role;
     @JsonView(AccessLevelViews.Public.class)
     private LocalDateTime createdAt;
     @JsonView(AccessLevelViews.Public.class)

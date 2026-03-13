@@ -1,0 +1,3422 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "AR Backend API",
+    "description": "OpenAPI documentation for the Multi-Tenant AR Backend",
+    "contact": {
+      "name": "Lucas",
+      "url": "https://your-website.com",
+      "email": "jclucasasp@gmail.com"
+    },
+    "license": {
+      "name": "Proprietary",
+      "url": "https://your-website.com/license"
+    },
+    "version": "1.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Generated server url"
+    }
+  ],
+  "security": [
+    {
+      "SessionAuth": []
+    },
+    {
+      "X-API-KEY": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "4. Courses",
+      "description": "Curriculum creation and retrieval with pagination"
+    },
+    {
+      "name": "Course Discussions",
+      "description": "Endpoints for course-specific Q&A between students and staff"
+    },
+    {
+      "name": "5. Student Management",
+      "description": "Student onboarding and enrollment tracking"
+    },
+    {
+      "name": "2. Organisations",
+      "description": "Create, update, and retrieve organisation details."
+    },
+    {
+      "name": "3. Admin",
+      "description": "Management of staff, courses and internal permissions"
+    },
+    {
+      "name": "6. Quiz Management",
+      "description": "Endpoints for creating, fetching, and submitting course quizzes"
+    },
+    {
+      "name": "1. Auth",
+      "description": "Handle user login and sets the session in Redis"
+    },
+    {
+      "name": "Staff",
+      "description": "Staff management endpoints"
+    }
+  ],
+  "paths": {
+    "/api/v1/staff/{staffId}/update/details": {
+      "put": {
+        "tags": [
+          "Staff"
+        ],
+        "summary": "Update Staff Member",
+        "description": "Updates the details of a staff member.",
+        "operationId": "updateStaff",
+        "parameters": [
+          {
+            "name": "staffId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Staff updated successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Staff member not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quizzes/{id}": {
+      "get": {
+        "tags": [
+          "6. Quiz Management"
+        ],
+        "summary": "Get quiz details",
+        "description": "Fetches quiz questions and metadata by ID.",
+        "operationId": "getQuizById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuizResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "6. Quiz Management"
+        ],
+        "summary": "Update quiz metadata",
+        "operationId": "updateQuizMetadata",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuizRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuizResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quizzes/{id}/questions/{questionId}": {
+      "put": {
+        "tags": [
+          "6. Quiz Management"
+        ],
+        "summary": "Update an existing question",
+        "operationId": "updateQuestion",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "questionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuestionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "6. Quiz Management"
+        ],
+        "summary": "Remove a question from a quiz",
+        "operationId": "deleteQuestion",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "questionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/quizzes/{id}/assign-chapter/{chapterId}": {
+      "put": {
+        "tags": [
+          "6. Quiz Management"
+        ],
+        "summary": "Assign quiz to a chapter",
+        "operationId": "assignToChapter",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "chapterId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/organisation/update": {
+      "put": {
+        "tags": [
+          "2. Organisations"
+        ],
+        "summary": "Update Profile",
+        "description": "Updates the business registration number, VAT number, and display fileName.",
+        "operationId": "updateProfile",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganisationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Profile updated successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganisationResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error in the request body",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Organisation or Profile not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/courses/{courseId}/update": {
+      "put": {
+        "tags": [
+          "4. Courses"
+        ],
+        "summary": "Update Course",
+        "description": "Update the course and its corresponding chapters and sections.",
+        "operationId": "updateCourse",
+        "parameters": [
+          {
+            "name": "courseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CourseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Course updated",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden: Insufficient permissions",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/staff/{staffId}/update/role": {
+      "put": {
+        "tags": [
+          "3. Admin"
+        ],
+        "summary": "Update Staff Member Access",
+        "description": "Updates the access details of a staff member.",
+        "operationId": "updateStaffRole",
+        "parameters": [
+          {
+            "name": "staffId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string",
+                "enum": [
+                  "ORG_ADMIN",
+                  "COURSE_EDITOR",
+                  "SUPPORT",
+                  "STUDENT"
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Staff updated successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Staff member not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/student/{studentNumber}/quizzes/{quizId}/submit": {
+      "post": {
+        "tags": [
+          "5. Student Management"
+        ],
+        "summary": "Submit and grade a quiz",
+        "description": "Receives student answers, grades them on the server, creates an attempt record, and returns the final calculated score.",
+        "operationId": "submitQuiz",
+        "parameters": [
+          {
+            "name": "studentNumber",
+            "in": "path",
+            "description": "The student's unique number",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "quizId",
+            "in": "path",
+            "description": "The ID of the quiz",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuizSubmissionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "Invalid submission data",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "number"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Quiz graded successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "number"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Student is not registered for this quiz",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/student/{studentNumber}/quiz/{quizId}/register": {
+      "post": {
+        "tags": [
+          "5. Student Management"
+        ],
+        "summary": "Register Student for Quiz",
+        "description": "Links a student to a specific quiz. Both must belong to the same organisation as the authenticated user.",
+        "operationId": "registerForQuiz",
+        "parameters": [
+          {
+            "name": "studentNumber",
+            "in": "path",
+            "description": "The unique student number",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "STU-12345"
+          },
+          {
+            "name": "quizId",
+            "in": "path",
+            "description": "The ID of the quiz",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Cross-tenant access denied",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Student or Quiz not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Student successfully registered for the quiz"
+          },
+          "400": {
+            "description": "Invalid student number or quiz ID provided",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/student/enroll": {
+      "post": {
+        "tags": [
+          "5. Student Management"
+        ],
+        "summary": "Enroll Student in Course",
+        "description": "Verifies if the student exists in the Org; if not, creates them and starts enrollment.",
+        "operationId": "enroll",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Student enrolled successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnrollmentResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Organisation or Course not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data or validation failure",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quizzes": {
+      "post": {
+        "tags": [
+          "6. Quiz Management"
+        ],
+        "summary": "Create a new quiz",
+        "description": "Allows a staff member to create a quiz for a specific course.",
+        "operationId": "createQuiz",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuizRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuizResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quizzes/{id}/submit": {
+      "post": {
+        "tags": [
+          "6. Quiz Management"
+        ],
+        "summary": "Submit a quiz attempt",
+        "description": "Calculates the score and records a student's attempt.",
+        "operationId": "submitAttempt",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuizSubmissionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuizResultResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/quizzes/{id}/questions": {
+      "post": {
+        "tags": [
+          "6. Quiz Management"
+        ],
+        "summary": "Add a question to an existing quiz",
+        "operationId": "addQuestion",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuestionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/quizzes/{id}/assign-enrolled-students/course/{courseId}": {
+      "post": {
+        "tags": [
+          "6. Quiz Management"
+        ],
+        "summary": "Assign quiz to all enrolled students",
+        "operationId": "assignToEnrolledStudents",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "courseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/organisation/signup": {
+      "post": {
+        "tags": [
+          "2. Organisations"
+        ],
+        "summary": "Create a new organisation",
+        "description": "Performs an atomic signup: Creates the Org, Profile, and initial Subscription Plan.",
+        "operationId": "signup",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganisationRequest_Public"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Organisation created successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganisationResponse_Public"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict: Email already exists",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse_Public"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed (Invalid input data)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse_Public"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error during processing",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse_Public"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/discussions/questions": {
+      "post": {
+        "tags": [
+          "Course Discussions"
+        ],
+        "summary": "Ask a question",
+        "description": "Allows a student to post a new question to a course section.",
+        "operationId": "askQuestion",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CourseQuestionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseQuestionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/discussions/questions/{questionId}/replies": {
+      "post": {
+        "tags": [
+          "Course Discussions"
+        ],
+        "summary": "Post a reply",
+        "description": "Allows students or staff to reply to a specific question.",
+        "operationId": "postReply",
+        "parameters": [
+          {
+            "name": "questionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReplyResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/courses/course/add": {
+      "post": {
+        "tags": [
+          "4. Courses"
+        ],
+        "summary": "Add Course",
+        "description": "Creates a new curriculum course for the organization.",
+        "operationId": "addCourse",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CourseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Course created",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden: Insufficient permissions",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/courses/chapters/{chapterId}/quizzes/{quizId}": {
+      "post": {
+        "tags": [
+          "4. Courses"
+        ],
+        "summary": "Add a quiz to a chapter",
+        "description": "Links an existing quiz to a specific chapter within a course. Validates tenant ownership for both.",
+        "operationId": "addQuizToChapter",
+        "parameters": [
+          {
+            "name": "chapterId",
+            "in": "path",
+            "description": "The ID of the Chapter",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "quizId",
+            "in": "path",
+            "description": "The ID of the Quiz to be added",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "tags": [
+          "1. Auth"
+        ],
+        "summary": "User Logout",
+        "description": "Invalidates the session and clears the context",
+        "operationId": "logout",
+        "responses": {
+          "200": {
+            "description": "Logout successful"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "1. Auth"
+        ],
+        "summary": "User Login",
+        "description": "Authenticates user and starts a Redis session",
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful"
+          },
+          "401": {
+            "description": "Invalid credentials"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/staff/add": {
+      "post": {
+        "tags": [
+          "3. Admin"
+        ],
+        "summary": "Add Staff Member",
+        "description": "Creates a staff account with a specific role.",
+        "operationId": "addStaff",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffRequest_Public"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Forbidden: Only Org Admins can add staff",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse_Public"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Staff member created",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffResponse_Public"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse_Public"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse_Public"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict: Email already in use",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse_Public"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse_Public"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/student/{studentNumber}/progress": {
+      "patch": {
+        "tags": [
+          "5. Student Management"
+        ],
+        "summary": "Update student course progress",
+        "description": "Updates the progress percentage for a specific section and recalculates the total course progress. Accessible by Students, Admins, and Support.",
+        "operationId": "updateProgress",
+        "parameters": [
+          {
+            "name": "studentNumber",
+            "in": "path",
+            "description": "The student's unique number",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sectionId",
+            "in": "query",
+            "description": "The ID of the chapter section",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "percentage",
+            "in": "query",
+            "description": "Progress percentage (0.0 to 100.0)",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Access denied"
+          },
+          "404": {
+            "description": "Student or Section not found"
+          },
+          "204": {
+            "description": "Progress updated successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/student/{studentNumber}/resume/{courseSlug}": {
+      "get": {
+        "tags": [
+          "5. Student Management"
+        ],
+        "summary": "Resume course from last viewed section",
+        "description": "Returns enrollment details including the lastSectionId for a specific course to allow the student to resume where they left off.",
+        "operationId": "resumeCourse",
+        "parameters": [
+          {
+            "name": "studentNumber",
+            "in": "path",
+            "description": "The student's unique number",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "courseSlug",
+            "in": "path",
+            "description": "The URL slug of the course",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnrollmentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/student/{studentNumber}/quizzes/{quizId}/attempts": {
+      "get": {
+        "tags": [
+          "5. Student Management"
+        ],
+        "summary": "Get quiz attempt history",
+        "description": "Retrieves a list of all previous attempts made by a specific student for a specific quiz. Useful for showing a history table.",
+        "operationId": "getQuizAttempts",
+        "parameters": [
+          {
+            "name": "studentNumber",
+            "in": "path",
+            "description": "Unique student identifier",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "quizId",
+            "in": "path",
+            "description": "ID of the quiz",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved attempt history",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/QuizAttemptResponse"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Student or Quiz not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/QuizAttemptResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/student/{studentNumber}/dashboard": {
+      "get": {
+        "tags": [
+          "5. Student Management"
+        ],
+        "summary": "Get student learning dashboard",
+        "description": "Retrieves a list of all course enrollments and current progress for a specific student.",
+        "operationId": "getDashboard",
+        "parameters": [
+          {
+            "name": "studentNumber",
+            "in": "path",
+            "description": "The student's unique number",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EnrollmentResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/student/{studentNumber}/attempts/{attemptId}/review": {
+      "get": {
+        "tags": [
+          "5. Student Management"
+        ],
+        "summary": "Review a specific quiz attempt",
+        "description": "Returns the raw JSON of submitted answers for a specific attempt. Requires tenant-level access.",
+        "operationId": "getAttemptReview",
+        "parameters": [
+          {
+            "name": "studentNumber",
+            "in": "path",
+            "description": "The unique student number",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "attemptId",
+            "in": "path",
+            "description": "The ID of the specific quiz attempt",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Attempt not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied - Attempt belongs to another organization",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Attempt found and returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/student/list": {
+      "get": {
+        "tags": [
+          "5. Student Management"
+        ],
+        "summary": "Get Student List",
+        "description": "Paginated list of all students registered under this tenant.",
+        "operationId": "listStudents",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List retrieved successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedModel"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Organisation not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/student/attempts/{attemptId}": {
+      "get": {
+        "tags": [
+          "5. Student Management"
+        ],
+        "summary": "Get specific attempt details",
+        "description": "Retrieves the full details of a single attempt, including the calculated score and the submitted answers (JSON).",
+        "operationId": "getAttemptDetail",
+        "parameters": [
+          {
+            "name": "attemptId",
+            "in": "path",
+            "description": "The unique ID of the quiz attempt",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Access denied - Attempt belongs to another organization",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuizAttemptResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Successfully retrieved attempt details",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuizAttemptResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Attempt ID not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuizAttemptResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organisation/details": {
+      "get": {
+        "tags": [
+          "2. Organisations"
+        ],
+        "summary": "Get Organisation Details",
+        "description": "Retrieves full profile and subscription status using the Org ID.",
+        "operationId": "getDetails",
+        "responses": {
+          "200": {
+            "description": "Details retrieved successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganisationResponse_Public"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Full authentication is required to access this resource",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse_Public"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse_Public"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Organisation not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse_Public"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/discussions/course/{courseId}": {
+      "get": {
+        "tags": [
+          "Course Discussions"
+        ],
+        "summary": "Get all questions for a course",
+        "description": "Returns a list of questions filtered by course and organisation.",
+        "operationId": "getQuestions",
+        "parameters": [
+          {
+            "name": "courseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CourseQuestionResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/courses": {
+      "get": {
+        "tags": [
+          "4. Courses"
+        ],
+        "summary": "List Org Courses (Paginated)",
+        "description": "Returns a list of active courses. Use 'page', 'size' and 'sort' parameters for optimization.",
+        "operationId": "getCourses",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedModel"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Organisation or Courses not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden: Insufficient permissions",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized: Authentication required",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/staff": {
+      "get": {
+        "tags": [
+          "3. Admin"
+        ],
+        "summary": "List All Staff",
+        "description": "Returns a paginated list of all staff members.",
+        "operationId": "getAllStaff",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Staff retrieved successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden: Access denied",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/courses/{courseId}/delete": {
+      "delete": {
+        "tags": [
+          "4. Courses"
+        ],
+        "summary": "Delete Course",
+        "description": "Delete the course and its corresponding chapters and sections.",
+        "operationId": "deleteCourse",
+        "parameters": [
+          {
+            "name": "courseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "Course deleted"
+          },
+          "403": {
+            "description": "Forbidden: Insufficient permissions",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/courses/{chapterId}/quizzes/{quizId}": {
+      "delete": {
+        "tags": [
+          "4. Courses"
+        ],
+        "summary": "Remove quiz from chapter",
+        "description": "Unlinks a quiz from a chapter. Does not delete the quiz entity itself.",
+        "operationId": "removeQuizFromChapter",
+        "parameters": [
+          {
+            "name": "chapterId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "quizId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/staff/{staffId}/delete": {
+      "delete": {
+        "tags": [
+          "3. Admin"
+        ],
+        "summary": "Soft Delete Staff Member",
+        "description": "Marks a staff member as inactive.",
+        "operationId": "deleteStaff",
+        "parameters": [
+          {
+            "name": "staffId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Staff deleted successfully"
+          },
+          "404": {
+            "description": "Staff not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/organisation/{orgID}/delete": {
+      "delete": {
+        "tags": [
+          "3. Admin"
+        ],
+        "summary": "Soft Delete Organisation",
+        "description": "Marks the organisation as deleted. It will no longer be accessible via standard lookups.",
+        "operationId": "deleteOrganisation",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "Organisation deleted successfully"
+          },
+          "404": {
+            "description": "Organisation not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "StaffRequest": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 3
+          },
+          "lastName": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 3
+          },
+          "email": {
+            "type": "string"
+          },
+          "contactNumber": {
+            "type": "string",
+            "pattern": "^(\\+27|0)[6-8][0-9]{8}$"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 8
+          },
+          "role": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "firstName",
+          "lastName",
+          "password",
+          "role"
+        ]
+      },
+      "ErrorDetailsResponse": {
+        "type": "object",
+        "properties": {
+          "timeStamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "string"
+          },
+          "errorCode": {
+            "type": "string",
+            "enum": [
+              "100 CONTINUE",
+              "101 SWITCHING_PROTOCOLS",
+              "102 PROCESSING",
+              "103 EARLY_HINTS",
+              "103 CHECKPOINT",
+              "200 OK",
+              "201 CREATED",
+              "202 ACCEPTED",
+              "203 NON_AUTHORITATIVE_INFORMATION",
+              "204 NO_CONTENT",
+              "205 RESET_CONTENT",
+              "206 PARTIAL_CONTENT",
+              "207 MULTI_STATUS",
+              "208 ALREADY_REPORTED",
+              "226 IM_USED",
+              "300 MULTIPLE_CHOICES",
+              "301 MOVED_PERMANENTLY",
+              "302 FOUND",
+              "302 MOVED_TEMPORARILY",
+              "303 SEE_OTHER",
+              "304 NOT_MODIFIED",
+              "305 USE_PROXY",
+              "307 TEMPORARY_REDIRECT",
+              "308 PERMANENT_REDIRECT",
+              "400 BAD_REQUEST",
+              "401 UNAUTHORIZED",
+              "402 PAYMENT_REQUIRED",
+              "403 FORBIDDEN",
+              "404 NOT_FOUND",
+              "405 METHOD_NOT_ALLOWED",
+              "406 NOT_ACCEPTABLE",
+              "407 PROXY_AUTHENTICATION_REQUIRED",
+              "408 REQUEST_TIMEOUT",
+              "409 CONFLICT",
+              "410 GONE",
+              "411 LENGTH_REQUIRED",
+              "412 PRECONDITION_FAILED",
+              "413 PAYLOAD_TOO_LARGE",
+              "413 REQUEST_ENTITY_TOO_LARGE",
+              "414 URI_TOO_LONG",
+              "414 REQUEST_URI_TOO_LONG",
+              "415 UNSUPPORTED_MEDIA_TYPE",
+              "416 REQUESTED_RANGE_NOT_SATISFIABLE",
+              "417 EXPECTATION_FAILED",
+              "418 I_AM_A_TEAPOT",
+              "419 INSUFFICIENT_SPACE_ON_RESOURCE",
+              "420 METHOD_FAILURE",
+              "421 DESTINATION_LOCKED",
+              "422 UNPROCESSABLE_ENTITY",
+              "423 LOCKED",
+              "424 FAILED_DEPENDENCY",
+              "425 TOO_EARLY",
+              "426 UPGRADE_REQUIRED",
+              "428 PRECONDITION_REQUIRED",
+              "429 TOO_MANY_REQUESTS",
+              "431 REQUEST_HEADER_FIELDS_TOO_LARGE",
+              "451 UNAVAILABLE_FOR_LEGAL_REASONS",
+              "500 INTERNAL_SERVER_ERROR",
+              "501 NOT_IMPLEMENTED",
+              "502 BAD_GATEWAY",
+              "503 SERVICE_UNAVAILABLE",
+              "504 GATEWAY_TIMEOUT",
+              "505 HTTP_VERSION_NOT_SUPPORTED",
+              "506 VARIANT_ALSO_NEGOTIATES",
+              "507 INSUFFICIENT_STORAGE",
+              "508 LOOP_DETECTED",
+              "509 BANDWIDTH_LIMIT_EXCEEDED",
+              "510 NOT_EXTENDED",
+              "511 NETWORK_AUTHENTICATION_REQUIRED"
+            ]
+          }
+        }
+      },
+      "StaffResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "contactNumber": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "OptionRequest": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "correct": {
+            "type": "boolean"
+          }
+        }
+      },
+      "QuestionRequest": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OptionRequest"
+            }
+          }
+        }
+      },
+      "QuizRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "maxAttempts": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "passingScore": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "courseId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "chapterId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuestionRequest"
+            }
+          }
+        },
+        "required": [
+          "maxAttempts",
+          "passingScore",
+          "questions",
+          "title"
+        ]
+      },
+      "QuizResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "title": {
+            "type": "string"
+          },
+          "maxAttempts": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "passingScore": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "courseId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "chapterIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          "studentNumbers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "OrganisationRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 8
+          },
+          "orgName": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 3
+          },
+          "registrationNumber": {
+            "type": "string",
+            "pattern": "^\\d{4}/\\d{1,6}/\\d{2}$"
+          },
+          "vatNumber": {
+            "type": "string",
+            "pattern": "^4\\d{9}$"
+          },
+          "firstName": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 3
+          },
+          "lastName": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 3
+          },
+          "contactNumber": {
+            "type": "string",
+            "pattern": "^(\\+27|0)[6-8][0-9]{8}$"
+          },
+          "street": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 3
+          },
+          "suburb": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 3
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 3
+          },
+          "state": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 3
+          },
+          "zip": {
+            "type": "string",
+            "pattern": "^[0-9]{4}$"
+          },
+          "initialPlanId": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "required": [
+          "city",
+          "email",
+          "firstName",
+          "lastName",
+          "orgName",
+          "password",
+          "registrationNumber",
+          "state",
+          "street",
+          "suburb",
+          "vatNumber",
+          "zip"
+        ]
+      },
+      "OrganisationResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "orgName": {
+            "type": "string"
+          },
+          "registrationNumber": {
+            "type": "string"
+          },
+          "vatNumber": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "contactNumber": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "streetAddress": {
+            "type": "string"
+          },
+          "suburb": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "zip": {
+            "type": "string"
+          },
+          "apiKey": {
+            "type": "string"
+          },
+          "subscriptionPlan": {
+            "type": "string"
+          },
+          "subscriptionStartDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "subscriptionStatus": {
+            "type": "string"
+          },
+          "subscriptionEndDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AttachmentRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "fileType": {
+            "type": "string"
+          },
+          "fileUrl": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "fileName",
+          "fileType",
+          "fileUrl"
+        ]
+      },
+      "ChapterSectionRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "durationInMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "resourceUrl": {
+            "type": "string"
+          },
+          "resourceMediaType": {
+            "type": "string"
+          },
+          "subtitlesUrl": {
+            "type": "string"
+          },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachmentRequest"
+            }
+          },
+          "tags": {
+            "type": "string"
+          },
+          "preview": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "content",
+          "durationInMinutes",
+          "tags",
+          "title"
+        ]
+      },
+      "CourseChapterRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "PUBLISHED",
+              "ARCHIVED"
+            ]
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChapterSectionRequest"
+            }
+          },
+          "quizIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "sections",
+          "summary"
+        ]
+      },
+      "CourseRequest": {
+        "type": "object",
+        "properties": {
+          "staffEmail": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "shortDescription": {
+            "type": "string"
+          },
+          "intendedAudience": {
+            "type": "string"
+          },
+          "requirements": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "PUBLISHED",
+              "ARCHIVED"
+            ]
+          },
+          "learningObjectives": {
+            "type": "string"
+          },
+          "difficultyTypes": {
+            "type": "string",
+            "enum": [
+              "BEGINNER",
+              "INTERMEDIATE",
+              "ADVANCED"
+            ]
+          },
+          "tags": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "chapters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CourseChapterRequest"
+            }
+          }
+        },
+        "required": [
+          "chapters",
+          "difficultyTypes",
+          "intendedAudience",
+          "learningObjectives",
+          "name",
+          "requirements",
+          "shortDescription",
+          "staffEmail",
+          "status",
+          "tags"
+        ]
+      },
+      "AttachmentResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "fileType": {
+            "type": "string"
+          },
+          "fileUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "ChapterSectionResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "title": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "durationInMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "resourceUrl": {
+            "type": "string"
+          },
+          "resourceMediaType": {
+            "type": "string"
+          },
+          "subtitlesUrl": {
+            "type": "string"
+          },
+          "isPreview": {
+            "type": "boolean"
+          },
+          "tags": {
+            "type": "string"
+          },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachmentResponse"
+            }
+          }
+        }
+      },
+      "CourseChapterResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "totalTimeInMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sectionsResponse": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChapterSectionResponse"
+            }
+          },
+          "quizzes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuizResponse"
+            }
+          }
+        }
+      },
+      "CourseResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          },
+          "shortDescription": {
+            "type": "string"
+          },
+          "intendedAudience": {
+            "type": "string"
+          },
+          "requirements": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "totalTimeInMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "learningObjectives": {
+            "type": "string"
+          },
+          "staffEmail": {
+            "type": "string"
+          },
+          "difficulty": {
+            "type": "string"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "string"
+          },
+          "chaptersResponse": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CourseChapterResponse"
+            }
+          }
+        }
+      },
+      "AnswerDTO": {
+        "type": "object",
+        "properties": {
+          "questionId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "selectedOptionId": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "QuizSubmissionRequest": {
+        "type": "object",
+        "properties": {
+          "answers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AnswerDTO"
+            },
+            "uniqueItems": true
+          }
+        }
+      },
+      "StudentRequest": {
+        "type": "object",
+        "properties": {
+          "studentNumber": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "firstName",
+          "lastName",
+          "slug",
+          "studentNumber"
+        ]
+      },
+      "EnrollmentResponse": {
+        "type": "object",
+        "properties": {
+          "enrollmentId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "studentNumber": {
+            "type": "string"
+          },
+          "courseName": {
+            "type": "string"
+          },
+          "enrolledAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "currentTotalProgress": {
+            "type": "number"
+          },
+          "lastSectionId": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "QuizResultResponse": {
+        "type": "object",
+        "properties": {
+          "score": {
+            "type": "number"
+          },
+          "passed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "OrganisationRequest_Public": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 8
+          },
+          "orgName": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 3
+          },
+          "registrationNumber": {
+            "type": "string",
+            "pattern": "^\\d{4}/\\d{1,6}/\\d{2}$"
+          },
+          "vatNumber": {
+            "type": "string",
+            "pattern": "^4\\d{9}$"
+          },
+          "firstName": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 3
+          },
+          "lastName": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 3
+          },
+          "contactNumber": {
+            "type": "string",
+            "pattern": "^(\\+27|0)[6-8][0-9]{8}$"
+          },
+          "street": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 3
+          },
+          "suburb": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 3
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 3
+          },
+          "state": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 3
+          },
+          "zip": {
+            "type": "string",
+            "pattern": "^[0-9]{4}$"
+          },
+          "initialPlanId": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "required": [
+          "city",
+          "email",
+          "firstName",
+          "lastName",
+          "orgName",
+          "password",
+          "registrationNumber",
+          "state",
+          "street",
+          "suburb",
+          "vatNumber",
+          "zip"
+        ]
+      },
+      "ErrorDetailsResponse_Public": {
+        "type": "object",
+        "properties": {
+          "timeStamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "string"
+          },
+          "errorCode": {
+            "type": "string",
+            "enum": [
+              "100 CONTINUE",
+              "101 SWITCHING_PROTOCOLS",
+              "102 PROCESSING",
+              "103 EARLY_HINTS",
+              "103 CHECKPOINT",
+              "200 OK",
+              "201 CREATED",
+              "202 ACCEPTED",
+              "203 NON_AUTHORITATIVE_INFORMATION",
+              "204 NO_CONTENT",
+              "205 RESET_CONTENT",
+              "206 PARTIAL_CONTENT",
+              "207 MULTI_STATUS",
+              "208 ALREADY_REPORTED",
+              "226 IM_USED",
+              "300 MULTIPLE_CHOICES",
+              "301 MOVED_PERMANENTLY",
+              "302 FOUND",
+              "302 MOVED_TEMPORARILY",
+              "303 SEE_OTHER",
+              "304 NOT_MODIFIED",
+              "305 USE_PROXY",
+              "307 TEMPORARY_REDIRECT",
+              "308 PERMANENT_REDIRECT",
+              "400 BAD_REQUEST",
+              "401 UNAUTHORIZED",
+              "402 PAYMENT_REQUIRED",
+              "403 FORBIDDEN",
+              "404 NOT_FOUND",
+              "405 METHOD_NOT_ALLOWED",
+              "406 NOT_ACCEPTABLE",
+              "407 PROXY_AUTHENTICATION_REQUIRED",
+              "408 REQUEST_TIMEOUT",
+              "409 CONFLICT",
+              "410 GONE",
+              "411 LENGTH_REQUIRED",
+              "412 PRECONDITION_FAILED",
+              "413 PAYLOAD_TOO_LARGE",
+              "413 REQUEST_ENTITY_TOO_LARGE",
+              "414 URI_TOO_LONG",
+              "414 REQUEST_URI_TOO_LONG",
+              "415 UNSUPPORTED_MEDIA_TYPE",
+              "416 REQUESTED_RANGE_NOT_SATISFIABLE",
+              "417 EXPECTATION_FAILED",
+              "418 I_AM_A_TEAPOT",
+              "419 INSUFFICIENT_SPACE_ON_RESOURCE",
+              "420 METHOD_FAILURE",
+              "421 DESTINATION_LOCKED",
+              "422 UNPROCESSABLE_ENTITY",
+              "423 LOCKED",
+              "424 FAILED_DEPENDENCY",
+              "425 TOO_EARLY",
+              "426 UPGRADE_REQUIRED",
+              "428 PRECONDITION_REQUIRED",
+              "429 TOO_MANY_REQUESTS",
+              "431 REQUEST_HEADER_FIELDS_TOO_LARGE",
+              "451 UNAVAILABLE_FOR_LEGAL_REASONS",
+              "500 INTERNAL_SERVER_ERROR",
+              "501 NOT_IMPLEMENTED",
+              "502 BAD_GATEWAY",
+              "503 SERVICE_UNAVAILABLE",
+              "504 GATEWAY_TIMEOUT",
+              "505 HTTP_VERSION_NOT_SUPPORTED",
+              "506 VARIANT_ALSO_NEGOTIATES",
+              "507 INSUFFICIENT_STORAGE",
+              "508 LOOP_DETECTED",
+              "509 BANDWIDTH_LIMIT_EXCEEDED",
+              "510 NOT_EXTENDED",
+              "511 NETWORK_AUTHENTICATION_REQUIRED"
+            ]
+          }
+        }
+      },
+      "OrganisationResponse_Public": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "orgName": {
+            "type": "string"
+          },
+          "registrationNumber": {
+            "type": "string"
+          },
+          "vatNumber": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "contactNumber": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "streetAddress": {
+            "type": "string"
+          },
+          "suburb": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "zip": {
+            "type": "string"
+          },
+          "apiKey": {
+            "type": "string"
+          },
+          "subscriptionPlan": {
+            "type": "string"
+          },
+          "subscriptionStartDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "subscriptionStatus": {
+            "type": "string"
+          },
+          "subscriptionEndDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CourseQuestionRequest": {
+        "type": "object",
+        "properties": {
+          "courseId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "sectionId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "title": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "body",
+          "title"
+        ]
+      },
+      "CourseQuestionResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "title": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "studentName": {
+            "type": "string"
+          },
+          "isResolved": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "replies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReplyResponse"
+            }
+          }
+        }
+      },
+      "ReplyResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "body": {
+            "type": "string"
+          },
+          "authorName": {
+            "type": "string"
+          },
+          "isStaff": {
+            "type": "boolean"
+          },
+          "isAccepted": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ReplyRequest": {
+        "type": "object"
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "admin@org.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "password",
+            "maxLength": 20,
+            "minLength": 8
+          }
+        },
+        "required": [
+          "password"
+        ]
+      },
+      "StaffRequest_Public": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 3
+          },
+          "lastName": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 3
+          },
+          "email": {
+            "type": "string"
+          },
+          "contactNumber": {
+            "type": "string",
+            "pattern": "^(\\+27|0)[6-8][0-9]{8}$"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 8
+          },
+          "role": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "firstName",
+          "lastName",
+          "password",
+          "role"
+        ]
+      },
+      "StaffResponse_Public": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "contactNumber": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "QuizAttemptResponse": {
+        "type": "object",
+        "properties": {
+          "attemptId": {
+            "type": "integer",
+            "format": "int64",
+            "example": 101
+          },
+          "quizId": {
+            "type": "integer",
+            "format": "int64",
+            "example": 55
+          },
+          "score": {
+            "type": "number",
+            "example": 85.0
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-10-27T10:15:30"
+          },
+          "answers": {
+            "description": "The raw or parsed JSON of student answers. Usually null in list views.",
+            "example": [
+              {
+                "questionId": 1,
+                "selectedOptionId": 4
+              }
+            ]
+          },
+          "passed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PageMetadata": {
+        "type": "object",
+        "properties": {
+          "size": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "number": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "PagedModel": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {}
+          },
+          "page": {
+            "$ref": "#/components/schemas/PageMetadata"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "SessionAuth": {
+        "type": "apiKey",
+        "description": "Authentication via JSESSIONID cookie after login",
+        "name": "JSESSIONID",
+        "in": "cookie"
+      },
+      "X-API-KEY": {
+        "type": "apiKey",
+        "description": "API auth learningObjectives for students",
+        "name": "X-API-KEY",
+        "in": "header"
+      }
+    }
+  }
+}

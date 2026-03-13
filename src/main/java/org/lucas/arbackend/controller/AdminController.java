@@ -32,22 +32,6 @@ public class AdminController {
     private final StaffService staffService;
     private final OrganisationService orgService;
 
-    @Operation(summary = "Soft Delete Organisation", description = "Marks the organisation as deleted. It will no longer be accessible via standard lookups.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Organisation deleted successfully"),
-            @ApiResponse(responseCode = "401", description = "Unauthorized",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
-            @ApiResponse(responseCode = "404", description = "Organisation not found",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
-            @ApiResponse(responseCode = "500", description = "Internal server error",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
-    })
-    @DeleteMapping("organisation/{orgID}/delete")
-    public ResponseEntity<Void> deleteOrganisation(@PathVariable Long orgId) {
-        orgService.softDeleteOrg(orgId);
-        return ResponseEntity.noContent().build();
-    }
-
     @Operation(summary = "Add Staff Member", description = "Creates a staff account with a specific role.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Staff member created"),
@@ -67,6 +51,23 @@ public class AdminController {
     public ResponseEntity<StaffResponse> addStaff(@Validated(ValidatedLabel.OnCreate.class) @RequestBody StaffRequest request) {
         return ResponseEntity.ok(staffService.createStaff(request));
     }
+
+    @Operation(summary = "Soft Delete Organisation", description = "Marks the organisation as deleted. It will no longer be accessible via standard lookups.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Organisation deleted successfully"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Organisation not found",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
+    })
+    @DeleteMapping("organisation/{orgID}/delete")
+    public ResponseEntity<Void> deleteOrganisation(@PathVariable Long orgId) {
+        orgService.softDeleteOrg(orgId);
+        return ResponseEntity.noContent().build();
+    }
+
 
     @Operation(summary = "List All Staff", description = "Returns a paginated list of all staff members.")
     @ApiResponses(value = {

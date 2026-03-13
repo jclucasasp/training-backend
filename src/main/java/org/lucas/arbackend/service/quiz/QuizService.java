@@ -1,5 +1,7 @@
 package org.lucas.arbackend.service.quiz;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.lucas.arbackend.dto.quiz.*;
@@ -11,7 +13,6 @@ import org.lucas.arbackend.entity.quiz.*;
 import org.lucas.arbackend.entity.student.Student;
 import org.lucas.arbackend.mapper.QuizMapper;
 import org.lucas.arbackend.mapper.context.MappingContext;
-import org.lucas.arbackend.repository.course.ChapterQuizRepository;
 import org.lucas.arbackend.repository.course.ChapterRepository;
 import org.lucas.arbackend.repository.course.CourseRepository;
 import org.lucas.arbackend.repository.course.StudentQuizRepository;
@@ -43,8 +44,8 @@ public class QuizService {
     private final ChapterRepository chapterRepo;
     private final StudentQuizRepository studentQuizRepo;
     private final StudentRepository studentRepo;
-    private final ChapterQuizRepository chapterQuizRepo;
     private final CourseRepository courseRepo;
+    private final ObjectMapper objectMapper;
 
     // ==========================================
     // CORE QUIZ OPERATIONS
@@ -173,7 +174,6 @@ public class QuizService {
     // ==========================================
 
     public QuizResultResponse submitAndGradeQuiz(String studentNumber, Long quizId, QuizSubmissionRequest submission) {
-        Long orgId = tenantProvider.get();
         StudentQuiz studentQuiz = findStudentQuiz(studentNumber, quizId);
         Quiz quiz = studentQuiz.getQuiz();
 
@@ -215,12 +215,13 @@ public class QuizService {
                 .student(studentQuiz.getStudent())
                 .quiz(quiz)
                 .score(score)
+                .submittedAnswersJson(convertToJson(submission.getAnswers()))
                 .isPassed(score.compareTo(BigDecimal.valueOf(quiz.getPassingScore())) >= 0)
                 .completedAt(LocalDateTime.now())
                 .build();
 
-        attemptRepo.save(attempt);
-        return new QuizResultResponse(score, attempt.isPassed());
+        StudentQuizAttempt quizAttempt = attemptRepo.save(attempt);
+        return new QuizResultResponse(quizAttempt.getId(), score, attempt.isPassed());
     }
 
     // ==========================================
@@ -267,5 +268,16 @@ public class QuizService {
     private StudentQuiz findStudentQuiz(String studentNumber, Long quizId) {
         return studentQuizRepo.findRegistration(tenantProvider.get(), studentNumber, quizId)
                 .orElseThrow(() -> new EntityNotFoundException("Student not registered for this quiz"));
+    }
+
+    private String convertToJson(Set<AnswerDTO> answers) {
+        String valueAsString;
+
+        try {
+            valueAsString = objectMapper.writeValueAsString(answers);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to serialise quiz answers", e);
+        }
+        return valueAsString;
     }
 }

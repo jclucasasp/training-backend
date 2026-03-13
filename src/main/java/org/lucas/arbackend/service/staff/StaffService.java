@@ -49,7 +49,7 @@ public class StaffService {
 
         Organisation org = findOrganisation();
 
-        Role role = roleRepo.findByName(request.getRole())
+        Role role = roleRepo.findByName(request.getRole().name())
                 .orElseThrow(() -> new EntityNotFoundException("Invalid Role"));
 
         Staff staff = new Staff();

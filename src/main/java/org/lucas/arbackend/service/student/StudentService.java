@@ -239,63 +239,6 @@ public class StudentService {
                 .build();
     }
 
-    @Transactional
-    public BigDecimal submitAndGradeQuiz(String studentNumber, Long quizId, QuizSubmissionRequest request) {
-        StudentQuiz studentQuiz = findStudentQuiz(studentNumber, quizId);
-        Quiz quiz = studentQuiz.getQuiz();
-
-        long existingAttempts = attemptRepo.countByStudentIdAndQuizId(studentQuiz.getStudent().getId(), quiz.getId());
-
-        if (existingAttempts >= quiz.getMaxAttempts()) {
-            throw new IllegalStateException("Student has exceeded the maximum number of attempts for this quiz");
-        }
-
-        Map<Long, QuizQuestion> quizMap = quiz.getQuestions().stream()
-                .collect(Collectors.toMap(QuizQuestion::getId, q -> q));
-
-        if (quizMap.isEmpty()) throw new IllegalStateException("Quiz has no questions");
-
-        int passingScore = quiz.getPassingScore();
-        int correctAnswers = 0;
-
-        Set<Long> processedQuestions = new HashSet<>();
-
-        for (AnswerDTO submitted : request.getAnswers()) {
-            Long qId = submitted.getQuestionId();
-            // Security Check: Ignore if we've already graded this question OR it's not in the quiz
-            if (processedQuestions.contains(qId) || !quizMap.containsKey(qId)) {
-                continue;
-            }
-
-            QuizQuestion question = quizMap.get(qId);
-            // Validation: Verify if the submitted option is correct AND belongs to THIS question
-            boolean isCorrect = question.getOptions().stream()
-                    .anyMatch(opt -> opt.getId().equals(submitted.getSelectedOptionId()) && opt.isCorrect());
-
-            if (isCorrect) {
-                correctAnswers++;
-            }
-                processedQuestions.add(qId);
-        }
-
-        // 4. Calculate Final Score
-        BigDecimal score = BigDecimal.valueOf((correctAnswers / (double) quizMap.size()) * 100)
-                .setScale(2, RoundingMode.HALF_UP);
-
-        // 5. Persist the Attempt
-        StudentQuizAttempt attempt = StudentQuizAttempt.builder()
-                .organisation(studentQuiz.getOrganisation())
-                .student(studentQuiz.getStudent())
-                .quiz(quiz)
-                .score(score)
-                .isPassed(score.compareTo(BigDecimal.valueOf(passingScore)) >= 0) // Pass mark 70%
-                .completedAt(LocalDateTime.now())
-                .submittedAnswersJson(convertToJson(request.getAnswers())) // Helper to stringify
-                .build();
-
-        attemptRepo.save(attempt);
-        return score;
-    }
 
     @Transactional(readOnly = true)
     public List<EnrollmentResponse> getStudentDashboard(String studentNumber) {
