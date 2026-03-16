@@ -7,9 +7,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
+@Repository
 public interface OrganisationRepository extends JpaRepository<Organisation, Long> {
 
     @EntityGraph(value = "Organisation.withDetails", type = EntityGraph.EntityGraphType.FETCH)

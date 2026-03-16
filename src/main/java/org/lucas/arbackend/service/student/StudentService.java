@@ -4,9 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.lucas.arbackend.dto.quiz.AnswerDTO;
 import org.lucas.arbackend.dto.quiz.QuizAttemptResponse;
-import org.lucas.arbackend.dto.quiz.QuizSubmissionRequest;
 import org.lucas.arbackend.dto.student.EnrollmentResponse;
 import org.lucas.arbackend.dto.student.StudentRequest;
 import org.lucas.arbackend.dto.student.StudentResponse;
@@ -14,7 +12,6 @@ import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.course.ChapterSection;
 import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.quiz.Quiz;
-import org.lucas.arbackend.entity.quiz.QuizQuestion;
 import org.lucas.arbackend.entity.quiz.StudentQuiz;
 import org.lucas.arbackend.entity.quiz.StudentQuizAttempt;
 import org.lucas.arbackend.entity.student.Student;
@@ -40,11 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -86,7 +79,7 @@ public class StudentService {
                 });
 
         // Check if course exists
-        Course course = courseRepo.findByOrganisationIdAndSlugAndEndedAtIsNull(org.getId(), request.getSlug())
+        Course course = courseRepo.findByOrganisationIdAndSlug(org.getId(), request.getSlug())
                 .orElseThrow(() -> new EntityNotFoundException("Course not found"));
 
         // Create Enrollment

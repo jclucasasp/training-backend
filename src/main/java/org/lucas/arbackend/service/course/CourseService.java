@@ -99,13 +99,13 @@ public class CourseService {
 
         Long orgId = tenantProvider.get();
 
-        return courseRepo.findAllByOrganisationIdAndEndedAtIsNull(orgId, pageable)
+        return courseRepo.findAllByOrganisationId(orgId, pageable)
                 .map(courseMapper::maptoCourseResponse);
     }
 
     public CourseResponse updateCourse(Long courseId, CourseRequest request) {
         Organisation org = findOrganisation();
-        Course course = courseRepo.findByIdAndOrganisationIdAndEndedAtIsNull(courseId, org.getId())
+        Course course = courseRepo.findByIdAndOrganisationId(courseId, org.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Course not found or does not belong to this organization"));
 
         MappingContext ctx = new MappingContext(org, null, course.getStaff());
@@ -189,7 +189,7 @@ private void updateChapterSections(Chapter chapter, List<ChapterSectionRequest> 
 
     public void softDeleteCourse(Long courseId) {
 
-        Course course = courseRepo.findByIdAndOrganisationIdAndEndedAtIsNull(courseId, tenantProvider.get())
+        Course course = courseRepo.findByIdAndOrganisationId(courseId, tenantProvider.get())
                 .orElseThrow(() -> new EntityNotFoundException("Course not found"));
 
         courseRepo.delete(course);

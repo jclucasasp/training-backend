@@ -51,22 +51,40 @@ public class QuizService {
     // CORE QUIZ OPERATIONS
     // ==========================================
 
+/**
+ * Creates a new quiz based on the provided request and creator information.
+ * This method handles the entire process of quiz creation, including validation,
+ * mapping, linking to course/chapter, and saving to the repository.
+ *
+ * @param request The QuizRequest containing all necessary information for quiz creation
+ * @param creator The Staff member who is creating the quiz
+ * @return QuizResponse representing the newly created quiz
+ * @throws EntityNotFoundException If the specified course doesn't exist or access is denied
+ */
     public QuizResponse createQuiz(QuizRequest request, Staff creator) {
+    // Get the organization ID from the tenant provider
         Long orgId = tenantProvider.get();
 
-        Course course = courseRepo.findByIdAndOrganisationIdAndEndedAtIsNull(request.getCourseId(), orgId)
-                .orElseThrow(() -> new EntityNotFoundException("Course not found or access denied"));
+    // Find the course by ID and organization ID, throw exception if not found
+        Course course = courseRepo.findByIdAndOrganisationId(request.getCourseId(), orgId)
+                .orElseThrow(() -> new EntityNotFoundException("Course not found"));
 
+    // Create mapping context with organization, null for parent, and creator
         MappingContext ctx = new MappingContext(creator.getOrganisation(), null, creator);
+    // Convert request to quiz entity using mapper with the created context
         Quiz quiz = quizMapper.toEntity(request, ctx);
+    // Set the course for the quiz
         quiz.setCourse(course);
 
+    // Wire the quiz hierarchy structure
         wireQuizHierarchy(quiz, creator);
 
+    // If chapter ID is provided, link the quiz to the chapter
         if (request.getChapterId() != null) {
             linkToChapter(quiz, request.getChapterId(), orgId);
         }
 
+    // Save the quiz to repository and convert to response
         return quizMapper.toResponse(quizRepo.save(quiz));
     }
 

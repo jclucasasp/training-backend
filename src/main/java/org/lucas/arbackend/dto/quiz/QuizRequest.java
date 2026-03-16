@@ -12,10 +12,10 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class QuizRequest {
-    @NotBlank(message = "Title cannot be blank", groups = ValidatedLabel.OnCreate.class)
+    @NotBlank(message = "Title cannot be blank.", groups = ValidatedLabel.OnCreate.class)
     private  String title;
 
-    @NotBlank(message = "Max attempts cannot be blank", groups = ValidatedLabel.OnCreate.class)
+    @NotBlank(message = "Max attempts cannot be blank. Defaults to 3", groups = ValidatedLabel.OnCreate.class)
     private Integer maxAttempts;
 
     @NotBlank(message = "Passing score cannot be blank", groups = ValidatedLabel.OnCreate.class)

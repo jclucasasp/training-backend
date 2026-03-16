@@ -5,18 +5,20 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
+@Repository
 public interface CourseRepository extends JpaRepository<Course, Long> {
     // Optimized pagination for an Organisation's courses
-    Page<Course> findAllByOrganisationIdAndEndedAtIsNull(Long orgId, Pageable pageable);
+    Page<Course> findAllByOrganisationId(Long orgId, Pageable pageable);
 
     @EntityGraph(value = "Course.withChapterAndSections", type = EntityGraph.EntityGraphType.LOAD)
-    Optional<Course> findByIdAndOrganisationIdAndEndedAtIsNull(Long id, Long orgId);
+    Optional<Course> findByIdAndOrganisationId(Long id, Long orgId);
 
     @EntityGraph(value = "Course.withChapterAndSections", type = EntityGraph.EntityGraphType.LOAD)
-    Optional<Course> findByOrganisationIdAndSlugAndEndedAtIsNull(Long orgId, String slug);
+    Optional<Course> findByOrganisationIdAndSlug(Long orgId, String slug);
 
     boolean existsByIdAndOrganisationId(Long courseId, Long orgId);
 
