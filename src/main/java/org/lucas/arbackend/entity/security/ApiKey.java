@@ -1,6 +1,5 @@
 package org.lucas.arbackend.entity.security;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;

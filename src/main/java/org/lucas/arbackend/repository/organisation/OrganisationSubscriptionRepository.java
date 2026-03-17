@@ -13,7 +13,8 @@ import java.util.Optional;
 public interface OrganisationSubscriptionRepository extends JpaRepository<OrganisationSubscription, Long> {
     // Find the current active subscription for an org
     @Cacheable(value = "active_subscriptions", key = "#orgId", unless = "#result == null")
-    @Query("SELECT os FROM OrganisationSubscription os WHERE os.organisation.id = :orgId AND os.status = 1 AND os.endedAt > CURRENT_TIMESTAMP")
+    // The () is important, else the AND will override the OR statement
+    @Query("SELECT os FROM OrganisationSubscription os WHERE os.organisation.id = :orgId AND os.status = 1 AND (os.endedAt IS NULL OR os.endedAt > CURRENT_TIMESTAMP)")
     Optional<OrganisationSubscription> findActiveByOrganisationId(@Param("orgId") Long orgId);
 
 }

@@ -47,7 +47,6 @@ public class OrganisationService {
 
     private final OrganisationMapper orgMapper;
 
-    // TODO: Implement a check to make sure a company can not generate more then one API key. Implement a new method to be able to end the old one and generate a new one.
     // ==========================================
     // 1. ATOMIC SIGN UP (Org + Profile + Sub)
     // ==========================================
@@ -88,7 +87,7 @@ public class OrganisationService {
         orgMapper.updateAddress(request, address);
 
         ApiKey apiKey = new ApiKey();
-        ApiKeyResponse apiKeyResponse = apiKeyService.generateKeyForOrg(apiKey);
+        ApiKeyResponse apiKeyResponse = apiKeyService.generateKeyForOrg(apiKey, true);
 
         if (apiKeyResponse.getRawKey().isBlank()) {
             throw new RuntimeException("API Key could not be generated");
@@ -96,7 +95,7 @@ public class OrganisationService {
 
         apiKey.setOrganisation(org);
         address.setProfile(profile);
-        profile.setAddress(address); // Assuming Profile has cascade = CascadeType.ALL for address
+        profile.setAddress(address); //  CascadeType.ALL for address
 
         profile.setOrganisation(org);
         org.setProfile(profile);
@@ -117,11 +116,21 @@ public class OrganisationService {
     // ==========================================
     // 2. PROFILE MANAGEMENT
     // ==========================================
+/**
+ * Updates the organization profile with the provided request data.
+ * This method handles the update of organization information, profile details,
+ * and address. It also includes special handling for password changes and email updates.
+ *
+ * @param req The request object containing updated organization information
+ * @return OrganisationResponse containing the updated organization data
+ */
     // TODO: Implement a function to update the OrganisationSubscription entity
     public OrganisationResponse updateProfile(OrganisationRequest req) {
 
+    // Retrieve the organization entity
         Organisation org = findOrganisation();
 
+    // Get the profile and address entities from the organization
         Profile profile = org.getProfile();
         OrgAddress address = org.getProfile().getAddress();
 
@@ -162,21 +171,6 @@ public class OrganisationService {
 
         cacheService.evictAuthUser(org.getEmail());
         orgRepo.delete(org);
-    }
-
-    public void revokeApiKey(Long keyId) {
-
-        Organisation org = findOrganisation();
-
-        ApiKey key = apiKeyRepo.findById(keyId)
-                .orElseThrow(() -> new EntityNotFoundException("Key not found"));
-
-        if (!key.getOrgId().equals(org.getId())) {
-            throw new AccessDeniedException("Unauthorized access to API key");
-        }
-
-        cacheService.evictApiKey(key.getPrefix());
-        apiKeyRepo.delete(key);
     }
 
     private Organisation findOrganisation() {
