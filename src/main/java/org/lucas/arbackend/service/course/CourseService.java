@@ -44,7 +44,7 @@ public class CourseService {
 
         Organisation org = findOrganisation();
 
-        Staff staff = staffRepo.findByEmailAndOrganisationIdAndEndedAtIsNull(request.getStaffEmail(), org.getId())
+        Staff staff = staffRepo.findByEmailAndOrganisationId(request.getStaffEmail(), org.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Staff member not found"));
 
         MappingContext ctx = new MappingContext(org, null, staff);

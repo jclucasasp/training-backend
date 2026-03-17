@@ -1,8 +1,6 @@
 package org.lucas.arbackend.service.staff;
 
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
@@ -17,15 +15,12 @@ import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.StaffRepository;
 import org.lucas.arbackend.repository.security.RoleRepository;
 import org.lucas.arbackend.service.cache.CacheService;
-import org.lucas.arbackend.util.CustomUserDetails;
 import org.lucas.arbackend.util.TenantProvider;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,7 +64,7 @@ public class StaffService {
 
         Organisation org = findOrganisation();
 
-        return staffRepo.findAllByOrganisationIdAndEndedAtIsNull(org.getId(), pageable)
+        return staffRepo.findAllByOrganisationId(org.getId(), pageable)
                 .map(staffMapper::maptoStaffResponse);
     }
 

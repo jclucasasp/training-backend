@@ -22,7 +22,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 
-
+// TODO: Check for subscription expiration and create a worker to check once a day for expired subscriptions to update the db
 @Component
 @Slf4j
 @RequiredArgsConstructor
@@ -60,7 +60,13 @@ public class TenantFilter extends OncePerRequestFilter {
         ApiKeyResponse apiKey = authLookupService.getApiKey(prefix);
 
         if (!encoder.matches(apiKeyHeader, apiKey.getHashedKey())) {
+            log.warn("Invalid API Key: {} for organisation: {}", apiKeyHeader, apiKey.getOrgId());
             throw new AccessDeniedException("Invalid API Key");
+        }
+
+        if (!apiKey.getIsSubscriptionActive()) {
+            log.warn("Subscription for org {} has expired", apiKey.getOrgId());
+            throw new AccessDeniedException("Subscription has expired");
         }
 
         Long orgId = apiKey.getOrgId();

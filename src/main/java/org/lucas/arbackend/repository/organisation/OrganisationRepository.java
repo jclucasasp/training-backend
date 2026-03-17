@@ -21,7 +21,4 @@ public interface OrganisationRepository extends JpaRepository<Organisation, Long
     @NonNull
     @EntityGraph(value = "Organisation.withDetails", type = EntityGraph.EntityGraphType.FETCH)
     Optional<Organisation> findById(@NonNull Long orgId);
-
-    @EntityGraph(value = "Organisation.withDetails", type = EntityGraph.EntityGraphType.FETCH)
-    Optional<Organisation> findByEmailAndEndedAtIsNull(String email);
 }

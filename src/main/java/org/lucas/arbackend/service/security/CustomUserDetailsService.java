@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lucas.arbackend.dto.CacheDto;
 import org.lucas.arbackend.util.CustomUserDetails;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,10 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) {
 
        CacheDto auth = authLookupService.getAuthCacheDto(email);
+
+       if (!auth.getIsSubscriptionActive()) {
+           throw new DisabledException("Subscription not active");
+       }
 
        return new CustomUserDetails(
                auth.getId(),

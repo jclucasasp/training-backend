@@ -9,7 +9,7 @@ public class ApiKeyRequest {
     @NotNull (message = "Must include an API key for access")
     private String apiKey;
 
-    @NotNull (message = "Must include a student number for access")
     private String username;
+    @NotNull (message = "Must include a student number for access")
     private String studentNumber;
 }

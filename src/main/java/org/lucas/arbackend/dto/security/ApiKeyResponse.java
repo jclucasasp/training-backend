@@ -15,6 +15,7 @@ public class ApiKeyResponse implements Serializable {
     String prefix;
     String hashedKey;
     LocalDateTime createdAt;
+    Boolean isSubscriptionActive;
 
     @Serial
     private static final long serialVersionUID = 1L;
