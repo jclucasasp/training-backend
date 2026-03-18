@@ -32,7 +32,7 @@ public interface OrganisationMapper {
 
     default OrganisationResponse mapToOrgResponse(Organisation org) {
         return mapToOrgResponse(org, null);
-    };
+    }
 
     @Mapping(target = "orgName", source = "org.profile.orgName")
     @Mapping(target = "registrationNumber", source = "org.profile.registrationNumber")
@@ -42,7 +42,7 @@ public interface OrganisationMapper {
     @Mapping(target = "city", source = "org.profile.address.city")
     @Mapping(target = "state", source = "org.profile.address.state")
     @Mapping(target = "zip", source = "org.profile.address.zip")
-    @Mapping(target = "apiKey", expression = "java(rawKey != null ? rawKey : org.getApiKey().getHashKey())")
+    @Mapping(target = "apiKey", expression = "java(rawKey != null ? rawKey : (org.getApiKey() != null ? org.getApiKey().getHashKey() : null))")
 //    @Mapping(target = "subscriptionStatus", expression = "java(org.getSubscription().getStatus() == 1)")
     @Mapping(target = "subscriptionStatus", source = "org.subscription.status")
     @Mapping(target = "subscriptionPlan", source = "org.subscription.subscriptionPlan.plan")
@@ -56,7 +56,9 @@ public interface OrganisationMapper {
     Organisation mapToOrganisation(OrganisationRequest dto);
 
     default String mapSubscriptionStatus(Integer status) {
-        if (status == 0) return "EXPIRED";
-        return status == 1 ? "ACTIVE" : "INACTIVE";
+        if (status == null) return "NULL";
+        if (Integer.valueOf(1).equals(status)) return "ACTIVE";
+
+        return "INACTIVE";
     }
 }

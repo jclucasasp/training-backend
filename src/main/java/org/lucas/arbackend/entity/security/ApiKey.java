@@ -10,7 +10,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "api_key")
-@SQLDelete(sql = "UPDATE api_key SET ended_at = CURRENT_TIMESTAMP WHERE apk_org_id = ?")
+// TODO: Remove the sqldelete for all entities that uses the orgId as their main id as it will not work and the endedAt need to be set manually, or create a softDelete method in the repo with a custom sql
 @SQLRestriction("ended_at IS NULL")
 @EntityListeners(AuditingEntityListener.class)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
@@ -19,16 +19,14 @@ public class ApiKey extends BaseEntity {
     @Column(name = "apk_org_id")
     private Long orgId;
 
-    @Column(name = "apk_prefix", nullable = false, length = 12)
+    @Column(name = "apk_prefix", length = 12)
     private String prefix;
 
     @OneToOne(fetch = FetchType.EAGER)
     @MapsId // Ensures ApiKey ID is the same as Organisation ID
     @JoinColumn(name = "apk_org_id")
-//    @JsonIgnore
     private Organisation organisation;
 
-//    @JsonIgnore
-    @Column(name = "apk_key_hash", unique = true, nullable = false)
+    @Column(name = "apk_key_hash", unique = true)
     private String hashKey;
 }

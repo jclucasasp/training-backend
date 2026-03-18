@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
 import org.lucas.arbackend.dto.CacheDto;
 import org.lucas.arbackend.dto.security.ApiKeyResponse;
+import org.lucas.arbackend.entity.Organisation.OrganisationSubscription;
 import org.lucas.arbackend.entity.security.ApiKey;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.OrganisationSubscriptionRepository;
@@ -14,6 +15,8 @@ import org.lucas.arbackend.repository.security.ApiKeyRepository;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -41,7 +44,8 @@ public class AuthLookupService {
         // First, try to find the user in the organization repository
         return orgRepo.findByEmail(email)
                 .map(org -> {
-                    boolean isSubscriptionActive = org.getSubscription() != null && org.getSubscription().getStatus() == 1;
+                    boolean isSubscriptionActive = Optional.ofNullable(org.getSubscription()).map(OrganisationSubscription::getStatus).orElse(0)== 1;
+                    String apiKey = Optional.ofNullable(org.getApiKey()).map(ApiKey::getPrefix).orElse("");
                     // Create CacheDto from organization data if found
                     return new CacheDto(
                             org.getId(),
@@ -52,13 +56,15 @@ public class AuthLookupService {
                             org.getContactNumber(),
                             org.getRole().getName(),
                             org.getId(),
+                            apiKey,
                             isSubscriptionActive
                     );
                 })
                 // If not found in organization, try staff repository
                 .orElseGet(() -> staffRepo.findByEmail(email)
                         .map(staff -> {
-                            boolean isSubscriptionActive = staff.getOrganisation().getSubscription() != null && staff.getOrganisation().getSubscription().getStatus() == 1;
+                            boolean isSubscriptionActive = Optional.ofNullable(staff.getOrganisation().getSubscription()).map(OrganisationSubscription::getStatus).orElse(0) == 1;
+                            String apiKey = Optional.ofNullable(staff.getOrganisation().getApiKey()).map(ApiKey::getPrefix).orElse("");
                             // Create CacheDto from staff data
                             return new CacheDto
                                     (
@@ -70,6 +76,7 @@ public class AuthLookupService {
                                             staff.getContactNumber(),
                                             staff.getRole().getName(),
                                             staff.getOrganisation().getId(),
+                                            apiKey,
                                             isSubscriptionActive
                                     );
                         })

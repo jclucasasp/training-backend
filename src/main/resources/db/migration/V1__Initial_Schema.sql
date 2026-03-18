@@ -106,8 +106,8 @@ CREATE TABLE IF NOT EXISTS staff (
 -- ==========================================
 CREATE TABLE IF NOT EXISTS api_key (
     apk_org_id BIGINT PRIMARY KEY,
-    apk_prefix VARCHAR(12) NOT NULL,
-    apk_key_hash VARCHAR(255) UNIQUE NOT NULL,
+    apk_prefix VARCHAR(12) UNIQUE NULL,
+    apk_key_hash VARCHAR(255) UNIQUE NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
     ended_at DATETIME NULL,

@@ -12,17 +12,16 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Entity
 @NamedEntityGraph(name = "Organisation.withDetails",
 attributeNodes = {
-        @NamedAttributeNode(value = "profile"),
-        @NamedAttributeNode(value = "subscription"),
+        @NamedAttributeNode(value = "profile", subgraph = "profile-subgraph"),
+        @NamedAttributeNode(value = "subscription", subgraph = "sub-plan"),
         @NamedAttributeNode(value = "apiKey"),
         @NamedAttributeNode(value = "role"),
-        @NamedAttributeNode(value = "profile", subgraph = "profile-subgraph")
 }, subgraphs = {
         @NamedSubgraph(name = "profile-subgraph",
                 attributeNodes = {
                         @NamedAttributeNode("address"),
                 }),
-        @NamedSubgraph(name = "subscription",
+        @NamedSubgraph(name = "sup-plan",
                 attributeNodes = {
                         @NamedAttributeNode("subscriptionPlan")
                 })
