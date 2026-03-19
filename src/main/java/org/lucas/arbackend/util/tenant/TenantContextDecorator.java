@@ -1,4 +1,4 @@
-package org.lucas.arbackend.util;
+package org.lucas.arbackend.util.tenant;
 
 import org.springframework.core.task.TaskDecorator;
 import org.springframework.lang.NonNull;

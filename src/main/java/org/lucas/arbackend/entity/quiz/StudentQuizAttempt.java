@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.student.Student;
-import org.lucas.arbackend.util.TenantEntity;
+import org.lucas.arbackend.util.tenant.TenantEntity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

@@ -1,6 +1,6 @@
 package org.lucas.arbackend.config.security;
 
-import org.lucas.arbackend.util.TenantContextDecorator;
+import org.lucas.arbackend.util.tenant.TenantContextDecorator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;

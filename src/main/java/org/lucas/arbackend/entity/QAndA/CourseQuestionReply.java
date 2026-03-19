@@ -6,7 +6,7 @@ import org.lucas.arbackend.entity.BaseEntity;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.Organisation.Staff;
 import org.lucas.arbackend.entity.student.Student;
-import org.lucas.arbackend.util.TenantEntity;
+import org.lucas.arbackend.util.tenant.TenantEntity;
 
 @Entity
 @Table(name = "course_question_reply")

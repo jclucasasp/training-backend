@@ -15,7 +15,7 @@ import org.lucas.arbackend.mapper.CourseDiscussionMapper;
 import org.lucas.arbackend.mapper.context.MappingContext;
 import org.lucas.arbackend.repository.QAndA.CourseQuestionReplyRepository;
 import org.lucas.arbackend.repository.QAndA.CourseQuestionRepository;
-import org.lucas.arbackend.util.TenantProvider;
+import org.lucas.arbackend.util.tenant.TenantProvider;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

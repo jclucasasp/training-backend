@@ -28,7 +28,7 @@ import org.lucas.arbackend.repository.quiz.StudentQuizAttemptRepository;
 import org.lucas.arbackend.repository.student.StudentEnrollmentRepository;
 import org.lucas.arbackend.repository.student.StudentProgressRepository;
 import org.lucas.arbackend.repository.student.StudentRepository;
-import org.lucas.arbackend.util.TenantProvider;
+import org.lucas.arbackend.util.tenant.TenantProvider;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;

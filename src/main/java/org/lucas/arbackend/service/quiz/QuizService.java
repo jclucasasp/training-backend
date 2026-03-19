@@ -19,7 +19,7 @@ import org.lucas.arbackend.repository.course.StudentQuizRepository;
 import org.lucas.arbackend.repository.quiz.QuizRepository;
 import org.lucas.arbackend.repository.quiz.StudentQuizAttemptRepository;
 import org.lucas.arbackend.repository.student.StudentRepository;
-import org.lucas.arbackend.util.TenantProvider;
+import org.lucas.arbackend.util.tenant.TenantProvider;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

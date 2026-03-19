@@ -243,7 +243,20 @@ public class GlobalExceptionHandler {
                 .details(request.getDescription(false))
                 .errorCode(HttpStatus.FORBIDDEN)
                 .build();
-        return new  ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(InvalidPlanException.class)
+    public ResponseEntity<ErrorDetailsResponse> handleInvalidPlan(InvalidPlanException ex, WebRequest request) {
+        log.error("Invalid Plan Exception: ", ex);
+
+        ErrorDetailsResponse response = ErrorDetailsResponse.builder()
+                .timeStamp(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS))
+                .message(ex.getMessage())
+                .details(request.getDescription(false))
+                .errorCode(HttpStatus.BAD_REQUEST)
+                .build();
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 }
 

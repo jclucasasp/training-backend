@@ -4,13 +4,12 @@ import org.lucas.arbackend.dto.QAndA.CourseQuestionRequest;
 import org.lucas.arbackend.dto.QAndA.CourseQuestionResponse;
 import org.lucas.arbackend.dto.QAndA.ReplyRequest;
 import org.lucas.arbackend.dto.QAndA.ReplyResponse;
-import org.lucas.arbackend.entity.BaseEntity;
 import org.lucas.arbackend.entity.QAndA.CourseQuestion;
 import org.lucas.arbackend.entity.QAndA.CourseQuestionReply;
 import org.lucas.arbackend.entity.course.ChapterSection;
 import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.mapper.context.MappingContext;
-import org.lucas.arbackend.util.TenantEntity;
+import org.lucas.arbackend.util.tenant.TenantEntity;
 import org.mapstruct.*;
 
 

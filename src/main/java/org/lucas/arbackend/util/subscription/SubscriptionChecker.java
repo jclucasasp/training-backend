@@ -1,4 +1,4 @@
-package org.lucas.arbackend.util;
+package org.lucas.arbackend.util.subscription;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

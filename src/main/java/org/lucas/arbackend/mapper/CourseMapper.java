@@ -7,7 +7,7 @@ import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.course.Chapter;
 import org.lucas.arbackend.entity.course.misc.Attachment;
 import org.lucas.arbackend.mapper.context.MappingContext;
-import org.lucas.arbackend.util.TenantEntity;
+import org.lucas.arbackend.util.tenant.TenantEntity;
 import org.mapstruct.*;
 
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

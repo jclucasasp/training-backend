@@ -12,7 +12,7 @@ import org.lucas.arbackend.dto.security.ApiKeyResponse;
 import org.lucas.arbackend.entity.security.RoleTypes;
 import org.lucas.arbackend.service.security.AuthLookupService;
 import org.lucas.arbackend.util.CustomUserDetails;
-import org.lucas.arbackend.util.TenantContext;
+import org.lucas.arbackend.util.tenant.TenantContext;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -95,6 +95,7 @@ public class TenantFilter extends OncePerRequestFilter {
         return path.startsWith("/v3/api-docs") ||
                 path.startsWith("/swagger-ui") ||
                 path.startsWith("/api/v1/auth") ||
+                path.equals("/api/v1/payments/itn") ||
                 path.equals("/api/v1/organisations/signup");
     }
 }

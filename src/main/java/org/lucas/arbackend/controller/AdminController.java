@@ -32,6 +32,8 @@ public class AdminController {
     private final StaffService staffService;
     private final OrganisationService orgService;
 
+    @JsonView(AccessLevelViews.Public.class)
+    @PostMapping("/staff/add")
     @Operation(summary = "Add Staff Member", description = "Creates a staff account with a specific role.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Staff member created"),
@@ -46,8 +48,6 @@ public class AdminController {
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
-    @JsonView(AccessLevelViews.Public.class)
-    @PostMapping("/staff/add")
     public ResponseEntity<StaffResponse> addStaff(@Validated(ValidatedLabel.OnCreate.class) @RequestBody StaffRequest request) {
         return ResponseEntity.ok(staffService.createStaff(request));
     }

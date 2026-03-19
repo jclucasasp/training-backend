@@ -3,7 +3,7 @@ package org.lucas.arbackend.entity.quiz;
 import jakarta.persistence.*;
 import lombok.*;
 import org.lucas.arbackend.entity.Organisation.Organisation;
-import org.lucas.arbackend.util.TenantEntity;
+import org.lucas.arbackend.util.tenant.TenantEntity;
 
 @Entity
 @Table(name = "quiz_question_option")

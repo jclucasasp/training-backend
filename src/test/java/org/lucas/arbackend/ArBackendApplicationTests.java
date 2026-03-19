@@ -25,7 +25,7 @@
 //import org.lucas.arbackend.repository.organisation.StaffRepository;
 //import org.lucas.arbackend.repository.quiz.QuizRepository;
 //import org.lucas.arbackend.service.course.CourseService;
-//import org.lucas.arbackend.util.TenantProvider;
+//import org.lucas.arbackend.util.tenant.TenantProvider;
 //import org.mockito.InjectMocks;
 //import org.mockito.Mock;
 //import org.mockito.junit.jupiter.MockitoExtension;

@@ -10,7 +10,7 @@ import org.lucas.arbackend.entity.security.ApiKey;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.security.ApiKeyRepository;
 import org.lucas.arbackend.service.cache.CacheService;
-import org.lucas.arbackend.util.TenantProvider;
+import org.lucas.arbackend.util.tenant.TenantProvider;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

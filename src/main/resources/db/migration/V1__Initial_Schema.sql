@@ -101,9 +101,9 @@ CREATE TABLE IF NOT EXISTS staff (
 ) ENGINE=InnoDB;
 
 
--- ==========================================
--- 3. AUTHENTICATION (API Keys)
--- ==========================================
+-- ================================================
+-- 3. AUTHENTICATION FOR API KEY AND PAYMENTS LOGS
+-- ================================================
 CREATE TABLE IF NOT EXISTS api_key (
     apk_org_id BIGINT PRIMARY KEY,
     apk_prefix VARCHAR(12) UNIQUE NULL,
@@ -115,6 +115,21 @@ CREATE TABLE IF NOT EXISTS api_key (
     INDEX idx_api_auth (apk_key_hash, ended_at, apk_org_id),
     INDEX idx_api_prefix (apk_prefix)
 ) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS payment_logs (
+    pal_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    pal_pf_payment_id VARCHAR(50) NOT NULL,
+    pal_org_id BIGINT NOT NULL,
+    pal_amount DECIMAL(19, 2) NOT NULL,
+    pal_payment_status VARCHAR(20),
+    pal_raw_ipn_data TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIME,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIME ON UPDATE CURRENT_TIME,
+    -- Crucial for Idempotency: Prevents duplicate processing at the DB level
+    CONSTRAINT uk_pf_payment_id UNIQUE (pal_pf_payment_id),
+    -- Index for reporting/audit lookups by organization
+    INDEX idx_payment_org (pal_org_id)
+) ENGINE=InnoDB
 
 
 -- ==========================================

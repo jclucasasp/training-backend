@@ -1,4 +1,4 @@
-package org.lucas.arbackend.util;
+package org.lucas.arbackend.util.tenant;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
