@@ -123,13 +123,14 @@ CREATE TABLE IF NOT EXISTS payment_logs (
     pal_amount DECIMAL(19, 2) NOT NULL,
     pal_payment_status VARCHAR(20),
     pal_raw_ipn_data TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIME,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIME ON UPDATE CURRENT_TIME,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIME ON UPDATE CURRENT_TIMESTAMP,
+    ended_at TIMESTAMP DEFAULT NULL,
     -- Crucial for Idempotency: Prevents duplicate processing at the DB level
     CONSTRAINT uk_pf_payment_id UNIQUE (pal_pf_payment_id),
     -- Index for reporting/audit lookups by organization
     INDEX idx_payment_org (pal_org_id)
-) ENGINE=InnoDB
+) ENGINE=InnoDB;
 
 
 -- ==========================================

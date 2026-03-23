@@ -17,7 +17,7 @@ public class PaymentLog extends BaseEntity {
     private Long id;
 
     @Column(name = "pal_pf_payment_id", unique = true, nullable = false)
-    private String pfPaymentId; // Payfast unique transaction ID
+    private String pfPaymentId; // PayFast unique transaction ID
 
     @Column(name = "pal_org_id", nullable = false)
     private Long orgId;

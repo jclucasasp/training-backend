@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lucas.arbackend.exception.ErrorDetailsResponse;
@@ -12,11 +13,10 @@ import org.lucas.arbackend.service.payment.PayFastSubscriptionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.Enumeration;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @RestController
@@ -42,7 +42,15 @@ public class PayFastController {
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
-    public ResponseEntity<String> handlePayFastItn(@RequestParam Map<String, String> params) {
+    // TODO: Move the logic out to the service class
+    public ResponseEntity<String> handlePayFastItn(HttpServletRequest request) {
+        Map<String, String> params = new LinkedHashMap<>();
+        Enumeration<String> parameterNames = request.getParameterNames();
+        while (parameterNames.hasMoreElements()) {
+            String paramName = parameterNames.nextElement();
+            String paramValue = request.getParameter(paramName);
+            params.put(paramName, paramValue != null ? paramValue : "");
+        }
         try {
             // Log the custom_int1 (Org ID) for tracking
             log.info("Received PayFast ITN notification for Organisation ID: {}", params.get("custom_int1"));
@@ -62,4 +70,16 @@ public class PayFastController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    @GetMapping("/subscriptions/{token}")
+    public ResponseEntity<String> getSubscriptionStatus(@PathVariable String token) {
+        try {
+            String status = subscriptionService.fetchSubscriptionStatus(token);
+            return ResponseEntity.ok(status);
+        } catch (Exception e) {
+            log.error("Failed to fetch subscription status for token: {}", token, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
 }

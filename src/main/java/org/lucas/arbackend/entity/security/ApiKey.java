@@ -1,5 +1,6 @@
 package org.lucas.arbackend.entity.security;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
@@ -25,6 +26,7 @@ public class ApiKey extends BaseEntity {
     @OneToOne(fetch = FetchType.EAGER)
     @MapsId // Ensures ApiKey ID is the same as Organisation ID
     @JoinColumn(name = "apk_org_id")
+    @JsonIgnore
     private Organisation organisation;
 
     @Column(name = "apk_key_hash", unique = true)
