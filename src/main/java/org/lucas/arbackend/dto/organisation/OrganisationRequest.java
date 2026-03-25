@@ -73,9 +73,5 @@ public class OrganisationRequest {
     @Pattern(regexp = "^[0-9]{4}$", message = "Zip code must be 4 characters long")
     private String zip;
 
-    // OrganisationSubscription
-    // TODO: Delete this field once a payment gate has been added. This is solely for testing
-    private Long initialPlanId; // Optional, defaults to Monthly Plan
-
 }
 

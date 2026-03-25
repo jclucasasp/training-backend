@@ -16,7 +16,7 @@ public class SubscriptionPlan {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "sup_plan", columnDefinition = "ENUM('BASIC', 'STANDARD', 'PREMIUM')")
+    @Column(name = "sup_plan", columnDefinition = "ENUM('MONTHLY', 'YEARLY')")
     private PlanTypes plan;
 
     @Column(name = "sup_price")

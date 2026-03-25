@@ -1,6 +1,7 @@
 package org.lucas.arbackend.service.payment;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lucas.arbackend.entity.Organisation.Organisation;
@@ -8,30 +9,30 @@ import org.lucas.arbackend.entity.Organisation.OrganisationSubscription;
 import org.lucas.arbackend.entity.Organisation.SubscriptionPlan;
 import org.lucas.arbackend.entity.PlanTypes;
 import org.lucas.arbackend.entity.payment.PaymentLog;
-import org.lucas.arbackend.exception.InvalidPlanException;
 import org.lucas.arbackend.mapper.OrganisationMapper;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.SubscriptionPlanRepository;
 import org.lucas.arbackend.repository.payment.PaymentLogRepository;
 import org.lucas.arbackend.service.cache.CacheService;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
+import org.springframework.http.*;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
+import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -46,7 +47,7 @@ public class PayFastSubscriptionService {
     private final OrganisationMapper orgMapper;
     private final CacheService cacheService;
     private final SubscriptionPlanRepository subPlanRepo;
-    private final RestTemplate restTemplate = new RestTemplate(); // Ideally injected via Config
+    private final RestClient restClient = RestClient.builder().baseUrl("https://api.payfast.co.za").build();
 
     @Value("${payfast.pass-phrase}")
     private String passphrase;
@@ -54,13 +55,36 @@ public class PayFastSubscriptionService {
     @Value("${payfast.merchant-id}")
     private String merchantId;
 
-    private static final String API_BASE_URL = "https://api.payfast.co.za/subscriptions/";
+    @Value("${payfast.sandbox-url}")
+    private String sandboxUrl;
 
+    /**
+ * Processes an IPN (Instant Payment Notification) from PayFast, verifying the signature
+ * and updating the organization's subscription and payment records accordingly.
+ *
+ * @param request The HttpServletRequest containing the PayFast notification parameters
+ * @throws RuntimeException If no passphrase is provided for signature validation
+ * @throws SecurityException If the PayFast signature is invalid
+ * @throws EntityNotFoundException If the organization is not found
+ */
     @Transactional
-    public void processIpn(Map<String, String> params) {
+    public void processIpn(HttpServletRequest request) {
+    // Check if passphrase is provided for signature validation
         if (passphrase == null || passphrase.isBlank()) {
             throw new RuntimeException("No passphrase provided for PayFast signature validation");
         }
+
+    // Extract all parameters from the request into a LinkedHashMap
+        Map<String, String> params = new LinkedHashMap<>();
+        Enumeration<String> parameterNames = request.getParameterNames();
+        while (parameterNames.hasMoreElements()) {
+            String paramName = parameterNames.nextElement();
+            String paramValue = request.getParameter(paramName);
+            params.put(paramName, paramValue != null ? paramValue : "");
+        }
+
+    // Log the received notification for organization tracking
+        log.info("Received PayFast ITN notification for Organisation ID: {}", params.get("custom_int1"));
 
         // FIX: Compare the received signature with the calculated one
         String receivedSignature = params.get("signature");
@@ -68,6 +92,7 @@ public class PayFastSubscriptionService {
             throw new SecurityException("Invalid PayFast signature detected");
         }
 
+        // TODO: Throw a custom exception for invalid signatures
         if (!"COMPLETE".equalsIgnoreCase(params.get("payment_status"))) {
             log.info("Ignored IPN: Status is {}", params.get("payment_status"));
             return;
@@ -91,8 +116,10 @@ public class PayFastSubscriptionService {
                 .pfPaymentId(pfId)
                 .orgId(orgId)
                 .amount(BigDecimal.valueOf(gross))
+                .subscription(params.get("token") != null)
+                .token(params.get("token"))
+                .billingDate(LocalDateTime.parse(params.get("billing_date") + "T00:00:00"))
                 .paymentStatus("SUCCESS")
-                .rawData(params.toString())
                 .build());
 
         cacheService.updateCache("auth_user", org.getEmail(), orgMapper.mapToOrgResponse(org));
@@ -102,27 +129,37 @@ public class PayFastSubscriptionService {
      * Calls the PayFast API to fetch the current status of a recurring subscription.
      */
     public String fetchSubscriptionStatus(String token) {
-        String url = API_BASE_URL + token + "/fetch";
+        String timestamp = ZonedDateTime.now(ZoneId.of("Africa/Johannesburg"))
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX"));
 
-        HttpHeaders headers = new HttpHeaders();
-        // Generate the 4 required headers for the REST API
-        Map<String, String> apiHeaders = generateApiHeaders(Map.of());
+        String baseString = "merchant-id=" + merchantId + "&timestamp=" + timestamp + "&version=v1" + "&passphrase=" + passphrase;
+        log.info("DEBUG: Base string from subscriptions: [{}]", baseString);
 
-        apiHeaders.forEach(headers::set);
+        String response = restClient.get()
+                .uri("/subscriptions/{token}/fetch?testing=true", token)
+                .accept(MediaType.APPLICATION_JSON)
+                .header("merchant-id", merchantId)
+                .header("version", "v1")
+                .header("timestamp", timestamp)
+                .header("signature", md5(baseString).trim())
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, (req, res) ->
+                        Mono.error(new RuntimeException("Error fetching subscription status")))
+                .body(String.class);
 
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-        return restTemplate.exchange(url, HttpMethod.GET, entity, String.class).getBody();
+        log.debug("Response: [{}]", response);
+
+        return response;
     }
 
     /**
      * Generates headers using the alphabetical sort required by the API.
      */
     private Map<String, String> generateApiHeaders(Map<String, String> additionalParams) {
-        String timestamp = ZonedDateTime.now(ZoneOffset.UTC)
-                .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        String timestamp = ZonedDateTime.now(ZoneId.of("Africa/Johannesburg"))
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX"));
 
-        // 1. Sort ALL variables (including passphrase) alphabetically
-        TreeMap<String, String> sortedMap = new TreeMap<>();
+        Map<String, String> sortedMap = new TreeMap<>();
         sortedMap.put("merchant-id", merchantId);
         sortedMap.put("version", "v1");
         sortedMap.put("timestamp", timestamp);
@@ -130,19 +167,25 @@ public class PayFastSubscriptionService {
         sortedMap.putAll(additionalParams);
 
         // 2. Concatenate into a base string
-        String baseString = sortedMap.entrySet().stream()
-                .filter(entry -> entry.getValue() != null && !entry.getValue().isBlank())
-                .map(entry -> entry.getKey() + "=" + payFastEncode(entry.getValue()))
-                .collect(Collectors.joining("&"));
-
-        return Map.of(
-                "merchant-id", merchantId,
-                "version", "v1",
-                "timestamp", timestamp,
-                "signature", md5(baseString)
-        );
+       if (passphrase != null) {
+        sortedMap.put("passphrase", passphrase.trim());
     }
 
+    // 3. Construct base string with RAW values (NO ENCODING)
+    String baseString = sortedMap.entrySet().stream()
+            .map(entry -> entry.getKey() + "=" + entry.getValue().trim())
+            .collect(Collectors.joining("&"));
+
+    log.info("RAW Base String for MD5: {}", baseString);
+
+    // 4. Return headers (Passphrase is NOT a header, only used for signature)
+    return Map.of(
+            "merchant-id", merchantId,
+            "version", "v1",
+            "timestamp", timestamp,
+            "signature", md5(baseString)
+    );
+    }
 
 /**
  * Calculates the ITN (Instant Transaction Notification) signature based on the provided data and passphrase.
@@ -225,6 +268,7 @@ public class PayFastSubscriptionService {
         // Convert the byte array into a hexadecimal string
             StringBuilder sb = new StringBuilder();
             for (byte b : hash) sb.append(String.format("%02x", b));
+            log.info("DEBUG: MD5 Signature: [{}]", sb.toString());
             return sb.toString();
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -248,7 +292,8 @@ public class PayFastSubscriptionService {
     // Get the organization's current subscription
         OrganisationSubscription sub = org.getSubscription();
     // Find the subscription plan in the repository based on the purchased plan
-        SubscriptionPlan subPlan = subPlanRepo.findByPlan(purchasedPlan);
+        SubscriptionPlan subPlan = subPlanRepo.findByPlan(purchasedPlan)
+                .orElseThrow(() -> new EntityNotFoundException("Subscription plan not found"));
 
     // Check if organization already has a subscription
         if (sub != null) {
@@ -279,4 +324,5 @@ public class PayFastSubscriptionService {
     // Save the updated organization to the repository
         orgRepo.save(org);
     }
+
 }

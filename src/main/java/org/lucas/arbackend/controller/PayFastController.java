@@ -15,10 +15,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Enumeration;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 @RestController
 @RequestMapping("/api/v1/payments")
 @RequiredArgsConstructor
@@ -42,22 +38,10 @@ public class PayFastController {
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
-    // TODO: Move the logic out to the service class
     public ResponseEntity<String> handlePayFastItn(HttpServletRequest request) {
-        Map<String, String> params = new LinkedHashMap<>();
-        Enumeration<String> parameterNames = request.getParameterNames();
-        while (parameterNames.hasMoreElements()) {
-            String paramName = parameterNames.nextElement();
-            String paramValue = request.getParameter(paramName);
-            params.put(paramName, paramValue != null ? paramValue : "");
-        }
+
         try {
-            // Log the custom_int1 (Org ID) for tracking
-            log.info("Received PayFast ITN notification for Organisation ID: {}", params.get("custom_int1"));
-
-            // Pass the map directly to your Service
-            subscriptionService.processIpn(params);
-
+            subscriptionService.processIpn(request);
             // PayFast MUST receive an 'OK' or 200 response to acknowledge the notification
             return ResponseEntity.ok("OK");
 
@@ -71,7 +55,7 @@ public class PayFastController {
         }
     }
 
-    @GetMapping("/subscriptions/{token}")
+    @GetMapping("/subscriptions/{token}/fetch")
     public ResponseEntity<String> getSubscriptionStatus(@PathVariable String token) {
         try {
             String status = subscriptionService.fetchSubscriptionStatus(token);

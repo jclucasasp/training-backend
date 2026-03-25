@@ -121,8 +121,10 @@ CREATE TABLE IF NOT EXISTS payment_logs (
     pal_pf_payment_id VARCHAR(50) NOT NULL,
     pal_org_id BIGINT NOT NULL,
     pal_amount DECIMAL(19, 2) NOT NULL,
+    pal_subscription BOOLEAN DEFAULT FALSE,
+    pal_billing_date TIMESTAMP DEFAULT NULL,
+    pal_token VARCHAR(225) NULL, -- Used for subscription payments
     pal_payment_status VARCHAR(20),
-    pal_raw_ipn_data TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIME ON UPDATE CURRENT_TIMESTAMP,
     ended_at TIMESTAMP DEFAULT NULL,
