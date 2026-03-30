@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lucas.arbackend.dto.payfast.PayFastSubscriptionDto;
 import org.lucas.arbackend.exception.ErrorDetailsResponse;
 import org.lucas.arbackend.service.payment.PayFastSubscriptionService;
 import org.springframework.http.HttpStatus;
@@ -55,15 +56,8 @@ public class PayFastController {
         }
     }
 
-    @GetMapping("/subscriptions/{token}/fetch")
-    public ResponseEntity<String> getSubscriptionStatus(@PathVariable String token) {
-        try {
-            String status = subscriptionService.fetchSubscriptionStatus(token);
-            return ResponseEntity.ok(status);
-        } catch (Exception e) {
-            log.error("Failed to fetch subscription status for token: {}", token, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    @GetMapping("/subscriptions/fetch")
+    public ResponseEntity<PayFastSubscriptionDto> getSubscriptionStatus() {
+        return ResponseEntity.ok(subscriptionService.fetchSubscriptionStatus());
     }
-
 }

@@ -1,9 +1,14 @@
 package org.lucas.arbackend.service.payment;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lucas.arbackend.dto.payfast.PayFastSubscriptionDto;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.Organisation.OrganisationSubscription;
 import org.lucas.arbackend.entity.Organisation.SubscriptionPlan;
@@ -14,13 +19,13 @@ import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.SubscriptionPlanRepository;
 import org.lucas.arbackend.repository.payment.PaymentLogRepository;
 import org.lucas.arbackend.service.cache.CacheService;
+import org.lucas.arbackend.util.tenant.TenantProvider;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestTemplate;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
@@ -29,13 +34,14 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Enumeration;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -45,6 +51,7 @@ public class PayFastSubscriptionService {
     private final OrganisationRepository orgRepo;
     private final PaymentLogRepository logRepo;
     private final OrganisationMapper orgMapper;
+    private final TenantProvider tenantProvider;
     private final CacheService cacheService;
     private final SubscriptionPlanRepository subPlanRepo;
     private final RestClient restClient = RestClient.builder().baseUrl("https://api.payfast.co.za").build();
@@ -67,6 +74,7 @@ public class PayFastSubscriptionService {
  * @throws SecurityException If the PayFast signature is invalid
  * @throws EntityNotFoundException If the organization is not found
  */
+    // TODO: Verify that the amount send from payfast corresponds to the amount stored in the db
     @Transactional
     public void processIpn(HttpServletRequest request) {
     // Check if passphrase is provided for signature validation
@@ -84,7 +92,7 @@ public class PayFastSubscriptionService {
         }
 
     // Log the received notification for organization tracking
-        log.info("Received PayFast ITN notification for Organisation ID: {}", params.get("custom_int1"));
+        log.info("Received PayFast ITN notification for Organisation ID: {}", params.get("m_payment_id"));
 
         // FIX: Compare the received signature with the calculated one
         String receivedSignature = params.get("signature");
@@ -94,17 +102,17 @@ public class PayFastSubscriptionService {
 
         // TODO: Throw a custom exception for invalid signatures
         if (!"COMPLETE".equalsIgnoreCase(params.get("payment_status"))) {
-            log.info("Ignored IPN: Status is {}", params.get("payment_status"));
+            log.warn("Ignored IPN: Status is {}", params.get("payment_status"));
             return;
         }
 
         String pfId = params.get("pf_payment_id");
         if (logRepo.existsByPfPaymentId(pfId)) {
-            log.info("Payment {} already processed.", pfId);
+            log.warn("Payment {} already processed.", pfId);
             return;
         }
 
-        Long orgId = Long.parseLong(params.get("custom_int1"));
+        Long orgId = Long.parseLong(params.get("m_payment_id"));
         double gross = Double.parseDouble(params.get("amount_gross"));
 
         Organisation org = orgRepo.findById(orgId)
@@ -128,20 +136,22 @@ public class PayFastSubscriptionService {
     /**
      * Calls the PayFast API to fetch the current status of a recurring subscription.
      */
-    public String fetchSubscriptionStatus(String token) {
-        String timestamp = ZonedDateTime.now(ZoneId.of("Africa/Johannesburg"))
-                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX"));
+    public PayFastSubscriptionDto fetchSubscriptionStatus()  {
+        PaymentLog paymentLog = logRepo.findByOrgId(tenantProvider.get())
+                .orElseThrow(() -> new EntityNotFoundException("No token found for organisation"));
 
-        String baseString = "merchant-id=" + merchantId + "&timestamp=" + timestamp + "&version=v1" + "&passphrase=" + passphrase;
-        log.info("DEBUG: Base string from subscriptions: [{}]", baseString);
+        Map<String, String> treeMap = generateApiHeaders();
 
         String response = restClient.get()
-                .uri("/subscriptions/{token}/fetch?testing=true", token)
+                .uri(uriBuilder -> uriBuilder
+                .path("/subscriptions/{token}/fetch")
+                .queryParam("testing", "true")
+                .build(paymentLog.getToken()))
                 .accept(MediaType.APPLICATION_JSON)
-                .header("merchant-id", merchantId)
+                .header("merchant-id", treeMap.get("merchant-id"))
                 .header("version", "v1")
-                .header("timestamp", timestamp)
-                .header("signature", md5(baseString).trim())
+                .header("timestamp", treeMap.get("timestamp"))
+                .header("signature", treeMap.get("signature"))
                 .retrieve()
                 .onStatus(HttpStatusCode::isError, (req, res) ->
                         Mono.error(new RuntimeException("Error fetching subscription status")))
@@ -149,13 +159,14 @@ public class PayFastSubscriptionService {
 
         log.debug("Response: [{}]", response);
 
-        return response;
+        return mapToPayFastSubscriptionDTO(response);
+
     }
 
     /**
      * Generates headers using the alphabetical sort required by the API.
      */
-    private Map<String, String> generateApiHeaders(Map<String, String> additionalParams) {
+    private Map<String, String> generateApiHeaders() {
         String timestamp = ZonedDateTime.now(ZoneId.of("Africa/Johannesburg"))
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX"));
 
@@ -163,20 +174,24 @@ public class PayFastSubscriptionService {
         sortedMap.put("merchant-id", merchantId);
         sortedMap.put("version", "v1");
         sortedMap.put("timestamp", timestamp);
-        if (passphrase != null) sortedMap.put("passphrase", passphrase.trim());
-        sortedMap.putAll(additionalParams);
+        if (passphrase != null) {
+            sortedMap.put("passphrase", passphrase.trim());
+        } else {
+            throw new RuntimeException("Pass phrase is null");
+        }
 
-        // 2. Concatenate into a base string
-       if (passphrase != null) {
-        sortedMap.put("passphrase", passphrase.trim());
-    }
+    // 3. Construct base string with RAW values
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, String> treeMap : sortedMap.entrySet()) {
+            String key = treeMap.getKey();
+            String value = treeMap.getValue();
 
-    // 3. Construct base string with RAW values (NO ENCODING)
-    String baseString = sortedMap.entrySet().stream()
-            .map(entry -> entry.getKey() + "=" + entry.getValue().trim())
-            .collect(Collectors.joining("&"));
+            sb.append(key).append("=").append(payFastEncode(value)).append("&");
+        }
 
-    log.info("RAW Base String for MD5: {}", baseString);
+        String baseString = sb.substring(0, sb.length() - 1);
+
+        log.info("RAW Base String for MD5: {}", baseString);
 
     // 4. Return headers (Passphrase is NOT a header, only used for signature)
     return Map.of(
@@ -323,6 +338,20 @@ public class PayFastSubscriptionService {
         sub.setStatus(1);
     // Save the updated organization to the repository
         orgRepo.save(org);
+    }
+
+    private PayFastSubscriptionDto mapToPayFastSubscriptionDTO (String response) {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+
+        try {
+            JsonNode root = mapper.readTree(response);
+            JsonNode dataNode = root.path("data").path("response");
+
+            return mapper.treeToValue(dataNode, PayFastSubscriptionDto.class);
+        } catch (Exception e) {
+            throw  new RuntimeException("Failed to map PayFast response: ", e);
+        }
     }
 
 }
