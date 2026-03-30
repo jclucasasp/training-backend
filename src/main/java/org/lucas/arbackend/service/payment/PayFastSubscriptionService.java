@@ -1,6 +1,5 @@
 package org.lucas.arbackend.service.payment;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -8,7 +7,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.BadRequestException;
+import org.apache.logging.log4j.util.InternalException;
 import org.lucas.arbackend.dto.payfast.PayFastSubscriptionDto;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.Organisation.OrganisationSubscription;
@@ -29,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 import reactor.core.publisher.Mono;
 
+import javax.management.BadAttributeValueExpException;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -47,6 +47,7 @@ import java.util.regex.Pattern;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional
 public class PayFastSubscriptionService {
 
     private final OrganisationRepository orgRepo;
@@ -55,6 +56,8 @@ public class PayFastSubscriptionService {
     private final TenantProvider tenantProvider;
     private final CacheService cacheService;
     private final SubscriptionPlanRepository subPlanRepo;
+
+    private final ObjectMapper mapper = getObjectMapper();
     private final RestClient restClient = RestClient.builder().baseUrl("https://api.payfast.co.za").build();
 
     @Value("${payfast.pass-phrase}")
@@ -75,12 +78,11 @@ public class PayFastSubscriptionService {
  * @throws SecurityException If the PayFast signature is invalid
  * @throws EntityNotFoundException If the organization is not found
  */
-    // TODO: Test if the added db subscription plan type and price checks are working
-    @Transactional
-    public void processIpn(HttpServletRequest request) {
+    // TODO: Change the exceptions when a db mismatch occur and save the payment as failed so that a refund can happen.
+    public String processIpn(HttpServletRequest request) {
     // Check if passphrase is provided for signature validation
         if (passphrase == null || passphrase.isBlank()) {
-            throw new RuntimeException("No passphrase provided for PayFast signature validation");
+            throw new IllegalStateException("No passphrase provided for PayFast signature validation");
         }
 
     // Extract all parameters from the request into a LinkedHashMap
@@ -93,14 +95,12 @@ public class PayFastSubscriptionService {
         }
 
         String subscriptionType = params.get("item_name").trim().toUpperCase();
+        log.info("DEBUG: Purchased Subscription plan: [{}]", subscriptionType);
+
         SubscriptionPlan plan = subPlanRepo.findByPlan(PlanTypes.valueOf(subscriptionType))
                 .orElseThrow(() -> new EntityNotFoundException("Invalid Subscription Plan"));
 
-        if (!Double.valueOf(params.get("amount")).equals(plan.getPrice())) {
-            throw new IllegalStateException("Subscription plan type price mismatch");
-        }
-
-        // Log the received notification for organization tracking
+         // Log the received notification for organization tracking
         log.info("Received PayFast ITN notification for Organisation ID: {}", params.get("m_payment_id"));
 
         // FIX: Compare the received signature with the calculated one
@@ -111,22 +111,26 @@ public class PayFastSubscriptionService {
 
         if (!"COMPLETE".equalsIgnoreCase(params.get("payment_status"))) {
             log.warn("Ignored IPN: Status is {}", params.get("payment_status"));
-            throw new RuntimeException("Payment has not been completed. Status is: " + params.get("payment_status"));
+            throw new IllegalStateException("Payment has not been completed. Status is: " + params.get("payment_status"));
         }
 
         String pfId = params.get("pf_payment_id");
         if (logRepo.existsByPfPaymentId(pfId)) {
             log.warn("Payment {} already processed.", pfId);
-            throw new RuntimeException("Payment has already been processed");
+            throw new IllegalStateException("Payment has already been processed");
         }
 
         Long orgId = Long.parseLong(params.get("m_payment_id"));
         double gross = Double.parseDouble(params.get("amount_gross"));
 
+        if (!plan.getPrice().equals(gross)) {
+            log.error("Subscription plan type price mismatch");
+        }
+
         Organisation org = orgRepo.findById(orgId)
                 .orElseThrow(() -> new EntityNotFoundException("Org not found"));
 
-        updateSubscription(org, params.get("item_name"));
+        updateOrganisationSubscription(org, params.get("item_name"));
 
         logRepo.save(PaymentLog.builder()
                 .pfPaymentId(pfId)
@@ -135,10 +139,12 @@ public class PayFastSubscriptionService {
                 .subscription(params.get("token") != null)
                 .token(params.get("token"))
                 .billingDate(LocalDateTime.parse(params.get("billing_date") + "T00:00:00"))
-                .paymentStatus("SUCCESS")
+                .paymentStatus(params.get("payment_status"))
                 .build());
 
         cacheService.updateCache("auth_user", org.getEmail(), orgMapper.mapToOrgResponse(org));
+
+        return "OK";
     }
 
     /**
@@ -148,7 +154,7 @@ public class PayFastSubscriptionService {
         PaymentLog paymentLog = logRepo.findByOrgId(tenantProvider.get())
                 .orElseThrow(() -> new EntityNotFoundException("No token found for organisation"));
 
-        Map<String, String> treeMap = generateApiHeaders();
+        Map<String, String> headerMap = generateApiHeaders();
 
         String response = restClient.get()
                 .uri(uriBuilder -> uriBuilder
@@ -156,19 +162,62 @@ public class PayFastSubscriptionService {
                 .queryParam("testing", "true")
                 .build(paymentLog.getToken()))
                 .accept(MediaType.APPLICATION_JSON)
-                .header("merchant-id", treeMap.get("merchant-id"))
-                .header("version", "v1")
-                .header("timestamp", treeMap.get("timestamp"))
-                .header("signature", treeMap.get("signature"))
+                .headers(httpHeaders -> headerMap.forEach(httpHeaders::add))
                 .retrieve()
                 .onStatus(HttpStatusCode::isError, (req, res) ->
-                        Mono.error(new RuntimeException("Error fetching subscription status")))
+                        Mono.error(new BadAttributeValueExpException("Error fetching subscription status")))
                 .body(String.class);
 
         log.debug("Response: [{}]", response);
 
-        return mapToPayFastSubscriptionDTO(response);
+        try {
+            return mapper.readValue(response, PayFastSubscriptionDto.class);
+        } catch (Exception e) {
+            throw  new IllegalStateException("Failed to map PayFast response: ", e);
+        }
+    }
 
+    public boolean cancelPayFastSubscription() {
+        Map<String, String> headerMap = generateApiHeaders();
+
+        PaymentLog paymentLog = logRepo.findByOrgId(tenantProvider.get())
+                .orElseThrow(() -> new EntityNotFoundException("No subscription plan found for organisation " + tenantProvider.get()));
+
+        if (paymentLog.getEndedAt() != null) {
+            throw new IllegalStateException("Subscription plan already cancelled");
+        }
+
+        String response = restClient.put()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/subscriptions/{token}/cancel")
+                        .queryParam("testing", true)
+                        .build(paymentLog.getToken()))
+                .headers(httpHeaders -> headerMap.forEach(httpHeaders::add))
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, (req, res) ->
+                        Mono.error(new BadAttributeValueExpException("Error cancelling subscription")))
+                .body(String.class);
+
+        log.info("Subscription cancellation response: [{}]", response);
+
+        try {
+            JsonNode root = mapper.readTree(response);
+
+            int code = root.path("code").asInt();
+            String status = root.path("status").asText();
+
+            boolean wasCancelled = root.path("data").path("response").asBoolean();
+
+            if (code == 200 && status.equals("success") && wasCancelled) {
+                logRepo.delete(paymentLog);
+                return true;
+            }
+
+            return false;
+        } catch (Exception e) {
+            throw new InternalException("Unable to parse response from PayFast subscription cancellation: ", e);
+        }
     }
 
     /**
@@ -274,29 +323,6 @@ public class PayFastSubscriptionService {
     }
 
 
-/**
- * Computes the MD5 hash of the input string.
- * MD5 is a widely used cryptographic hash function that produces a 128-bit hash value.
- *
- * @param input The string to be hashed
- * @return The MD5 hash of the input string as a hexadecimal value
- * @throws RuntimeException if MD5 algorithm is not available or an error occurs during hashing
- */
-    private String md5(String input) {
-        try {
-        // Get MD5 digest instance
-            MessageDigest md = MessageDigest.getInstance("MD5");
-        // Compute the hash in bytes
-            byte[] hash = md.digest(input.getBytes(StandardCharsets.UTF_8));
-        // Convert the byte array into a hexadecimal string
-            StringBuilder sb = new StringBuilder();
-            for (byte b : hash) sb.append(String.format("%02x", b));
-            log.info("DEBUG: MD5 Signature: [{}]", sb.toString());
-            return sb.toString();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 // TODO: Need to check at month end if the recurring payment was made and update as necessary
 /**
  * Updates the subscription for an organization based on the provided subscription term.
@@ -306,7 +332,7 @@ public class PayFastSubscriptionService {
  * @param subTerm The subscription term (e.g., "MONTHLY" or "YEARLY")
  * @throws RuntimeException If no subscription type is provided
  */
-    private void updateSubscription(Organisation org, String subTerm) {
+    private void updateOrganisationSubscription(Organisation org, String subTerm) {
     // Validate that subscription term is provided
         if (subTerm.isBlank()) throw new RuntimeException("No subscription type provided");
 
@@ -348,18 +374,33 @@ public class PayFastSubscriptionService {
         orgRepo.save(org);
     }
 
-    private PayFastSubscriptionDto mapToPayFastSubscriptionDTO (String response) {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-
+    /**
+     * Computes the MD5 hash of the input string.
+     * MD5 is a widely used cryptographic hash function that produces a 128-bit hash value.
+     *
+     * @param input The string to be hashed
+     * @return The MD5 hash of the input string as a hexadecimal value
+     * @throws RuntimeException if MD5 algorithm is not available or an error occurs during hashing
+     */
+    private String md5(String input) {
         try {
-            JsonNode root = mapper.readTree(response);
-            JsonNode dataNode = root.path("data").path("response");
-
-            return mapper.treeToValue(dataNode, PayFastSubscriptionDto.class);
+            // Get MD5 digest instance
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            // Compute the hash in bytes
+            byte[] hash = md.digest(input.getBytes(StandardCharsets.UTF_8));
+            // Convert the byte array into a hexadecimal string
+            StringBuilder sb = new StringBuilder();
+            for (byte b : hash) sb.append(String.format("%02x", b));
+            log.info("DEBUG: MD5 Signature: [{}]", sb.toString());
+            return sb.toString();
         } catch (Exception e) {
-            throw  new RuntimeException("Failed to map PayFast response: ", e);
+            throw new RuntimeException(e);
         }
+    }
+
+    private ObjectMapper getObjectMapper () {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.registerModule(new JavaTimeModule());
     }
 
 }

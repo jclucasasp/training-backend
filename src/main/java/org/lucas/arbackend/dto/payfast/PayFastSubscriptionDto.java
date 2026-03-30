@@ -9,23 +9,38 @@ import java.time.ZonedDateTime;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PayFastSubscriptionDto {
+private int code;
+    private String status;
+    private DataPayload data;
 
-    private Integer amount;
-    private Integer cycles;
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class DataPayload {
+        private SubscriptionDetails response;
+    }
 
-    @JsonProperty("cycles_complete")
-    private Integer cyclesComplete;
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class SubscriptionDetails {
+        private int amount; // Note: This is in cents (R16.28)
+        private int cycles;
 
-    private Integer frequency;
+        @JsonProperty("cycles_complete")
+        private int cyclesComplete;
 
-    @JsonProperty("run_date")
-    private ZonedDateTime runDate;
+        private int frequency;
 
-    private Integer status;
+        @JsonProperty("run_date")
+        private ZonedDateTime runDate;
 
-    @JsonProperty("status_text")
-    private String statusText;
+        private int status;
 
-    private String token;
+        @JsonProperty("status_reason")
+        private String statusReason;
 
+        @JsonProperty("status_text")
+        private String statusText;
+
+        private String token;
+    }
 }
