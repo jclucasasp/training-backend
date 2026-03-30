@@ -258,5 +258,19 @@ public class GlobalExceptionHandler {
                 .build();
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(SecurityException.class)
+    public ResponseEntity<ErrorDetailsResponse> handleInvalidSecurity(SecurityException ex, WebRequest request) {
+        log.error("Security exception: ", ex);
+
+        ErrorDetailsResponse response = ErrorDetailsResponse.builder()
+                .timeStamp(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS))
+                .message(ex.getMessage())
+                .details(request.getDescription(false))
+                .errorCode(HttpStatus.EXPECTATION_FAILED)
+                .build();
+
+        return new ResponseEntity<>(response, HttpStatus.EXPECTATION_FAILED);
+    }
 }
 

@@ -8,6 +8,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.BadRequestException;
 import org.lucas.arbackend.dto.payfast.PayFastSubscriptionDto;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.Organisation.OrganisationSubscription;
@@ -74,7 +75,7 @@ public class PayFastSubscriptionService {
  * @throws SecurityException If the PayFast signature is invalid
  * @throws EntityNotFoundException If the organization is not found
  */
-    // TODO: Verify that the amount send from payfast corresponds to the amount stored in the db
+    // TODO: Test if the added db subscription plan type and price checks are working
     @Transactional
     public void processIpn(HttpServletRequest request) {
     // Check if passphrase is provided for signature validation
@@ -91,7 +92,15 @@ public class PayFastSubscriptionService {
             params.put(paramName, paramValue != null ? paramValue : "");
         }
 
-    // Log the received notification for organization tracking
+        String subscriptionType = params.get("item_name").trim().toUpperCase();
+        SubscriptionPlan plan = subPlanRepo.findByPlan(PlanTypes.valueOf(subscriptionType))
+                .orElseThrow(() -> new EntityNotFoundException("Invalid Subscription Plan"));
+
+        if (!Double.valueOf(params.get("amount")).equals(plan.getPrice())) {
+            throw new IllegalStateException("Subscription plan type price mismatch");
+        }
+
+        // Log the received notification for organization tracking
         log.info("Received PayFast ITN notification for Organisation ID: {}", params.get("m_payment_id"));
 
         // FIX: Compare the received signature with the calculated one
@@ -100,16 +109,15 @@ public class PayFastSubscriptionService {
             throw new SecurityException("Invalid PayFast signature detected");
         }
 
-        // TODO: Throw a custom exception for invalid signatures
         if (!"COMPLETE".equalsIgnoreCase(params.get("payment_status"))) {
             log.warn("Ignored IPN: Status is {}", params.get("payment_status"));
-            return;
+            throw new RuntimeException("Payment has not been completed. Status is: " + params.get("payment_status"));
         }
 
         String pfId = params.get("pf_payment_id");
         if (logRepo.existsByPfPaymentId(pfId)) {
             log.warn("Payment {} already processed.", pfId);
-            return;
+            throw new RuntimeException("Payment has already been processed");
         }
 
         Long orgId = Long.parseLong(params.get("m_payment_id"));

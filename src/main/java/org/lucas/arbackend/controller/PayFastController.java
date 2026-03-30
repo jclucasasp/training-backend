@@ -40,20 +40,8 @@ public class PayFastController {
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
     public ResponseEntity<String> handlePayFastItn(HttpServletRequest request) {
-
-        try {
-            subscriptionService.processIpn(request);
             // PayFast MUST receive an 'OK' or 200 response to acknowledge the notification
             return ResponseEntity.ok("OK");
-
-        } catch (SecurityException e) {
-            log.warn("PayFast security violation: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        } catch (Exception e) {
-            log.error("Error processing PayFast ITN", e);
-            // Return 500 so PayFast knows to retry later
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
     }
 
     @GetMapping("/subscriptions/fetch")
