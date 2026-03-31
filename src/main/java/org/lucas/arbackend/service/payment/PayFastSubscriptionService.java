@@ -97,7 +97,6 @@ public class PayFastSubscriptionService {
 
             // Defensive parsing
             Long orgId = params.containsKey("m_payment_id") ? Long.parseLong(params.get("m_payment_id")) : null;
-            double receivedAmount = params.containsKey("amount_gross") ? Double.parseDouble(params.get("amount_gross")) : 0.0;
             String payFastId = params.get("pf_payment_id");
 
             // 2. Validations
@@ -108,13 +107,22 @@ public class PayFastSubscriptionService {
             }
 
             PlanTypes planTerm = null;
+            SubscriptionPlan subscriptionPlan = null;
             try {
                 planTerm = PlanTypes.valueOf(params.get("item_name").toUpperCase());
+                subscriptionPlan = subPlanRepo.findByPlan(planTerm).orElseThrow();
             } catch (Exception e) {
                 failureCode = FailureCode.PLAN_MISMATCH;
                 failureDescription = "Invalid plan name: " + params.get("item_name");
             }
 
+            double receivedAmount = params.containsKey("amount_gross") ? Double.parseDouble(params.get("amount_gross")) : 1;
+            if (subscriptionPlan != null && subscriptionPlan.getPrice() != null) {
+                if (!subscriptionPlan.getPrice().equals(receivedAmount)) {
+                    failureCode = FailureCode.AMOUNT_MISMATCH;
+                    failureDescription = "Price mismatch. Expected price = [" + subscriptionPlan.getPrice() +"]. Received amount = [" + receivedAmount + "]";
+                }
+            }
             // Signature Check
             String receivedSignature = params.get("signature");
             if (receivedSignature == null || !receivedSignature.equals(calculateItnSignature(params, passphrase))) {
