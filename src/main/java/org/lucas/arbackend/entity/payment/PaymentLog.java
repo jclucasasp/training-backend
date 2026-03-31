@@ -29,8 +29,8 @@ public class PaymentLog extends BaseEntity {
     @Column(name = "pal_amount", nullable = false)
     private BigDecimal amount;
 
-    @Column(name = "pal_subscription")
-    private boolean subscription = false;
+    @Column(name = "pal_sub_cycles")
+    private Integer subscriptionCycles = 1;
 
     @Column(name = "pal_billing_date")
     private LocalDateTime billingDate;
@@ -39,7 +39,20 @@ public class PaymentLog extends BaseEntity {
     @Convert(converter = TokenEncryptionConverter.class)
     private String token;
 
-    @Column(name = "pal_payment_status", nullable = false)
-    private String paymentStatus;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pal_payment_status", nullable = false, columnDefinition = "ENUM('COMPLETED', 'FAILED', 'PENDING')")
+    private PaymentStatus paymentStatus;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pal_sub_status", columnDefinition = "ENUM('ACTIVE', 'CANCELLED', 'SUSPENDED', 'DELETED')")
+    private SubscriptionStatus subscriptionStatus;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pal_failure_code", columnDefinition = "ENUM('PRICE_MISMATCH', 'AMOUNT_MISMATCH', 'PLAN_MISMATCH', 'SIGNATURE_MISMATCH', 'INSUFFICIENT_FUNDS','ORG_NOT_FOUND')")
+    private FailureCode failureCode;
+
+    @Column(name = "pal_failure_details")
+    private String failureDetails;
+
 
 }

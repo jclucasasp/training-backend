@@ -7,7 +7,6 @@ import org.lucas.arbackend.dto.organisation.OrganisationRequest;
 import org.lucas.arbackend.dto.organisation.OrganisationResponse;
 import org.lucas.arbackend.dto.security.ApiKeyResponse;
 import org.lucas.arbackend.entity.Organisation.*;
-import org.lucas.arbackend.entity.PlanTypes;
 import org.lucas.arbackend.entity.security.ApiKey;
 import org.lucas.arbackend.entity.security.Role;
 import org.lucas.arbackend.entity.security.RoleTypes;
@@ -25,8 +24,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
 
 @Slf4j
 @Service
@@ -104,7 +101,7 @@ public class OrganisationService {
         // Persists Org, Subscription, Profile, and Address in one transaction
         Organisation savedOrg = orgRepo.save(org);
 
-        CustomUserDetails newUser = new CustomUserDetails(org.getId(), org.getEmail(), "", org.getId(), org.getRole().getName());
+        CustomUserDetails newUser = new CustomUserDetails(org.getId(), org.getEmail(), "", org.getId(), org.getRole().getRoleName());
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(newUser, null, newUser.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
 

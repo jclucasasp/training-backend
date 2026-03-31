@@ -12,8 +12,9 @@ public class Role {
     @Column(name = "rol_id")
     private Long id;
 
-    @Column(name = "rol_name")
-    private String name;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "rol_name", columnDefinition = "ENUM('ORG_ADMIN', 'COURSE_EDITOR', 'SUPPORT', 'STUDENT')")
+    private RoleTypes roleName;
 
     @Column(name = "rol_description")
     private String description;

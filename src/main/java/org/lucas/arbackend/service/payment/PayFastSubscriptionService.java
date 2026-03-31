@@ -3,6 +3,7 @@ package org.lucas.arbackend.service.payment;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.sun.net.httpserver.Authenticator;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,10 @@ import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.Organisation.OrganisationSubscription;
 import org.lucas.arbackend.entity.Organisation.SubscriptionPlan;
 import org.lucas.arbackend.entity.PlanTypes;
+import org.lucas.arbackend.entity.payment.FailureCode;
 import org.lucas.arbackend.entity.payment.PaymentLog;
+import org.lucas.arbackend.entity.payment.PaymentStatus;
+import org.lucas.arbackend.entity.payment.SubscriptionStatus;
 import org.lucas.arbackend.mapper.OrganisationMapper;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.SubscriptionPlanRepository;
@@ -21,11 +25,14 @@ import org.lucas.arbackend.repository.payment.PaymentLogRepository;
 import org.lucas.arbackend.service.cache.CacheService;
 import org.lucas.arbackend.util.tenant.TenantProvider;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
 import javax.management.BadAttributeValueExpException;
@@ -37,10 +44,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Enumeration;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -69,80 +74,83 @@ public class PayFastSubscriptionService {
     @Value("${payfast.sandbox-url}")
     private String sandboxUrl;
 
-    /**
- * Processes an IPN (Instant Payment Notification) from PayFast, verifying the signature
- * and updating the organization's subscription and payment records accordingly.
- *
- * @param request The HttpServletRequest containing the PayFast notification parameters
- * @throws RuntimeException If no passphrase is provided for signature validation
- * @throws SecurityException If the PayFast signature is invalid
- * @throws EntityNotFoundException If the organization is not found
- */
-    // TODO: Change the exceptions when a db mismatch occur and save the payment as failed so that a refund can happen.
     public String processIpn(HttpServletRequest request) {
-    // Check if passphrase is provided for signature validation
         if (passphrase == null || passphrase.isBlank()) {
-            throw new IllegalStateException("No passphrase provided for PayFast signature validation");
+            throw new IllegalStateException("No passphrase provided");
         }
 
-    // Extract all parameters from the request into a LinkedHashMap
-        Map<String, String> params = new LinkedHashMap<>();
-        Enumeration<String> parameterNames = request.getParameterNames();
-        while (parameterNames.hasMoreElements()) {
-            String paramName = parameterNames.nextElement();
-            String paramValue = request.getParameter(paramName);
-            params.put(paramName, paramValue != null ? paramValue : "");
+        // 1. Extract params
+        Map<String, String> params = new HashMap<>();
+        request.getParameterNames().asIterator().forEachRemaining(name ->
+                params.put(name, request.getParameter(name)));
+
+        try {
+            // Use the correct PayFast key 'payment_status'
+            PaymentStatus paymentStatus = PaymentStatus.valueOf(params.get("payment_status"));
+            FailureCode failureCode = null;
+            String failureDescription = null;
+
+            // Defensive parsing
+            Long orgId = params.containsKey("m_payment_id") ? Long.parseLong(params.get("m_payment_id")) : null;
+            double receivedAmount = params.containsKey("amount_gross") ? Double.parseDouble(params.get("amount_gross")) : 0.0;
+            String payFastId = params.get("pf_payment_id");
+
+            // 2. Validations
+            Organisation org = (orgId != null) ? orgRepo.findById(orgId).orElse(null) : null;
+            if (org == null) {
+                failureCode = FailureCode.ORG_NOT_FOUND;
+                failureDescription = "Org ID " + orgId + " not found.";
+            }
+
+            PlanTypes planType = null;
+            try {
+                planType = PlanTypes.valueOf(params.get("item_name").toUpperCase());
+            } catch (Exception e) {
+                failureCode = FailureCode.PLAN_MISMATCH;
+                failureDescription = "Invalid plan name: " + params.get("item_name");
+            }
+
+            // Signature Check
+            String receivedSignature = params.get("signature");
+            if (receivedSignature == null || !receivedSignature.equals(calculateItnSignature(params, passphrase))) {
+                failureCode = FailureCode.SIGNATURE_MISMATCH;
+                failureDescription = "Signature mismatch!";
+            }
+
+            // Duplicate Check
+            if (logRepo.existsByPfPaymentId(payFastId)) {
+                failureCode = FailureCode.DUPLICATE_PAYMENT;
+                failureDescription = "Already processed pf_id: " + payFastId;
+            }
+
+            // 3. EXECUTION BLOCK (Only if no failures)
+            if (failureCode == null && "COMPLETE".equalsIgnoreCase(paymentStatus.name())) {
+                updateOrganisationSubscription(org, params.get("item_name"));
+                cacheService.updateCache("auth_user", org.getEmail(), orgMapper.mapToOrgResponse(org));
+                log.info("Successfully processed payment for Org {}", orgId);
+            } else if (failureCode != null) {
+                log.error("Payment Flagged: {} - {}", failureCode, failureDescription);
+            }
+
+            // 4. ALWAYS SAVE THE LOG
+            logRepo.save(PaymentLog.builder()
+                    .pfPaymentId(payFastId)
+                    .orgId(orgId)
+                    .amount(BigDecimal.valueOf(receivedAmount))
+                    .subscriptionCycles(params.get("cycles") != null ? Integer.parseInt(params.get("cycles")) : 1)
+                    .paymentStatus(paymentStatus)
+                    .failureCode(failureCode)
+                    .failureDetails(failureDescription)
+                    .token(params.get("token"))
+                    .billingDate(params.get("billing_date") != null ?
+                            LocalDateTime.parse(params.get("billing_date") + "T00:00:00") : LocalDateTime.now())
+                    .build());
+
+        } catch (Exception e) {
+            log.error("Critical ITN Error", e);
+            // Return 500 so PayFast retries
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "ITN Failed");
         }
-
-        String subscriptionType = params.get("item_name").trim().toUpperCase();
-        log.info("DEBUG: Purchased Subscription plan: [{}]", subscriptionType);
-
-        SubscriptionPlan plan = subPlanRepo.findByPlan(PlanTypes.valueOf(subscriptionType))
-                .orElseThrow(() -> new EntityNotFoundException("Invalid Subscription Plan"));
-
-         // Log the received notification for organization tracking
-        log.info("Received PayFast ITN notification for Organisation ID: {}", params.get("m_payment_id"));
-
-        // FIX: Compare the received signature with the calculated one
-        String receivedSignature = params.get("signature");
-        if (receivedSignature == null || !receivedSignature.equals(calculateItnSignature(params, passphrase))) {
-            throw new SecurityException("Invalid PayFast signature detected");
-        }
-
-        if (!"COMPLETE".equalsIgnoreCase(params.get("payment_status"))) {
-            log.warn("Ignored IPN: Status is {}", params.get("payment_status"));
-            throw new IllegalStateException("Payment has not been completed. Status is: " + params.get("payment_status"));
-        }
-
-        String pfId = params.get("pf_payment_id");
-        if (logRepo.existsByPfPaymentId(pfId)) {
-            log.warn("Payment {} already processed.", pfId);
-            throw new IllegalStateException("Payment has already been processed");
-        }
-
-        Long orgId = Long.parseLong(params.get("m_payment_id"));
-        double gross = Double.parseDouble(params.get("amount_gross"));
-
-        if (!plan.getPrice().equals(gross)) {
-            log.error("Subscription plan type price mismatch");
-        }
-
-        Organisation org = orgRepo.findById(orgId)
-                .orElseThrow(() -> new EntityNotFoundException("Org not found"));
-
-        updateOrganisationSubscription(org, params.get("item_name"));
-
-        logRepo.save(PaymentLog.builder()
-                .pfPaymentId(pfId)
-                .orgId(orgId)
-                .amount(BigDecimal.valueOf(gross))
-                .subscription(params.get("token") != null)
-                .token(params.get("token"))
-                .billingDate(LocalDateTime.parse(params.get("billing_date") + "T00:00:00"))
-                .paymentStatus(params.get("payment_status"))
-                .build());
-
-        cacheService.updateCache("auth_user", org.getEmail(), orgMapper.mapToOrgResponse(org));
 
         return "OK";
     }

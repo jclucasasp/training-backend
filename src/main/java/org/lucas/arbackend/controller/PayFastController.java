@@ -37,7 +37,7 @@ public class PayFastController {
     }
 
     @GetMapping("/subscriptions/fetch")
-    @Operation(summary = "Fetch Subscription Status",
+    @Operation(summary = "Fetch Subscription PaymentStatus",
                description = "Queries the PayFast API to retrieve current billing cycles, amount, and status for a subscription token.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Subscription details retrieved successfully",

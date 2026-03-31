@@ -28,6 +28,6 @@ public interface StaffMapper {
             return null;
         }
 
-        return role.getName();
+        return role.getRoleName();
     }
 }

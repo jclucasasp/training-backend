@@ -121,17 +121,22 @@ CREATE TABLE IF NOT EXISTS payment_logs (
     pal_pf_payment_id VARCHAR(50) NOT NULL,
     pal_org_id BIGINT NOT NULL,
     pal_amount DECIMAL(19, 2) NOT NULL,
-    pal_subscription BOOLEAN DEFAULT FALSE,
+    pal_sub_cycles Integer DEFAULT 1,
     pal_billing_date TIMESTAMP DEFAULT NULL,
-    pal_token VARCHAR(225) NULL, -- Used for subscription payments
-    pal_payment_status VARCHAR(20),
+    pal_token VARCHAR(225) NULL,
+    pal_payment_status ENUM('COMPLETED', 'FAILED', 'PENDING') DEFAULT NULL,
+    pal_sub_status ENUM('ACTIVE', 'CANCELLED', 'SUSPENDED', 'DELETED') DEFAULT NULL,
+    pal_failure_code ENUM('PRICE_MISMATCH', 'AMOUNT_MISMATCH', 'PLAN_MISMATCH', 'SIGNATURE_MISMATCH', 'DUPLICATE_PAYMENT' 'INSUFFICIENT_FUNDS','ORG_NOT_FOUND', 'UNAUTHORISED') DEFAULT NULL,
+    pal_failure_details TEXT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIME ON UPDATE CURRENT_TIMESTAMP,
     ended_at TIMESTAMP DEFAULT NULL,
     -- Crucial for Idempotency: Prevents duplicate processing at the DB level
     CONSTRAINT uk_pf_payment_id UNIQUE (pal_pf_payment_id),
     -- Index for reporting/audit lookups by organization
-    INDEX idx_payment_org (pal_org_id)
+    INDEX idx_payment_org (pal_org_id),
+    INDEX idx_pal_payment_status(pal_payment_status),
+    INDEX idx_pal_failure_code(pal_failure_code)
 ) ENGINE=InnoDB;
 
 
@@ -158,13 +163,13 @@ CREATE TABLE IF NOT EXISTS course (
     ended_at DATETIME NULL,
     CONSTRAINT fk_course_org FOREIGN KEY (cou_org_id) REFERENCES organisation(org_id),
     CONSTRAINT fk_course_staff FOREIGN KEY (cou_stf_id) REFERENCES staff(stf_id),
-    UNIQUE INDEX idx_course_slug_org (cou_org_id, cou_slug), -- Scoped unique slug
+    UNIQUE INDEX idx_course_slug_org (cou_org_id, cou_slug),
     INDEX idx_course_tenant (cou_org_id, cou_id)
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS chapter (
     cha_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    cha_org_id BIGINT NOT NULL, -- Added for isolation
+    cha_org_id BIGINT NOT NULL,
     cha_course_id BIGINT NOT NULL,
     cha_name VARCHAR(255) NOT NULL,
     cha_summary TEXT,
@@ -180,7 +185,7 @@ CREATE TABLE IF NOT EXISTS chapter (
 
 CREATE TABLE IF NOT EXISTS chapter_section (
     chs_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    chs_org_id BIGINT NOT NULL, -- Added for isolation
+    chs_org_id BIGINT NOT NULL,
     chs_chapter_id BIGINT NOT NULL,
     chs_title VARCHAR(255) NOT NULL,
     chs_content TEXT,
@@ -201,7 +206,7 @@ CREATE TABLE IF NOT EXISTS chapter_section (
 
 CREATE TABLE IF NOT EXISTS attachment (
     att_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    att_org_id BIGINT NOT NULL, -- Added for isolation
+    att_org_id BIGINT NOT NULL,
     att_file_name VARCHAR(255) NOT NULL,
     att_file_type VARCHAR(255) NOT NULL,
     att_file_url VARCHAR(255) NOT NULL,
@@ -235,7 +240,7 @@ CREATE TABLE IF NOT EXISTS quiz (
 -- NEW: Quiz Questions
 CREATE TABLE IF NOT EXISTS quiz_question (
     qq_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    qq_org_id BIGINT NOT NULL, -- Added for isolation
+    qq_org_id BIGINT NOT NULL,
     qq_quiz_id BIGINT NOT NULL,
     qq_text TEXT NOT NULL,
     qq_type ENUM('MULTIPLE_CHOICE', 'TRUE_FALSE') DEFAULT 'MULTIPLE_CHOICE',
@@ -250,7 +255,7 @@ CREATE TABLE IF NOT EXISTS quiz_question (
 -- NEW: Quiz Options
 CREATE TABLE IF NOT EXISTS quiz_question_option (
     qto_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    qto_org_id BIGINT NOT NULL, -- Added for isolation
+    qto_org_id BIGINT NOT NULL,
     qto_question_id BIGINT NOT NULL,
     qto_text TEXT NOT NULL,
     qto_is_correct BOOLEAN DEFAULT FALSE,
@@ -285,7 +290,7 @@ CREATE TABLE IF NOT EXISTS student (
 
 CREATE TABLE IF NOT EXISTS student_enrollment (
     ste_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    ste_org_id BIGINT NOT NULL, -- Added for isolation
+    ste_org_id BIGINT NOT NULL,
     ste_student_id BIGINT NOT NULL,
     ste_course_id BIGINT NOT NULL,
     ste_chapter_section_id BIGINT NULL,
@@ -303,7 +308,7 @@ CREATE TABLE IF NOT EXISTS student_enrollment (
 
 CREATE TABLE IF NOT EXISTS student_progress (
     stp_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    stp_org_id BIGINT NOT NULL, -- Added for isolation
+    stp_org_id BIGINT NOT NULL,
     stp_student_enrollment_id BIGINT NOT NULL,
     stp_section_id BIGINT NOT NULL,
     stp_percentage DECIMAL(5,2) DEFAULT 0.00,
@@ -337,9 +342,9 @@ CREATE TABLE IF NOT EXISTS student_quiz_attempt (
     sqa_org_id BIGINT NOT NULL,
     sqa_student_id BIGINT NOT NULL,
     sqa_quiz_id BIGINT NOT NULL,
-    sqa_score DECIMAL(5,2) NOT NULL, -- Changed to DECIMAL for precision (e.g., 85.50)
+    sqa_score DECIMAL(5,2) NOT NULL,
     sqa_is_passed BOOLEAN DEFAULT FALSE,
-    sqa_submitted_answers_json JSON, -- Using JSON type for better querying if on MySQL 5.7+
+    sqa_submitted_answers_json JSON,
     sqa_started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     sqa_completed_at DATETIME NULL,
     CONSTRAINT fk_sqa_org FOREIGN KEY (sqa_org_id) REFERENCES organisation(org_id),
@@ -353,13 +358,13 @@ CREATE TABLE IF NOT EXISTS student_quiz_attempt (
 -- Table for the main question asked by a student
 CREATE TABLE IF NOT EXISTS course_question (
     cq_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    cq_org_id BIGINT NOT NULL,             -- Tenant isolation
-    cq_course_id BIGINT NOT NULL,          -- The course this belongs to
-    cq_section_id BIGINT NULL,             -- Optional: The specific section they were on
-    cq_student_id BIGINT NOT NULL,         -- The student who asked
+    cq_org_id BIGINT NOT NULL,
+    cq_course_id BIGINT NOT NULL,
+    cq_section_id BIGINT NULL,
+    cq_student_id BIGINT NOT NULL,
     cq_title VARCHAR(255) NOT NULL,
     cq_body TEXT NOT NULL,
-    cq_is_resolved BOOLEAN DEFAULT FALSE,  -- Can be toggled when answered
+    cq_is_resolved BOOLEAN DEFAULT FALSE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
     ended_at DATETIME NULL,
@@ -373,15 +378,12 @@ CREATE TABLE IF NOT EXISTS course_question (
 -- Table for replies from either Lecturers (Staff) or other Students
 CREATE TABLE IF NOT EXISTS course_question_reply (
     cqr_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    cqr_org_id BIGINT NOT NULL,            -- Tenant isolation
-    cqr_question_id BIGINT NOT NULL,       -- Link to the parent question
-
-    -- Polymorphic relationship: A reply is written by EITHER a student OR a staff member
+    cqr_org_id BIGINT NOT NULL,
+    cqr_question_id BIGINT NOT NULL,
     cqr_student_id BIGINT NULL,
     cqr_staff_id BIGINT NULL,
-
     cqr_body TEXT NOT NULL,
-    cqr_is_accepted_answer BOOLEAN DEFAULT FALSE, -- Allows lecturer to pin the correct answer
+    cqr_is_accepted_answer BOOLEAN DEFAULT FALSE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
     ended_at DATETIME NULL,

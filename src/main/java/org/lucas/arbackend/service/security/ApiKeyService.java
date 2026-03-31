@@ -61,7 +61,7 @@ public class ApiKeyService {
             orgRepo.save(apiKey.getOrganisation());
             boolean isActiveSubscription = Optional.ofNullable(org.getSubscription()).map(OrganisationSubscription::getStatus).orElse(0) == 1;
             String apiKeyPrefix = Optional.ofNullable(org.getApiKey()).map(ApiKey::getPrefix).orElse("");
-            cacheService.updateCache("auth_user", org.getEmail(), new CacheDto(org.getId(), org.getEmail(), org.getPassword(), org.getFirstName(), org.getLastName(), org.getContactNumber(), org.getRole().getName(), org.getId(), apiKeyPrefix, isActiveSubscription));
+            cacheService.updateCache("auth_user", org.getEmail(), new CacheDto(org.getId(), org.getEmail(), org.getPassword(), org.getFirstName(), org.getLastName(), org.getContactNumber(), org.getRole().getRoleName(), org.getId(), apiKeyPrefix, isActiveSubscription));
         }
 
         // 4. Return the RAW key to the user
@@ -90,6 +90,6 @@ public class ApiKeyService {
 
         boolean isActiveSubscription = Optional.ofNullable(org.getSubscription()).map(OrganisationSubscription::getStatus).orElse(0) == 1;
         String apiKeyPrefix = Optional.ofNullable(org.getApiKey()).map(ApiKey::getPrefix).orElse("");
-        cacheService.updateCache("auth_user", org.getEmail(), new CacheDto(org.getId(), org.getEmail(), org.getPassword(), org.getFirstName(), org.getLastName(), org.getContactNumber(), org.getRole().getName(), org.getId(), apiKeyPrefix, isActiveSubscription));
+        cacheService.updateCache("auth_user", org.getEmail(), new CacheDto(org.getId(), org.getEmail(), org.getPassword(), org.getFirstName(), org.getLastName(), org.getContactNumber(), org.getRole().getRoleName(), org.getId(), apiKeyPrefix, isActiveSubscription));
     }
 }
