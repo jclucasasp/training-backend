@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.lucas.arbackend.entity.BaseEntity;
+import org.lucas.arbackend.entity.PlanTypes;
 import org.lucas.arbackend.util.encrypt.TokenEncryptionConverter;
 
 import java.math.BigDecimal;
@@ -42,6 +43,10 @@ public class PaymentLog extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "pal_payment_status", nullable = false, columnDefinition = "ENUM('COMPLETED', 'FAILED', 'PENDING')")
     private PaymentStatus paymentStatus;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pal_plan_term")
+    private PlanTypes planTerm;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "pal_sub_status", columnDefinition = "ENUM('ACTIVE', 'CANCELLED', 'SUSPENDED', 'DELETED')")

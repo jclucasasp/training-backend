@@ -122,6 +122,7 @@ CREATE TABLE IF NOT EXISTS payment_logs (
     pal_org_id BIGINT NOT NULL,
     pal_amount DECIMAL(19, 2) NOT NULL,
     pal_sub_cycles Integer DEFAULT 1,
+    pal_plan_term ENUM('MONTHLY', 'YEARLY') DEFAULT NULL,
     pal_billing_date TIMESTAMP DEFAULT NULL,
     pal_token VARCHAR(225) NULL,
     pal_payment_status ENUM('COMPLETED', 'FAILED', 'PENDING') DEFAULT NULL,

@@ -3,7 +3,6 @@ package org.lucas.arbackend.service.payment;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.sun.net.httpserver.Authenticator;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +16,6 @@ import org.lucas.arbackend.entity.PlanTypes;
 import org.lucas.arbackend.entity.payment.FailureCode;
 import org.lucas.arbackend.entity.payment.PaymentLog;
 import org.lucas.arbackend.entity.payment.PaymentStatus;
-import org.lucas.arbackend.entity.payment.SubscriptionStatus;
 import org.lucas.arbackend.mapper.OrganisationMapper;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.SubscriptionPlanRepository;
@@ -28,7 +26,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
@@ -44,8 +41,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -102,9 +100,9 @@ public class PayFastSubscriptionService {
                 failureDescription = "Org ID " + orgId + " not found.";
             }
 
-            PlanTypes planType = null;
+            PlanTypes planTerm = null;
             try {
-                planType = PlanTypes.valueOf(params.get("item_name").toUpperCase());
+                planTerm = PlanTypes.valueOf(params.get("item_name").toUpperCase());
             } catch (Exception e) {
                 failureCode = FailureCode.PLAN_MISMATCH;
                 failureDescription = "Invalid plan name: " + params.get("item_name");
@@ -121,6 +119,8 @@ public class PayFastSubscriptionService {
             if (logRepo.existsByPfPaymentId(payFastId)) {
                 failureCode = FailureCode.DUPLICATE_PAYMENT;
                 failureDescription = "Already processed pf_id: " + payFastId;
+                // Return "OK" immediately to stop PayFast from retrying a success
+                return "OK";
             }
 
             // 3. EXECUTION BLOCK (Only if no failures)
@@ -137,6 +137,7 @@ public class PayFastSubscriptionService {
                     .pfPaymentId(payFastId)
                     .orgId(orgId)
                     .amount(BigDecimal.valueOf(receivedAmount))
+                    .planTerm(planTerm)
                     .subscriptionCycles(params.get("cycles") != null ? Integer.parseInt(params.get("cycles")) : 1)
                     .paymentStatus(paymentStatus)
                     .failureCode(failureCode)
@@ -399,7 +400,7 @@ public class PayFastSubscriptionService {
             // Convert the byte array into a hexadecimal string
             StringBuilder sb = new StringBuilder();
             for (byte b : hash) sb.append(String.format("%02x", b));
-            log.info("DEBUG: MD5 Signature: [{}]", sb.toString());
+            log.info("DEBUG: MD5 Signature: [{}]", sb);
             return sb.toString();
         } catch (Exception e) {
             throw new RuntimeException(e);
