@@ -16,6 +16,7 @@ import org.lucas.arbackend.entity.PlanTypes;
 import org.lucas.arbackend.entity.payment.FailureCode;
 import org.lucas.arbackend.entity.payment.PaymentLog;
 import org.lucas.arbackend.entity.payment.PaymentStatus;
+import org.lucas.arbackend.entity.payment.SubscriptionStatus;
 import org.lucas.arbackend.mapper.OrganisationMapper;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.SubscriptionPlanRepository;
@@ -41,9 +42,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -78,15 +77,23 @@ public class PayFastSubscriptionService {
         }
 
         // 1. Extract params
-        Map<String, String> params = new HashMap<>();
-        request.getParameterNames().asIterator().forEachRemaining(name ->
-                params.put(name, request.getParameter(name)));
+        LinkedHashMap<String, String> params = new LinkedHashMap<>();
+        Enumeration<String> parameterNames = request.getParameterNames();
+
+        while (parameterNames.hasMoreElements()) {
+            String paramName = parameterNames.nextElement();
+            String paramValue = request.getParameter(paramName);
+
+            params.put(paramName, paramValue != null ? paramValue : "");
+        }
 
         try {
             // Use the correct PayFast key 'payment_status'
             PaymentStatus paymentStatus = PaymentStatus.valueOf(params.get("payment_status"));
+            log.info("DEBUG: Payment status from incoming params [{}]. Payment status from parsing [{}]", params.get("payment_status"), paymentStatus);
             FailureCode failureCode = null;
             String failureDescription = null;
+            SubscriptionStatus subscriptionStatus = null;
 
             // Defensive parsing
             Long orgId = params.containsKey("m_payment_id") ? Long.parseLong(params.get("m_payment_id")) : null;
@@ -125,6 +132,7 @@ public class PayFastSubscriptionService {
 
             // 3. EXECUTION BLOCK (Only if no failures)
             if (failureCode == null && "COMPLETE".equalsIgnoreCase(paymentStatus.name())) {
+                subscriptionStatus = SubscriptionStatus.ACTIVE;
                 updateOrganisationSubscription(org, params.get("item_name"));
                 cacheService.updateCache("auth_user", org.getEmail(), orgMapper.mapToOrgResponse(org));
                 log.info("Successfully processed payment for Org {}", orgId);
@@ -140,6 +148,7 @@ public class PayFastSubscriptionService {
                     .planTerm(planTerm)
                     .subscriptionCycles(params.get("cycles") != null ? Integer.parseInt(params.get("cycles")) : 1)
                     .paymentStatus(paymentStatus)
+                    .subscriptionStatus(subscriptionStatus)
                     .failureCode(failureCode)
                     .failureDetails(failureDescription)
                     .token(params.get("token"))

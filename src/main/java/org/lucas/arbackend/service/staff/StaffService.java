@@ -44,7 +44,7 @@ public class StaffService {
 
         Organisation org = findOrganisation();
 
-        Role role = roleRepo.findByName(request.getRole().name())
+        Role role = roleRepo.findByRoleName(request.getRole())
                 .orElseThrow(() -> new EntityNotFoundException("Invalid Role"));
 
         Staff staff = new Staff();
@@ -104,7 +104,7 @@ public class StaffService {
             throw new IllegalStateException("Must provide a valid organisation id and staff id");
         }
 
-        Role newRole = roleRepo.findByName(role.name())
+        Role newRole = roleRepo.findByRoleName(role)
                 .orElseThrow(() -> new BadRequestException("Invalid Role"));
 
         Staff staff = staffRepo.findById(staffId)

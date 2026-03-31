@@ -54,7 +54,7 @@ public class AuthLookupService {
                             org.getFirstName(),
                             org.getLastName(),
                             org.getContactNumber(),
-                            org.getRole().getRoleName(),
+                            org.getRole().getRoleName().name(),
                             org.getId(),
                             apiKey,
                             isSubscriptionActive
@@ -74,7 +74,7 @@ public class AuthLookupService {
                                             staff.getFirstName(),
                                             staff.getLastName(),
                                             staff.getContactNumber(),
-                                            staff.getRole().getRoleName(),
+                                            staff.getRole().getRoleName().name(),
                                             staff.getOrganisation().getId(),
                                             apiKey,
                                             isSubscriptionActive

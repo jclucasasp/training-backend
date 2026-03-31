@@ -52,7 +52,7 @@ public class OrganisationService {
             throw new IllegalStateException("Email already registered");
         }
 
-        Role role = roleRepo.findByName(RoleTypes.ORG_ADMIN.name())
+        Role role = roleRepo.findByRoleName(RoleTypes.ORG_ADMIN)
                 .orElseThrow(() -> new EntityNotFoundException("Role not found"));
 
         // 2. Create Organisation
@@ -101,7 +101,7 @@ public class OrganisationService {
         // Persists Org, Subscription, Profile, and Address in one transaction
         Organisation savedOrg = orgRepo.save(org);
 
-        CustomUserDetails newUser = new CustomUserDetails(org.getId(), org.getEmail(), "", org.getId(), org.getRole().getRoleName());
+        CustomUserDetails newUser = new CustomUserDetails(org.getId(), org.getEmail(), "", org.getId(), org.getRole().getRoleName().name());
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(newUser, null, newUser.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
 
