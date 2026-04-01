@@ -98,12 +98,15 @@ public class PayFastSubscriptionService {
             // Defensive parsing
             Long orgId = params.containsKey("m_payment_id") ? Long.parseLong(params.get("m_payment_id")) : null;
             String payFastId = params.get("pf_payment_id");
-
+            OrganisationSubscription orgSub = null;
             // 2. Validations
             Organisation org = (orgId != null) ? orgRepo.findById(orgId).orElse(null) : null;
             if (org == null) {
                 failureCode = FailureCode.ORG_NOT_FOUND;
                 failureDescription = "Org ID " + orgId + " not found.";
+            } else {
+                // TODO: Add contractPrice to OrganisationSubscription
+                orgSub = org.getSubscription();
             }
 
             PlanTypes planTerm = null;
@@ -115,14 +118,22 @@ public class PayFastSubscriptionService {
                 failureCode = FailureCode.PLAN_MISMATCH;
                 failureDescription = "Invalid plan name: " + params.get("item_name");
             }
-
-            double receivedAmount = params.containsKey("amount_gross") ? Double.parseDouble(params.get("amount_gross")) : 1;
-            if (subscriptionPlan != null && subscriptionPlan.getPrice() != null) {
-                if (!subscriptionPlan.getPrice().equals(receivedAmount)) {
+            // TODO: Have to issue a refund and update the subscription to the correct amount
+            double receivedAmount = params.containsKey("amount_gross") ? Double.parseDouble(params.get("amount_gross")) : -1;
+            double expectedAmount = subscriptionPlan != null ? subscriptionPlan.getPrice() : -1;
+            if (expectedAmount > -1 && receivedAmount > -1) {
+                if (expectedAmount > receivedAmount) {
                     failureCode = FailureCode.AMOUNT_MISMATCH;
-                    failureDescription = "Price mismatch. Expected price = [" + subscriptionPlan.getPrice() +"]. Received amount = [" + receivedAmount + "]";
+                    failureDescription = "Price mismatch. Expected price = [" + expectedAmount + "]. Received amount = [" + receivedAmount + "]. Underpaid by [" + (expectedAmount - receivedAmount) + "]. Subscription not activated";
+                } else if (receivedAmount > expectedAmount) {
+                    failureCode = FailureCode.REFUND;
+                    failureDescription = "Price mismatch. Expected price = [" + expectedAmount + "]. Received amount = [" + receivedAmount + "]. Overpaid by [" + (receivedAmount - expectedAmount) + "]. Activating subscription. To refund.";
                 }
+            } else {
+                failureCode = FailureCode.UNAUTHORISED;
+                failureDescription = "Expected price = [" + expectedAmount + "]. Received amount = [" + receivedAmount + "]. Negative amounts indicate either tampering or a db error.";
             }
+
             // Signature Check
             String receivedSignature = params.get("signature");
             if (receivedSignature == null || !receivedSignature.equals(calculateItnSignature(params, passphrase))) {
@@ -139,7 +150,7 @@ public class PayFastSubscriptionService {
             }
 
             // 3. EXECUTION BLOCK (Only if no failures)
-            if (failureCode == null && "COMPLETE".equalsIgnoreCase(paymentStatus.name())) {
+            if ((failureCode == null || failureCode.equals(FailureCode.REFUND)) && "COMPLETE".equalsIgnoreCase(paymentStatus.name())) {
                 subscriptionStatus = SubscriptionStatus.ACTIVE;
                 updateOrganisationSubscription(org, params.get("item_name"));
                 cacheService.updateCache("auth_user", org.getEmail(), orgMapper.mapToOrgResponse(org));
@@ -167,7 +178,7 @@ public class PayFastSubscriptionService {
         } catch (Exception e) {
             log.error("Critical ITN Error", e);
             // Return 500 so PayFast retries
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "ITN Failed");
+            throw new RuntimeException(e);
         }
 
         return "OK";

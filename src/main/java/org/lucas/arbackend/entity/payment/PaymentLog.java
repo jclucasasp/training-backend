@@ -53,11 +53,10 @@ public class PaymentLog extends BaseEntity {
     private SubscriptionStatus subscriptionStatus;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "pal_failure_code", columnDefinition = "ENUM('PRICE_MISMATCH', 'AMOUNT_MISMATCH', 'PLAN_MISMATCH', 'SIGNATURE_MISMATCH', 'INSUFFICIENT_FUNDS','ORG_NOT_FOUND')")
+    @Column(name = "pal_failure_code", columnDefinition = "ENUM('PRICE_MISMATCH', 'AMOUNT_MISMATCH', 'REFUND', 'PLAN_MISMATCH', 'SIGNATURE_MISMATCH', 'INSUFFICIENT_FUNDS','ORG_NOT_FOUND')")
     private FailureCode failureCode;
 
     @Column(name = "pal_failure_details")
     private String failureDetails;
-
 
 }
