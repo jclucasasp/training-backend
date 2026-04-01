@@ -62,19 +62,6 @@ public class OrganisationService {
         org.setPassword(passwordEncoder.encode(request.getPassword()));
         org.setRole(role);
 
-        // 3. Create Subscription & Link
-//        SubscriptionPlan plan = planRepo.findById(request.getInitialPlanId())
-//                .orElseThrow(() -> new EntityNotFoundException("Plan not found"));
-//        OrganisationSubscription subscription = new OrganisationSubscription();
-//        subscription.setSubscriptionPlan(plan);
-//        subscription.setStatus(1);
-//        subscription.setEndedAt(plan.getPlan().toString().equals(PlanTypes.MONTHLY.name()) ?
-//                LocalDateTime.now().plusMonths(1) : LocalDateTime.now().plusMonths(12));
-//
-//        // CRITICAL: Bi-directional link for @MapsId
-//        subscription.setOrganisation(org);
-//        org.setSubscription(subscription);
-
         // 4. Create Profile & Address & Link
         Profile profile = new Profile();
         orgMapper.updateProfile(request, profile);

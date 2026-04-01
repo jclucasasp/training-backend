@@ -24,13 +24,11 @@ import org.lucas.arbackend.repository.payment.PaymentLogRepository;
 import org.lucas.arbackend.service.cache.CacheService;
 import org.lucas.arbackend.util.tenant.TenantProvider;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
 import javax.management.BadAttributeValueExpException;
@@ -42,7 +40,10 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Enumeration;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -90,7 +91,13 @@ public class PayFastSubscriptionService {
         try {
             // Use the correct PayFast key 'payment_status'
             PaymentStatus paymentStatus = PaymentStatus.valueOf(params.get("payment_status"));
-            log.info("DEBUG: Payment status from incoming params [{}]. Payment status from parsing [{}]", params.get("payment_status"), paymentStatus);
+            try {
+                paymentStatus = PaymentStatus.valueOf(params.get("payment_status"));
+            } catch (Exception e) {
+                paymentStatus = PaymentStatus.UNKNOWN;
+            }
+
+            log.info("DEBUG: Payment status from incoming params [{}]. Payment status from parsing [{}]", params, paymentStatus);
             FailureCode failureCode = null;
             String failureDescription = null;
             SubscriptionStatus subscriptionStatus = null;
@@ -98,15 +105,15 @@ public class PayFastSubscriptionService {
             // Defensive parsing
             Long orgId = params.containsKey("m_payment_id") ? Long.parseLong(params.get("m_payment_id")) : null;
             String payFastId = params.get("pf_payment_id");
-            OrganisationSubscription orgSub = null;
+            OrganisationSubscription orgSubscriptionPlan = null;
             // 2. Validations
             Organisation org = (orgId != null) ? orgRepo.findById(orgId).orElse(null) : null;
             if (org == null) {
                 failureCode = FailureCode.ORG_NOT_FOUND;
                 failureDescription = "Org ID " + orgId + " not found.";
-            } else {
-                // TODO: Add contractPrice to OrganisationSubscription
-                orgSub = org.getSubscription();
+
+            } else if (org.getSubscription() != null){
+                orgSubscriptionPlan = org.getSubscription();
             }
 
             PlanTypes planTerm = null;
@@ -118,9 +125,17 @@ public class PayFastSubscriptionService {
                 failureCode = FailureCode.PLAN_MISMATCH;
                 failureDescription = "Invalid plan name: " + params.get("item_name");
             }
-            // TODO: Have to issue a refund and update the subscription to the correct amount
+
             double receivedAmount = params.containsKey("amount_gross") ? Double.parseDouble(params.get("amount_gross")) : -1;
-            double expectedAmount = subscriptionPlan != null ? subscriptionPlan.getPrice() : -1;
+            double expectedAmount;
+
+            if (orgSubscriptionPlan != null) {
+                expectedAmount = orgSubscriptionPlan.getSubscriptionAmount() != null ? orgSubscriptionPlan.getSubscriptionAmount(): -1;
+            } else {
+                expectedAmount = subscriptionPlan != null ? subscriptionPlan.getPrice() : -1;
+            }
+
+            // TODO: Create a Refund endpoint and update the PayFast subscription with the correct amount
             if (expectedAmount > -1 && receivedAmount > -1) {
                 if (expectedAmount > receivedAmount) {
                     failureCode = FailureCode.AMOUNT_MISMATCH;
@@ -145,14 +160,12 @@ public class PayFastSubscriptionService {
             if (logRepo.existsByPfPaymentId(payFastId)) {
                 failureCode = FailureCode.DUPLICATE_PAYMENT;
                 failureDescription = "Already processed pf_id: " + payFastId;
-                // Return "OK" immediately to stop PayFast from retrying a success
-                return "OK";
             }
 
             // 3. EXECUTION BLOCK (Only if no failures)
             if ((failureCode == null || failureCode.equals(FailureCode.REFUND)) && "COMPLETE".equalsIgnoreCase(paymentStatus.name())) {
                 subscriptionStatus = SubscriptionStatus.ACTIVE;
-                updateOrganisationSubscription(org, params.get("item_name"));
+                updateOrganisationSubscription(org, subscriptionPlan, expectedAmount);
                 cacheService.updateCache("auth_user", org.getEmail(), orgMapper.mapToOrgResponse(org));
                 log.info("Successfully processed payment for Org {}", orgId);
             } else if (failureCode != null) {
@@ -165,7 +178,7 @@ public class PayFastSubscriptionService {
                     .orgId(orgId)
                     .amount(BigDecimal.valueOf(receivedAmount))
                     .planTerm(planTerm)
-                    .subscriptionCycles(params.get("cycles") != null ? Integer.parseInt(params.get("cycles")) : 1)
+                    .subscriptionCycles(params.get("cycles") != null && params.get("cycles").isBlank() ? Integer.parseInt(params.get("cycles")) : 1)
                     .paymentStatus(paymentStatus)
                     .subscriptionStatus(subscriptionStatus)
                     .failureCode(failureCode)
@@ -359,54 +372,53 @@ public class PayFastSubscriptionService {
         return matcher.replaceAll(m -> m.group().toUpperCase());
     }
 
-
-// TODO: Need to check at month end if the recurring payment was made and update as necessary
 /**
  * Updates the subscription for an organization based on the provided subscription term.
  * This method handles both new subscriptions and renewals of existing ones.
  *
  * @param org The organization whose subscription needs to be updated
- * @param subTerm The subscription term (e.g., "MONTHLY" or "YEARLY")
- * @throws RuntimeException If no subscription type is provided
+ * @param subPlan The subscription plan type (e.g., "MONTHLY" or "YEARLY")
+ * @throws RuntimeException If no subscription plan is provided
  */
-    private void updateOrganisationSubscription(Organisation org, String subTerm) {
+    private void updateOrganisationSubscription(Organisation org, SubscriptionPlan subPlan, Double expectedAmount) {
     // Validate that subscription term is provided
-        if (subTerm.isBlank()) throw new RuntimeException("No subscription type provided");
+        if (org == null || subPlan == null || expectedAmount < 0) throw new IllegalArgumentException("Supplied params is null. Cannot update the organisation subscription.");
 
-    // Convert the subscription term to the corresponding PlanTypes enum value
-        PlanTypes purchasedPlan = PlanTypes.valueOf(subTerm.toUpperCase());
     // Get the organization's current subscription
-        OrganisationSubscription sub = org.getSubscription();
-    // Find the subscription plan in the repository based on the purchased plan
-        SubscriptionPlan subPlan = subPlanRepo.findByPlan(purchasedPlan)
-                .orElseThrow(() -> new EntityNotFoundException("Subscription plan not found"));
+        OrganisationSubscription subscription = org.getSubscription();
 
     // Check if organization already has a subscription
-        if (sub != null) {
+        if (subscription != null) {
         // Log debug information for existing subscription
-            log.info("DEBUG: Organisation found for [{}] with subscription: {}", org.getEmail(), sub);
+            log.info("DEBUG: Updating Organisation [{}] with subscription: {}", org.getEmail(), subscription);
         } else {
         // Create new subscription if none exists
-            sub = new OrganisationSubscription();
-            sub.setOrganisation(org);
-            org.setSubscription(sub);
+            subscription = new OrganisationSubscription();
+            subscription.setOrganisation(org);
+            subscription.setSubscriptionAmount(-1.0);
+            org.setSubscription(subscription);
         // Log debug information for new subscription creation
             log.info("DEBUG: Organisation found for [{}] with no subscription, creating new one", org.getEmail());
         }
 
     // Determine the base date for subscription calculation
     // Use current time if subscription is null or ended, otherwise use the existing end date
-        LocalDateTime base = (sub.getEndedAt() == null || sub.getEndedAt().isBefore(LocalDateTime.now()))
-                ? LocalDateTime.now() : sub.getEndedAt();
+        LocalDateTime base = (subscription.getEndedAt() == null || subscription.getEndedAt().isBefore(LocalDateTime.now()))
+                ? LocalDateTime.now() : subscription.getEndedAt();
     // Update the subscription end date based on the purchased plan
-        switch (purchasedPlan) {
-            case MONTHLY -> sub.setEndedAt(base.plusMonths(1));  // Add 1 month for monthly plan
-            case YEARLY -> sub.setEndedAt(base.plusYears(1));    // Add 1 year for yearly plan
+        switch (subPlan.getPlan()) {
+            case MONTHLY -> subscription.setEndedAt(base.plusMonths(1));  // Add 1 month for monthly plan
+            case YEARLY -> subscription.setEndedAt(base.plusYears(1));    // Add 1 year for yearly plan
+            default -> throw new IllegalArgumentException("Unknown Plan Type: " + subPlan.getPlan().name());
         }
 
     // Set the subscription plan and status
-        sub.setSubscriptionPlan(subPlan);
-        sub.setStatus(1);
+        subscription.setSubscriptionPlan(subPlan);
+        // Only execute on the first time of setting the subscription
+        if (subscription.getSubscriptionAmount() == -1) {
+            subscription.setSubscriptionAmount(expectedAmount);
+        }
+        subscription.setStatus(1);
     // Save the updated organization to the repository
         orgRepo.save(org);
     }

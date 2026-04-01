@@ -51,6 +51,8 @@ public class OrganisationResponse implements Serializable {
         @JsonView(AccessLevelViews.Public.class)
         private String subscriptionPlan;
         @JsonView(AccessLevelViews.Public.class)
+        private Double subscriptionAmount;
+        @JsonView(AccessLevelViews.Public.class)
         private LocalDateTime subscriptionStartDate;
         @JsonView(AccessLevelViews.Public.class)
         private String subscriptionStatus;

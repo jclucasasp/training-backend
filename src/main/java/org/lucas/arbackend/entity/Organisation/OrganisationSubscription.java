@@ -32,6 +32,9 @@ public class OrganisationSubscription extends BaseEntity {
     @JoinColumn(name = "osu_plan_id")
     private SubscriptionPlan subscriptionPlan;
 
+    @Column(name = "osu_subscription_amount", nullable = false)
+    private Double subscriptionAmount;
+
     @Column(name = "osu_status")
     private Integer status;
 }

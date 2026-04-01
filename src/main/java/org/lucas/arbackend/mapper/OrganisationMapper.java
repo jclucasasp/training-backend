@@ -46,6 +46,7 @@ public interface OrganisationMapper {
 //    @Mapping(target = "subscriptionStatus", expression = "java(org.getSubscription().getStatus() == 1)")
     @Mapping(target = "subscriptionStatus", source = "org.subscription.status")
     @Mapping(target = "subscriptionPlan", source = "org.subscription.subscriptionPlan.plan")
+    @Mapping(target = "subscriptionAmount", source = "org.subscription.subscriptionAmount")
     @Mapping(target = "subscriptionStartDate", source = "org.subscription.createdAt")
     @Mapping(target = "subscriptionEndDate", source = "org.subscription.endedAt")
     OrganisationResponse mapToOrgResponse(Organisation org, String rawKey);
@@ -61,4 +62,5 @@ public interface OrganisationMapper {
 
         return "INACTIVE";
     }
+
 }
