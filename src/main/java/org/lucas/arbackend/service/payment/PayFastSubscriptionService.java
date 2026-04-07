@@ -8,7 +8,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.InternalException;
+import org.lucas.arbackend.dto.payfast.PayFastSubUpdateResDto;
 import org.lucas.arbackend.dto.payfast.PayFastSubscriptionDto;
+import org.lucas.arbackend.dto.payfast.PayFastSubUpdateReqDto;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.Organisation.OrganisationSubscription;
 import org.lucas.arbackend.entity.Organisation.SubscriptionPlan;
@@ -19,6 +21,7 @@ import org.lucas.arbackend.entity.payment.PaymentStatus;
 import org.lucas.arbackend.entity.payment.SubscriptionStatus;
 import org.lucas.arbackend.mapper.OrganisationMapper;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
+import org.lucas.arbackend.repository.organisation.OrganisationSubscriptionRepository;
 import org.lucas.arbackend.repository.organisation.SubscriptionPlanRepository;
 import org.lucas.arbackend.repository.payment.PaymentLogRepository;
 import org.lucas.arbackend.service.cache.CacheService;
@@ -28,6 +31,8 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import reactor.core.publisher.Mono;
 
@@ -40,10 +45,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Enumeration;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -77,6 +79,10 @@ public class PayFastSubscriptionService {
             throw new IllegalStateException("No passphrase provided");
         }
 
+        if (request.getParameter("token") == null || request.getParameter("token").isBlank()) {
+            throw new IllegalStateException("Token is null");
+        }
+
         // 1. Extract params
         LinkedHashMap<String, String> params = new LinkedHashMap<>();
         Enumeration<String> parameterNames = request.getParameterNames();
@@ -90,7 +96,7 @@ public class PayFastSubscriptionService {
 
         try {
             // Use the correct PayFast key 'payment_status'
-            PaymentStatus paymentStatus = PaymentStatus.valueOf(params.get("payment_status"));
+            PaymentStatus paymentStatus;
             try {
                 paymentStatus = PaymentStatus.valueOf(params.get("payment_status"));
             } catch (Exception e) {
@@ -105,16 +111,20 @@ public class PayFastSubscriptionService {
             // Defensive parsing
             Long orgId = params.containsKey("m_payment_id") ? Long.parseLong(params.get("m_payment_id")) : null;
             String payFastId = params.get("pf_payment_id");
-            OrganisationSubscription orgSubscriptionPlan = null;
+
+            PaymentLog paymentLog = (orgId != null) ? logRepo.findByOrgId(orgId).orElse(null) : null;
+
             // 2. Validations
             Organisation org = (orgId != null) ? orgRepo.findById(orgId).orElse(null) : null;
             if (org == null) {
                 failureCode = FailureCode.ORG_NOT_FOUND;
                 failureDescription = "Org ID " + orgId + " not found.";
 
-            } else if (org.getSubscription() != null){
-                orgSubscriptionPlan = org.getSubscription();
-            }
+            } else if (org.getSubscription() != null && paymentLog != null) {
+                    paymentLog.setSubscriptionStatus(SubscriptionStatus.DELETED);
+                    paymentLog.setEndedAt(LocalDateTime.now());
+                    logRepo.save(paymentLog);
+                }
 
             PlanTypes planTerm = null;
             SubscriptionPlan subscriptionPlan = null;
@@ -127,13 +137,7 @@ public class PayFastSubscriptionService {
             }
 
             double receivedAmount = params.containsKey("amount_gross") ? Double.parseDouble(params.get("amount_gross")) : -1;
-            double expectedAmount;
-
-            if (orgSubscriptionPlan != null) {
-                expectedAmount = orgSubscriptionPlan.getSubscriptionAmount() != null ? orgSubscriptionPlan.getSubscriptionAmount(): -1;
-            } else {
-                expectedAmount = subscriptionPlan != null ? subscriptionPlan.getPrice() : -1;
-            }
+            double expectedAmount = subscriptionPlan != null ? subscriptionPlan.getPrice() : -1;
 
             // TODO: Create a Refund endpoint and update the PayFast subscription with the correct amount
             if (expectedAmount > -1 && receivedAmount > -1) {
@@ -157,7 +161,7 @@ public class PayFastSubscriptionService {
             }
 
             // Duplicate Check
-            if (logRepo.existsByPfPaymentId(payFastId)) {
+            if (paymentLog != null && paymentLog.getPfPaymentId().equalsIgnoreCase(payFastId)) {
                 failureCode = FailureCode.DUPLICATE_PAYMENT;
                 failureDescription = "Already processed pf_id: " + payFastId;
             }
@@ -178,7 +182,7 @@ public class PayFastSubscriptionService {
                     .orgId(orgId)
                     .amount(BigDecimal.valueOf(receivedAmount))
                     .planTerm(planTerm)
-                    .subscriptionCycles(params.get("cycles") != null && params.get("cycles").isBlank() ? Integer.parseInt(params.get("cycles")) : 1)
+                    .subscriptionCycles(params.get("cycles") != null && !params.get("cycles").isBlank() ? Integer.parseInt(params.get("cycles")) : 1)
                     .paymentStatus(paymentStatus)
                     .subscriptionStatus(subscriptionStatus)
                     .failureCode(failureCode)
@@ -197,20 +201,93 @@ public class PayFastSubscriptionService {
         return "OK";
     }
 
-    /**
+    public PayFastSubUpdateResDto updateSubscription(PayFastSubUpdateReqDto updateParams) {
+
+        PaymentLog paymentLog = logRepo.findByOrgId(tenantProvider.get())
+                .orElseThrow(() -> new EntityNotFoundException("No token found for organisation"));
+
+        String token = paymentLog.getToken();
+
+        if (token == null || token.isBlank()) {
+            throw new IllegalStateException("Token is null");
+        }
+
+        double originalPrice = paymentLog.getAmount().doubleValue();
+        Map<String, String> bodyParams = new HashMap<>();
+
+        if (updateParams != null) {
+
+            if (updateParams.getPriceUpdate() != null && updateParams.getPriceUpdate() < originalPrice) {
+                paymentLog.setAmount(BigDecimal.valueOf(updateParams.getPriceUpdate()));
+                bodyParams.put("amount", String.valueOf(updateParams.getPriceUpdate()));
+            }
+
+            if (updateParams.getFrequencyUpdate() == 3 || updateParams.getFrequencyUpdate() == 6) {
+                if (updateParams.getFrequencyUpdate() == 3) {
+                    paymentLog.setPlanTerm(PlanTypes.MONTHLY);
+                } else {
+                    paymentLog.setPlanTerm(PlanTypes.YEARLY);
+                }
+                bodyParams.put("frequency", String.valueOf(updateParams.getFrequencyUpdate()));
+            }
+
+            if (updateParams.getCyclesUpdate() != null && updateParams.getCyclesUpdate() > 0 && !paymentLog.getSubscriptionCycles().equals(updateParams.getCyclesUpdate())) {
+                paymentLog.setSubscriptionCycles(updateParams.getCyclesUpdate());
+                bodyParams.put("cycles", String.valueOf(updateParams.getCyclesUpdate()));
+            }
+
+            if (updateParams.getDateUpdate() != null) {
+                paymentLog.setBillingDate(updateParams.getDateUpdate().atStartOfDay());
+                bodyParams.put("run_date", updateParams.getDateUpdate().toString());
+            }
+        }
+
+        Map<String, String> headerMap = generateApiHeaders(bodyParams);
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.setAll(bodyParams);
+
+        String response = restClient.patch()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/subscriptions/{token}/update")
+                        .queryParam("testing", true)
+                        .build(token))
+                .accept(MediaType.APPLICATION_JSON)
+                .headers(httpHeaders -> headerMap.forEach(httpHeaders::add))
+                .body(formData)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, (req, res) ->
+                        Mono.error(new BadAttributeValueExpException("Error updating subscription status")))
+                .body(String.class);
+
+        log.info("Subscription Update Response: [{}]", response);
+
+        try {
+            logRepo.save(paymentLog);
+            return mapper.readValue(response, PayFastSubUpdateResDto.class);
+        } catch (Exception e) {
+            throw  new IllegalStateException("Failed to map PayFast response: ", e);
+        }
+    }
+
+  /**
      * Calls the PayFast API to fetch the current status of a recurring subscription.
      */
-    public PayFastSubscriptionDto fetchSubscriptionStatus()  {
+    public List<PayFastSubscriptionDto> fetchSubscriptionStatus()  {
         PaymentLog paymentLog = logRepo.findByOrgId(tenantProvider.get())
                 .orElseThrow(() -> new EntityNotFoundException("No token found for organisation"));
 
         Map<String, String> headerMap = generateApiHeaders();
+        String token = paymentLog.getToken();
+
+        if (token == null || token.isBlank()) {
+            throw new IllegalStateException("Token is null");
+        }
 
         String response = restClient.get()
                 .uri(uriBuilder -> uriBuilder
                 .path("/subscriptions/{token}/fetch")
                 .queryParam("testing", "true")
-                .build(paymentLog.getToken()))
+                .build(token))
                 .accept(MediaType.APPLICATION_JSON)
                 .headers(httpHeaders -> headerMap.forEach(httpHeaders::add))
                 .retrieve()
@@ -218,10 +295,10 @@ public class PayFastSubscriptionService {
                         Mono.error(new BadAttributeValueExpException("Error fetching subscription status")))
                 .body(String.class);
 
-        log.debug("Response: [{}]", response);
+        log.info("Subscription Fetch Response: [{}]", response);
 
         try {
-            return mapper.readValue(response, PayFastSubscriptionDto.class);
+            return Collections.singletonList(mapper.readValue(response, PayFastSubscriptionDto.class));
         } catch (Exception e) {
             throw  new IllegalStateException("Failed to map PayFast response: ", e);
         }
@@ -232,6 +309,12 @@ public class PayFastSubscriptionService {
 
         PaymentLog paymentLog = logRepo.findByOrgId(tenantProvider.get())
                 .orElseThrow(() -> new EntityNotFoundException("No subscription plan found for organisation " + tenantProvider.get()));
+
+        String token = paymentLog.getToken();
+
+        if (token == null || token.isBlank()) {
+            throw new IllegalStateException("Token is null");
+        }
 
         if (paymentLog.getEndedAt() != null) {
             throw new IllegalStateException("Subscription plan already cancelled");
@@ -309,6 +392,42 @@ public class PayFastSubscriptionService {
     );
     }
 
+    private Map<String, String> generateApiHeaders(Map<String, String> additionParams) {
+        String timestamp = ZonedDateTime.now(ZoneId.of("Africa/Johannesburg"))
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX"));
+
+        Map<String, String> sortedMap = new TreeMap<>();
+        sortedMap.put("merchant-id", merchantId);
+        sortedMap.put("version", "v1");
+        sortedMap.put("timestamp", timestamp);
+        sortedMap.putAll(additionParams);
+        if (passphrase != null) {
+            sortedMap.put("passphrase", passphrase.trim());
+        } else {
+            throw new RuntimeException("Pass phrase is null");
+        }
+
+        // 3. Construct base string with RAW values
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, String> treeMap : sortedMap.entrySet()) {
+            String key = treeMap.getKey();
+            String value = treeMap.getValue();
+
+            sb.append(key).append("=").append(payFastEncode(value)).append("&");
+        }
+
+        String baseString = sb.substring(0, sb.length() - 1);
+
+        log.info("RAW Base String for MD5: {}", baseString);
+
+        // 4. Return headers (Passphrase is NOT a header, only used for signature)
+        return Map.of(
+                "merchant-id", merchantId,
+                "version", "v1",
+                "timestamp", timestamp,
+                "signature", md5(baseString)
+        );
+    }
 /**
  * Calculates the ITN (Instant Transaction Notification) signature based on the provided data and passphrase.
  * This method constructs a string from the map entries (excluding the signature itself),

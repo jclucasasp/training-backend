@@ -22,7 +22,7 @@ private int code;
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class SubscriptionDetails {
-        private int amount; // Note: This is in cents (R16.28)
+        private int amount; // Note: This is in cents (1699)
         private int cycles;
 
         @JsonProperty("cycles_complete")

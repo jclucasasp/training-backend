@@ -3,6 +3,7 @@ package org.lucas.arbackend.entity.payment;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.BaseEntity;
 import org.lucas.arbackend.entity.PlanTypes;
 import org.lucas.arbackend.util.encrypt.TokenEncryptionConverter;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "payment_logs")
 @SQLDelete(sql = "UPDATE payment_logs SET ended_at = CURRENT_TIMESTAMP AND pal_subscription = 0 WHERE pal_org_id = ?")
+@SQLRestriction("ended_at IS NULL")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class PaymentLog extends BaseEntity {
 

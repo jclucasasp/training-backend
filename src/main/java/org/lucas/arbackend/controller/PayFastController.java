@@ -8,12 +8,17 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lucas.arbackend.dto.payfast.PayFastSubUpdateResDto;
 import org.lucas.arbackend.dto.payfast.PayFastSubscriptionDto;
+import org.lucas.arbackend.dto.payfast.PayFastSubUpdateReqDto;
 import org.lucas.arbackend.exception.ErrorDetailsResponse;
 import org.lucas.arbackend.service.payment.PayFastSubscriptionService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/payments")
@@ -48,8 +53,28 @@ public class PayFastController {
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
-    public ResponseEntity<PayFastSubscriptionDto> getSubscriptionStatus() {
+    public ResponseEntity<List<PayFastSubscriptionDto>> getSubscriptionStatus() {
         return ResponseEntity.ok(subscriptionService.fetchSubscriptionStatus());
+    }
+
+    @PatchMapping("/subscriptions/update")
+      @Operation(
+        summary = "Update Recurring Subscription",
+        description = "Modifies an existing PayFast subscription. Supports decreasing the amount, changing frequency (3 for monthly, 6 for yearly), adjusting cycles, or updating the next run date."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Subscription updated successfully",
+                    content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = PayFastSubscriptionDto.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid update parameters provided",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Signature mismatch or unauthorized request",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "404", description = "No existing subscription found for this organization",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
+    })
+    public ResponseEntity<PayFastSubUpdateResDto> updateSubscription(@RequestBody @Validated PayFastSubUpdateReqDto subscriptionDto) {
+        return ResponseEntity.ok(subscriptionService.updateSubscription(subscriptionDto));
     }
 
     @PutMapping("/subscriptions/cancel")
