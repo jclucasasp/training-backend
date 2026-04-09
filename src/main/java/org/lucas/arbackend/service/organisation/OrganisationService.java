@@ -51,8 +51,8 @@ public class OrganisationService {
         if (orgRepo.findByEmail(request.getEmail()).isPresent()) {
             throw new IllegalStateException("Email already registered");
         }
-
-        Role role = roleRepo.findByRoleName(RoleTypes.ORG_ADMIN)
+        // Set the role to INACTIVE because no subscription is active yet
+        Role role = roleRepo.findByRoleName(RoleTypes.INACTIVE)
                 .orElseThrow(() -> new EntityNotFoundException("Role not found"));
 
         // 2. Create Organisation

@@ -13,7 +13,7 @@ public class Role {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "rol_name", columnDefinition = "ENUM('ORG_ADMIN', 'COURSE_EDITOR', 'SUPPORT', 'STUDENT')")
+    @Column(name = "rol_name", columnDefinition = "ENUM('INACTIVE', 'ORG_ADMIN', 'COURSE_EDITOR', 'SUPPORT', 'STUDENT')")
     private RoleTypes roleName;
 
     @Column(name = "rol_description")

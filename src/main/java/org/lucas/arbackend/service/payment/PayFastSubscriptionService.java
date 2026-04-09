@@ -19,11 +19,14 @@ import org.lucas.arbackend.entity.payment.FailureCode;
 import org.lucas.arbackend.entity.payment.PaymentLog;
 import org.lucas.arbackend.entity.payment.PaymentStatus;
 import org.lucas.arbackend.entity.payment.SubscriptionStatus;
+import org.lucas.arbackend.entity.security.Role;
+import org.lucas.arbackend.entity.security.RoleTypes;
 import org.lucas.arbackend.mapper.OrganisationMapper;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.OrganisationSubscriptionRepository;
 import org.lucas.arbackend.repository.organisation.SubscriptionPlanRepository;
 import org.lucas.arbackend.repository.payment.PaymentLogRepository;
+import org.lucas.arbackend.repository.security.RoleRepository;
 import org.lucas.arbackend.service.cache.CacheService;
 import org.lucas.arbackend.util.tenant.TenantProvider;
 import org.springframework.beans.factory.annotation.Value;
@@ -61,6 +64,7 @@ public class PayFastSubscriptionService {
     private final TenantProvider tenantProvider;
     private final CacheService cacheService;
     private final SubscriptionPlanRepository subPlanRepo;
+    private final RoleRepository roleRepo;
 
     private final ObjectMapper mapper = getObjectMapper();
     private final RestClient restClient = RestClient.builder().baseUrl("https://api.payfast.co.za").build();
@@ -538,6 +542,11 @@ public class PayFastSubscriptionService {
             subscription.setSubscriptionAmount(expectedAmount);
         }
         subscription.setStatus(1);
+
+        Role role = roleRepo.findByRoleName(RoleTypes.ORG_ADMIN)
+                .orElseThrow(() -> new EntityNotFoundException("Role not found"));
+    // Update the role of the organization to grant them access to the platform
+        org.setRole(role);
     // Save the updated organization to the repository
         orgRepo.save(org);
     }

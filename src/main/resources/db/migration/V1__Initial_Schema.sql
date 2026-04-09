@@ -17,11 +17,12 @@ INSERT INTO subscription_plan (sup_plan, sup_price, sup_course_limit, sup_is_act
 DROP TABLE IF EXISTS role;
 CREATE TABLE role (
     rol_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    rol_name ENUM('ORG_ADMIN', 'COURSE_EDITOR', 'SUPPORT', 'STUDENT'),
+    rol_name ENUM('INACTIVE', 'ORG_ADMIN', 'COURSE_EDITOR', 'SUPPORT', 'STUDENT'),
     rol_description VARCHAR(255)
 ) ENGINE=InnoDB;
 
 INSERT INTO role (rol_name, rol_description) VALUES
+('INACTIVE', 'No active subscription for the organisation'),
 ('ORG_ADMIN', 'Full control over the organisation'),
 ('COURSE_EDITOR', 'Can manage courses and courseModules but not billing'),
 ('SUPPORT', 'Can view student progress but not edit content'),
@@ -126,7 +127,7 @@ CREATE TABLE IF NOT EXISTS payment_logs (
     pal_plan_term ENUM('MONTHLY', 'YEARLY') DEFAULT NULL,
     pal_billing_date TIMESTAMP DEFAULT NULL,
     pal_token VARCHAR(225) NULL,
-    pal_payment_status ENUM('COMPLETED', 'FAILED', 'PENDING', 'UNKNOWN') DEFAULT NULL,
+    pal_payment_status ENUM('COMPLETE', 'FAILED', 'PENDING', 'UNKNOWN') DEFAULT NULL,
     pal_sub_status ENUM('ACTIVE', 'CANCELLED', 'SUSPENDED', 'DELETED') DEFAULT NULL,
     pal_failure_code ENUM('PRICE_MISMATCH', 'AMOUNT_MISMATCH', 'REFUND', 'PLAN_MISMATCH', 'SIGNATURE_MISMATCH', 'DUPLICATE_PAYMENT', 'INSUFFICIENT_FUNDS','ORG_NOT_FOUND', 'UNAUTHORISED') DEFAULT NULL,
     pal_failure_details TEXT DEFAULT NULL,
