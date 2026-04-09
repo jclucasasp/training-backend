@@ -351,18 +351,25 @@ public class PayFastSubscriptionService {
             String status = root.path("status").asText();
 
             boolean wasCancelled = root.path("data").path("response").asBoolean();
-
-            // TODO: Check why org.getApiKey().setEndedAt(LocalDateTime.now()); is not working
+            // TODO: Make sure that the status gets set to 0;
             if (code == 200 && status.equals("success") && wasCancelled) {
-                ApiKey key = org.getApiKey();
-
+                ApiKey key = apiKeyRepo.findByOrganisation_Id(tenantProvider.get())
+                        .orElse(null);
+                // End the subscription and Api Key.
                 org.getSubscription().setEndedAt(LocalDateTime.now());
-                key.setEndedAt(LocalDateTime.now());
-
+                // Set the status to inactive.
                 org.getSubscription().setStatus(0);
 
+                if (key != null) {
+                    key.setEndedAt(LocalDateTime.now());
+                    apiKeyRepo.save(key);
+                }
+                // Change the organisation's role to inactive.
+                org.setRole(roleRepo.findByRoleName(RoleTypes.INACTIVE));
+                // Save the organisation and role to the db.
                 orgRepo.save(org);
-                apiKeyRepo.save(key);
+                // Evict the user from the cache.
+                cacheService.evictAuthUser(org.getEmail());
                 logRepo.delete(paymentLog);
                 return true;
             }
@@ -519,6 +526,9 @@ public class PayFastSubscriptionService {
  * @param subPlan The subscription plan type (e.g., "MONTHLY" or "YEARLY")
  * @throws RuntimeException If no subscription plan is provided
  */
+
+// TODO: Change the way that apikey and organisationsubscription entities handles the endedAt check. We want to update the fields and not hide them. This means
+//  that we now manually have to check for endedAt dates in the Repositories.
     private void updateOrganisationSubscription(Organisation org, SubscriptionPlan subPlan, Double expectedAmount) {
     // Validate that subscription term is provided
         if (org == null || subPlan == null || expectedAmount < 0) throw new IllegalArgumentException("Supplied params is null. Cannot update the organisation subscription.");

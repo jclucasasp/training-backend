@@ -36,7 +36,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Organisation specific endpoints (Must be logged in)
                         .requestMatchers("/api/v1/organisation/details", "/api/v1/organisation/update")
-                        .hasAuthority(RoleTypes.ORG_ADMIN.name())
+                        .hasAnyAuthority(RoleTypes.INACTIVE.name(), RoleTypes.ORG_ADMIN.name())
 
                         // Admin & Staff Endpoints (Must be logged in)
                         .requestMatchers("/api/v1/admin/**").hasAuthority(RoleTypes.ORG_ADMIN.name())

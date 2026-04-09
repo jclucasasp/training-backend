@@ -56,7 +56,6 @@ public class SubscriptionChecker {
             if (sub.getOrganisation() != null) {
                 // Set the organisation's role to inactive
                 Organisation org = sub.getOrganisation();
-                org.setRole(roleRepo.findByRoleName(RoleTypes.INACTIVE));
                 org.getSubscription().setEndedAt(LocalDateTime.now());
                 org.getSubscription().setStatus(0);
                 cacheService.evictAuthUser(org.getEmail());
@@ -68,6 +67,7 @@ public class SubscriptionChecker {
                 // Evict the API key from cache
                     cacheService.evictApiKey(org.getApiKey().getPrefix());
                 }
+                org.setRole(roleRepo.findByRoleName(RoleTypes.INACTIVE));
                 orgRepo.save(org);
             // Log the expiration information
                 log.info("Subscription expired for organisation: {}", org.getEmail());

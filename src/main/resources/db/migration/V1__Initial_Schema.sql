@@ -65,7 +65,6 @@ CREATE TABLE IF NOT EXISTS profile (
     pro_name VARCHAR(255) NOT NULL,
     pro_reg_number VARCHAR(100),
     pro_vat_number VARCHAR(100),
-    pro_contact_number Integer,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
     ended_at DATETIME NULL,
