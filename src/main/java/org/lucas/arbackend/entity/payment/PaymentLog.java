@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "payment_logs")
-@SQLDelete(sql = "UPDATE payment_logs SET ended_at = CURRENT_TIMESTAMP AND pal_subscription = 0 WHERE pal_org_id = ?")
+@SQLDelete(sql = "UPDATE payment_logs SET ended_at = CURRENT_TIMESTAMP, pal_sub_status = DELETED WHERE pal_org_id = ?")
 @SQLRestriction("ended_at IS NULL")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class PaymentLog extends BaseEntity {
@@ -43,7 +43,7 @@ public class PaymentLog extends BaseEntity {
     private String token;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "pal_payment_status", nullable = false, columnDefinition = "ENUM('COMPLETE', 'FAILED', 'PENDING')")
+    @Column(name = "pal_payment_status", nullable = false, columnDefinition = "ENUM('COMPLETE', 'FAILED', 'PENDING', 'DELETED')")
     private PaymentStatus paymentStatus;
 
     @Enumerated(EnumType.STRING)

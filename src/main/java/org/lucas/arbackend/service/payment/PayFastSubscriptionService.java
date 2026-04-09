@@ -19,6 +19,7 @@ import org.lucas.arbackend.entity.payment.FailureCode;
 import org.lucas.arbackend.entity.payment.PaymentLog;
 import org.lucas.arbackend.entity.payment.PaymentStatus;
 import org.lucas.arbackend.entity.payment.SubscriptionStatus;
+import org.lucas.arbackend.entity.security.ApiKey;
 import org.lucas.arbackend.entity.security.Role;
 import org.lucas.arbackend.entity.security.RoleTypes;
 import org.lucas.arbackend.mapper.OrganisationMapper;
@@ -26,6 +27,7 @@ import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.OrganisationSubscriptionRepository;
 import org.lucas.arbackend.repository.organisation.SubscriptionPlanRepository;
 import org.lucas.arbackend.repository.payment.PaymentLogRepository;
+import org.lucas.arbackend.repository.security.ApiKeyRepository;
 import org.lucas.arbackend.repository.security.RoleRepository;
 import org.lucas.arbackend.service.cache.CacheService;
 import org.lucas.arbackend.util.tenant.TenantProvider;
@@ -65,6 +67,7 @@ public class PayFastSubscriptionService {
     private final CacheService cacheService;
     private final SubscriptionPlanRepository subPlanRepo;
     private final RoleRepository roleRepo;
+    private final ApiKeyRepository apiKeyRepo;
 
     private final ObjectMapper mapper = getObjectMapper();
     private final RestClient restClient = RestClient.builder().baseUrl("https://api.payfast.co.za").build();
@@ -341,12 +344,25 @@ public class PayFastSubscriptionService {
         try {
             JsonNode root = mapper.readTree(response);
 
+            Organisation org = orgRepo.findById(tenantProvider.get())
+                    .orElseThrow(() -> new EntityNotFoundException("Organisation not found"));
+
             int code = root.path("code").asInt();
             String status = root.path("status").asText();
 
             boolean wasCancelled = root.path("data").path("response").asBoolean();
 
+            // TODO: Check why org.getApiKey().setEndedAt(LocalDateTime.now()); is not working
             if (code == 200 && status.equals("success") && wasCancelled) {
+                ApiKey key = org.getApiKey();
+
+                org.getSubscription().setEndedAt(LocalDateTime.now());
+                key.setEndedAt(LocalDateTime.now());
+
+                org.getSubscription().setStatus(0);
+
+                orgRepo.save(org);
+                apiKeyRepo.save(key);
                 logRepo.delete(paymentLog);
                 return true;
             }
