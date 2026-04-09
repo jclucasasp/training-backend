@@ -2,10 +2,17 @@ package org.lucas.arbackend.util.subscription;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.Organisation.OrganisationSubscription;
+import org.lucas.arbackend.entity.security.RoleTypes;
+import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.OrganisationSubscriptionRepository;
+import org.lucas.arbackend.repository.security.RoleRepository;
 import org.lucas.arbackend.service.cache.CacheService;
+import org.lucas.arbackend.util.CustomUserDetails;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +24,8 @@ import java.util.List;
 public class SubscriptionChecker {
 
     private final OrganisationSubscriptionRepository subRepo;
+    private final OrganisationRepository orgRepo;
+    private final RoleRepository roleRepo;
     private final CacheService cacheService;
 
 /**
@@ -41,16 +50,18 @@ public class SubscriptionChecker {
             sub.setStatus(0);
         // If the subscription has an associated organisation
             if (sub.getOrganisation() != null) {
-            // Evict the authentication user from cache
-//                cacheService.evictAuthUser(sub.getOrganisation().getEmail());
-                cacheService.updateCache("auth_user", sub.getOrganisation().getEmail(), sub.getOrganisation());
+                // Set the organisation's role to inactive
+                Organisation org = sub.getOrganisation();
+                org.setRole(roleRepo.findByRoleName(RoleTypes.INACTIVE));
+                orgRepo.save(org);
+                cacheService.evictAuthUser(org.getEmail());
             // If the organisation has an API key
-                if (sub.getOrganisation().getApiKey() != null){
+                if (org.getApiKey() != null){
                 // Evict the API key from cache
-                    cacheService.evictApiKey(sub.getOrganisation().getApiKey().getPrefix());
+                    cacheService.evictApiKey(org.getApiKey().getPrefix());
                 }
             // Log the expiration information
-                log.info("Subscription expired for organisation: {}", sub.getOrganisation().getEmail());
+                log.info("Subscription expired for organisation: {}", org.getEmail());
             }
         }
     }

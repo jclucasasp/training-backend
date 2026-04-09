@@ -43,7 +43,7 @@ public class PaymentLog extends BaseEntity {
     private String token;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "pal_payment_status", nullable = false, columnDefinition = "ENUM('COMPLETED', 'FAILED', 'PENDING')")
+    @Column(name = "pal_payment_status", nullable = false, columnDefinition = "ENUM('COMPLETE', 'FAILED', 'PENDING')")
     private PaymentStatus paymentStatus;
 
     @Enumerated(EnumType.STRING)

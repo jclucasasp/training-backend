@@ -77,7 +77,7 @@ public class PayFastSubscriptionService {
 
     @Value("${payfast.sandbox-url}")
     private String sandboxUrl;
-
+// TODO: Make sure that the renew date is before the subscription date so the account does not get disabled by the SubscriptionChecker class
     public String processIpn(HttpServletRequest request) {
         if (passphrase == null || passphrase.isBlank()) {
             throw new IllegalStateException("No passphrase provided");
@@ -543,8 +543,7 @@ public class PayFastSubscriptionService {
         }
         subscription.setStatus(1);
 
-        Role role = roleRepo.findByRoleName(RoleTypes.ORG_ADMIN)
-                .orElseThrow(() -> new EntityNotFoundException("Role not found"));
+        Role role = roleRepo.findByRoleName(RoleTypes.ORG_ADMIN);
     // Update the role of the organization to grant them access to the platform
         org.setRole(role);
     // Save the updated organization to the repository

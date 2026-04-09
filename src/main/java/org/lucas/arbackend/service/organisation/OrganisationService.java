@@ -52,8 +52,7 @@ public class OrganisationService {
             throw new IllegalStateException("Email already registered");
         }
         // Set the role to INACTIVE because no subscription is active yet
-        Role role = roleRepo.findByRoleName(RoleTypes.INACTIVE)
-                .orElseThrow(() -> new EntityNotFoundException("Role not found"));
+        Role role = roleRepo.findByRoleName(RoleTypes.INACTIVE);
 
         // 2. Create Organisation
         Organisation org = new Organisation();

@@ -44,8 +44,7 @@ public class StaffService {
 
         Organisation org = findOrganisation();
 
-        Role role = roleRepo.findByRoleName(request.getRole())
-                .orElseThrow(() -> new EntityNotFoundException("Invalid Role"));
+        Role role = roleRepo.findByRoleName(request.getRole());
 
         Staff staff = new Staff();
         staffMapper.updateStaff(request, staff);
@@ -104,8 +103,7 @@ public class StaffService {
             throw new IllegalStateException("Must provide a valid organisation id and staff id");
         }
 
-        Role newRole = roleRepo.findByRoleName(role)
-                .orElseThrow(() -> new BadRequestException("Invalid Role"));
+        Role newRole = roleRepo.findByRoleName(role);
 
         Staff staff = staffRepo.findById(staffId)
                 .orElseThrow(() -> new EntityNotFoundException("Staff member not found"));
