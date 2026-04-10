@@ -13,7 +13,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -32,14 +31,17 @@ public class SubscriptionChecker {
  * This method is transactional to ensure data consistency
  */
     @Scheduled(cron = "0 0 * * * *")
+//    @Scheduled(fixedDelay = 60000)
     @Transactional
     // TODO: Need to send an email via Rabbit MQ to admin.
     public void cleanExpiredSubscriptions() {
+        log.info("DEBUG: Running clean expired subscriptions method: ");
     // Retrieve all expired subscriptions from the repository
         List<OrganisationSubscription> expiredOrganisations = subRepo.findAllExpired();
 
     // If no expired subscriptions found, exit the method
         if (expiredOrganisations.isEmpty()){
+            log.info("DEBUG: No expired subscriptions found");
             return;
         }
 
@@ -51,7 +53,6 @@ public class SubscriptionChecker {
             if (sub.getOrganisation() != null) {
                 // Set the organisation's role to inactive
                 Organisation org = sub.getOrganisation();
-                sub.setEndedAt(LocalDateTime.now());
                 sub.setStatus(0);
                 cacheService.evictAuthUser(org.getEmail());
 

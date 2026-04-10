@@ -309,7 +309,7 @@ public class PayFastSubscriptionService {
             throw  new IllegalStateException("Failed to map PayFast response: ", e);
         }
     }
-
+    // TODO: Test this function
     public boolean cancelPayFastSubscription() {
         Map<String, String> headerMap = generateApiHeaders();
 
@@ -350,19 +350,14 @@ public class PayFastSubscriptionService {
             String status = root.path("status").asText();
 
             boolean wasCancelled = root.path("data").path("response").asBoolean();
-            // TODO: Make sure that the status gets set to 0;
-            if (code == 200 && status.equals("success") && wasCancelled) {
-                ApiKey key = apiKeyRepo.findByOrganisation_Id(tenantProvider.get())
-                        .orElse(null);
-                // End the subscription and Api Key.
-                org.getSubscription().setEndedAt(LocalDateTime.now());
-                // Set the status to inactive.
-                org.getSubscription().setStatus(0);
 
-                if (key != null) {
-                    key.setEndedAt(LocalDateTime.now());
-                    apiKeyRepo.save(key);
-                }
+            if (code == 200 && status.equals("success") && wasCancelled) {
+                // End the subscription
+                OrganisationSubscription subscription = org.getSubscription();
+                subscription.setEndedAt(LocalDateTime.now());
+                // Set the status to inactive.
+                subscription.setStatus(0);
+
                 // Change the organisation's role to inactive.
                 org.setRole(roleRepo.findByRoleName(RoleTypes.INACTIVE));
                 // Save the organisation and role to the db.
