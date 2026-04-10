@@ -13,7 +13,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Entity
 @Table(name = "organisation_subscription")
 @SQLDelete(sql = "UPDATE organisation_subscription SET ended_at = CURRENT_TIMESTAMP WHERE osu_org_id = ?")
-@SQLRestriction("ended_at IS NULL")
 @EntityListeners(AuditingEntityListener.class)
 @Getter @Setter
 public class OrganisationSubscription extends BaseEntity {

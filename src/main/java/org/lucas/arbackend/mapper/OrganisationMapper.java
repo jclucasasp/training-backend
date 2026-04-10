@@ -37,6 +37,7 @@ public interface OrganisationMapper {
     @Mapping(target = "orgName", source = "org.profile.orgName")
     @Mapping(target = "registrationNumber", source = "org.profile.registrationNumber")
     @Mapping(target = "vatNumber", source = "org.profile.vatNumber")
+
     @Mapping(target = "streetAddress", source = "org.profile.address.street")
     @Mapping(target = "suburb", source = "org.profile.address.suburb")
     @Mapping(target = "city", source = "org.profile.address.city")
@@ -48,6 +49,7 @@ public interface OrganisationMapper {
     @Mapping(target = "subscriptionPlan", source = "org.subscription.subscriptionPlan.plan")
     @Mapping(target = "subscriptionAmount", source = "org.subscription.subscriptionAmount")
     @Mapping(target = "subscriptionStartDate", source = "org.subscription.createdAt")
+    @Mapping(target = "subscriptionUpdatedDate", source = "org.subscription.updatedAt")
     @Mapping(target = "subscriptionEndDate", source = "org.subscription.endedAt")
     OrganisationResponse mapToOrgResponse(Organisation org, String rawKey);
 

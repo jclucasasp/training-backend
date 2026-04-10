@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Getter
 @Builder
 public class OrganisationResponse implements Serializable {
-
+    // TODO: Remove the access level views as they are no longer needed.
     @Serial
     private static final long serialVersionUID = 1L;
 
@@ -57,13 +57,15 @@ public class OrganisationResponse implements Serializable {
         @JsonView(AccessLevelViews.Public.class)
         private String subscriptionStatus;
         @JsonView(AccessLevelViews.Public.class)
+        private String subscriptionUpdatedDate;
+        @JsonView(AccessLevelViews.Public.class)
         private LocalDateTime subscriptionEndDate;
 
         // Meta Data
-        @JsonView(AccessLevelViews.Public.class)
-        private LocalDateTime createdAt;
-        @JsonView(AccessLevelViews.Public.class)
-        private LocalDateTime updatedAt;
-        @JsonView(AccessLevelViews.Internal.class)
-        private LocalDateTime endedAt;
+//        @JsonView(AccessLevelViews.Internal.class)
+//        private LocalDateTime createdAt;
+//        @JsonView(AccessLevelViews.Public.class)
+//        private LocalDateTime updatedAt;
+//        @JsonView(AccessLevelViews.Internal.class)
+//        private LocalDateTime endedAt;
 }

@@ -8,9 +8,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.InternalException;
+import org.lucas.arbackend.dto.payfast.PayFastSubUpdateReqDto;
 import org.lucas.arbackend.dto.payfast.PayFastSubUpdateResDto;
 import org.lucas.arbackend.dto.payfast.PayFastSubscriptionDto;
-import org.lucas.arbackend.dto.payfast.PayFastSubUpdateReqDto;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.Organisation.OrganisationSubscription;
 import org.lucas.arbackend.entity.Organisation.SubscriptionPlan;
@@ -24,7 +24,6 @@ import org.lucas.arbackend.entity.security.Role;
 import org.lucas.arbackend.entity.security.RoleTypes;
 import org.lucas.arbackend.mapper.OrganisationMapper;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
-import org.lucas.arbackend.repository.organisation.OrganisationSubscriptionRepository;
 import org.lucas.arbackend.repository.organisation.SubscriptionPlanRepository;
 import org.lucas.arbackend.repository.payment.PaymentLogRepository;
 import org.lucas.arbackend.repository.security.ApiKeyRepository;
@@ -527,8 +526,6 @@ public class PayFastSubscriptionService {
  * @throws RuntimeException If no subscription plan is provided
  */
 
-// TODO: Change the way that apikey and organisationsubscription entities handles the endedAt check. We want to update the fields and not hide them. This means
-//  that we now manually have to check for endedAt dates in the Repositories.
     private void updateOrganisationSubscription(Organisation org, SubscriptionPlan subPlan, Double expectedAmount) {
     // Validate that subscription term is provided
         if (org == null || subPlan == null || expectedAmount < 0) throw new IllegalArgumentException("Supplied params is null. Cannot update the organisation subscription.");
