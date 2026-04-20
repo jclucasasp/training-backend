@@ -19,14 +19,12 @@ import org.lucas.arbackend.entity.payment.FailureCode;
 import org.lucas.arbackend.entity.payment.PaymentLog;
 import org.lucas.arbackend.entity.payment.PaymentStatus;
 import org.lucas.arbackend.entity.payment.SubscriptionStatus;
-import org.lucas.arbackend.entity.security.ApiKey;
 import org.lucas.arbackend.entity.security.Role;
 import org.lucas.arbackend.entity.security.RoleTypes;
 import org.lucas.arbackend.mapper.OrganisationMapper;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.SubscriptionPlanRepository;
 import org.lucas.arbackend.repository.payment.PaymentLogRepository;
-import org.lucas.arbackend.repository.security.ApiKeyRepository;
 import org.lucas.arbackend.repository.security.RoleRepository;
 import org.lucas.arbackend.service.cache.CacheService;
 import org.lucas.arbackend.util.tenant.TenantProvider;
@@ -66,22 +64,24 @@ public class PayFastSubscriptionService {
     private final CacheService cacheService;
     private final SubscriptionPlanRepository subPlanRepo;
     private final RoleRepository roleRepo;
-    private final ApiKeyRepository apiKeyRepo;
 
-    private final ObjectMapper mapper = getObjectMapper();
     private final RestClient restClient = RestClient.builder().baseUrl("https://api.payfast.co.za").build();
+    private final ObjectMapper mapper = getObjectMapper();
 
     @Value("${payfast.pass-phrase}")
-    private String passphrase;
+    private String PASSPHRASE;
 
     @Value("${payfast.merchant-id}")
-    private String merchantId;
+    private String MERCHANT_ID;
 
-    @Value("${payfast.sandbox-url}")
-    private String sandboxUrl;
+    @Value("${payfast.testing}")
+    private String PAYFAST_TESTING;
+
+    @Value("${payfast.api-url}")
+    private String payFastApiUrl;
 
     public String processIpn(HttpServletRequest request) {
-        if (passphrase == null || passphrase.isBlank()) {
+        if (PASSPHRASE == null || PASSPHRASE.isBlank()) {
             throw new IllegalStateException("No passphrase provided");
         }
 
@@ -163,7 +163,7 @@ public class PayFastSubscriptionService {
 
             // Signature Check
             String receivedSignature = params.get("signature");
-            if (receivedSignature == null || !receivedSignature.equals(calculateItnSignature(params, passphrase))) {
+            if (receivedSignature == null || !receivedSignature.equals(calculateItnSignature(params, PASSPHRASE))) {
                 failureCode = FailureCode.SIGNATURE_MISMATCH;
                 failureDescription = "Signature mismatch!";
             }
@@ -254,7 +254,10 @@ public class PayFastSubscriptionService {
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.setAll(bodyParams);
 
-        String response = restClient.patch()
+        String response;
+
+        if (PAYFAST_TESTING.equalsIgnoreCase("true")) {
+        response = restClient.patch()
                 .uri(uriBuilder -> uriBuilder
                         .path("/subscriptions/{token}/update")
                         .queryParam("testing", true)
@@ -266,6 +269,19 @@ public class PayFastSubscriptionService {
                 .onStatus(HttpStatusCode::isError, (req, res) ->
                         Mono.error(new BadAttributeValueExpException("Error updating subscription status")))
                 .body(String.class);
+        } else {
+            response = restClient.patch()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/subscriptions/{token}/update")
+                            .build(token))
+                    .accept(MediaType.APPLICATION_JSON)
+                    .headers(httpHeaders -> headerMap.forEach(httpHeaders::add))
+                    .body(formData)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, (req, res) ->
+                            Mono.error(new BadAttributeValueExpException("Error updating subscription status")))
+                    .body(String.class);
+        }
 
         log.info("Subscription Update Response: [{}]", response);
 
@@ -291,19 +307,7 @@ public class PayFastSubscriptionService {
             throw new IllegalStateException("Token is null");
         }
 
-        String response = restClient.get()
-                .uri(uriBuilder -> uriBuilder
-                .path("/subscriptions/{token}/fetch")
-                .queryParam("testing", "true")
-                .build(token))
-                .accept(MediaType.APPLICATION_JSON)
-                .headers(httpHeaders -> headerMap.forEach(httpHeaders::add))
-                .retrieve()
-                .onStatus(HttpStatusCode::isError, (req, res) ->
-                        Mono.error(new BadAttributeValueExpException("Error fetching subscription status")))
-                .body(String.class);
-
-        log.info("Subscription Fetch Response: [{}]", response);
+        String response = callPayFastSubscriptionEndpoint("get", "/subscriptions/{token}/fetch", headerMap, token);
 
         try {
             return Collections.singletonList(mapper.readValue(response, PayFastSubscriptionDto.class));
@@ -311,7 +315,7 @@ public class PayFastSubscriptionService {
             throw  new IllegalStateException("Failed to map PayFast response: ", e);
         }
     }
-    // TODO: Test this function
+
     public boolean cancelPayFastSubscription() {
         Map<String, String> headerMap = generateApiHeaders();
 
@@ -328,19 +332,7 @@ public class PayFastSubscriptionService {
             throw new IllegalStateException("Subscription plan already cancelled");
         }
 
-        String response = restClient.put()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/subscriptions/{token}/cancel")
-                        .queryParam("testing", true)
-                        .build(paymentLog.getToken()))
-                .headers(httpHeaders -> headerMap.forEach(httpHeaders::add))
-                .accept(MediaType.APPLICATION_JSON)
-                .retrieve()
-                .onStatus(HttpStatusCode::isError, (req, res) ->
-                        Mono.error(new BadAttributeValueExpException("Error cancelling subscription")))
-                .body(String.class);
-
-        log.info("Subscription cancellation response: [{}]", response);
+        String response = callPayFastSubscriptionEndpoint("put", "/subscriptions/{token}/cancel", headerMap, token);
 
         try {
             JsonNode root = mapper.readTree(response);
@@ -376,6 +368,47 @@ public class PayFastSubscriptionService {
         }
     }
 
+    private String callPayFastSubscriptionEndpoint(String method, String url, Map<String, String> headerMap, String token) {
+
+        RestClient.RequestHeadersUriSpec<?> restClientMethod = switch (method.toUpperCase()) {
+            case "GET" -> restClient.get();
+            case "POST" -> restClient.post();
+            case "PATCH" -> restClient.patch();
+            case "PUT" -> restClient.put();
+            case "DELETE" -> restClient.delete();
+            default -> throw new IllegalStateException("Unexpected value: " + method.toUpperCase());
+        };
+
+        String response;
+            if (PAYFAST_TESTING.equalsIgnoreCase("true")) {
+                response = restClientMethod
+                        .uri(uriBuilder -> uriBuilder
+                                .path(url)
+                                .queryParam("testing", true)
+                                .build(token))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .headers(httpHeaders -> headerMap.forEach(httpHeaders::add))
+                        .retrieve()
+                        .onStatus(HttpStatusCode::isError, (req, res) ->
+                                Mono.error(new BadAttributeValueExpException("Error updating subscription status")))
+                        .body(String.class);
+            } else {
+                response = restClientMethod
+                        .uri(uriBuilder -> uriBuilder
+                                .path(url)
+                                .build(token))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .headers(httpHeaders -> headerMap.forEach(httpHeaders::add))
+                        .retrieve()
+                        .onStatus(HttpStatusCode::isError, (req, res) ->
+                                Mono.error(new BadAttributeValueExpException("Error updating subscription status")))
+                        .body(String.class);
+        }
+        log.info("Subscription Fetch Response: [{}]", response);
+
+        return response;
+    }
+
     /**
      * Generates headers using the alphabetical sort required by the API.
      */
@@ -384,11 +417,11 @@ public class PayFastSubscriptionService {
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX"));
 
         Map<String, String> sortedMap = new TreeMap<>();
-        sortedMap.put("merchant-id", merchantId);
+        sortedMap.put("merchant-id", MERCHANT_ID);
         sortedMap.put("version", "v1");
         sortedMap.put("timestamp", timestamp);
-        if (passphrase != null) {
-            sortedMap.put("passphrase", passphrase.trim());
+        if (PASSPHRASE != null) {
+            sortedMap.put("passphrase", PASSPHRASE.trim());
         } else {
             throw new RuntimeException("Pass phrase is null");
         }
@@ -408,7 +441,7 @@ public class PayFastSubscriptionService {
 
     // 4. Return headers (Passphrase is NOT a header, only used for signature)
     return Map.of(
-            "merchant-id", merchantId,
+            "merchant-id", MERCHANT_ID,
             "version", "v1",
             "timestamp", timestamp,
             "signature", md5(baseString)
@@ -420,12 +453,12 @@ public class PayFastSubscriptionService {
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX"));
 
         Map<String, String> sortedMap = new TreeMap<>();
-        sortedMap.put("merchant-id", merchantId);
+        sortedMap.put("merchant-id", MERCHANT_ID);
         sortedMap.put("version", "v1");
         sortedMap.put("timestamp", timestamp);
         sortedMap.putAll(additionParams);
-        if (passphrase != null) {
-            sortedMap.put("passphrase", passphrase.trim());
+        if (PASSPHRASE != null) {
+            sortedMap.put("passphrase", PASSPHRASE.trim());
         } else {
             throw new RuntimeException("Pass phrase is null");
         }
@@ -445,7 +478,7 @@ public class PayFastSubscriptionService {
 
         // 4. Return headers (Passphrase is NOT a header, only used for signature)
         return Map.of(
-                "merchant-id", merchantId,
+                "merchant-id", MERCHANT_ID,
                 "version", "v1",
                 "timestamp", timestamp,
                 "signature", md5(baseString)
