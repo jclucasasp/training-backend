@@ -18,6 +18,6 @@ public interface OrganisationSubscriptionRepository extends JpaRepository<Organi
     @Query("SELECT os FROM OrganisationSubscription os WHERE os.organisation.id = :orgId AND os.status = 1 AND os.endedAt > CURRENT_TIMESTAMP")
     Optional<OrganisationSubscription> findActiveByOrganisationId(@Param("orgId") Long orgId);
 
-    @Query("SELECT os FROM OrganisationSubscription os WHERE os.status = 1 AND os.endedAt <= CURRENT_TIMESTAMP")
+    @Query("SELECT os FROM OrganisationSubscription os WHERE os.status = 1 AND os.endedAt < CURRENT_TIMESTAMP")
     List<OrganisationSubscription> findAllExpired();
 }

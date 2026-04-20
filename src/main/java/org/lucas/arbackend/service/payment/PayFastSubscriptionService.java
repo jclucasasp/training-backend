@@ -79,7 +79,7 @@ public class PayFastSubscriptionService {
 
     @Value("${payfast.sandbox-url}")
     private String sandboxUrl;
-// TODO: Make sure that the renew date is before the subscription date so the account does not get disabled by the SubscriptionChecker class
+
     public String processIpn(HttpServletRequest request) {
         if (passphrase == null || passphrase.isBlank()) {
             throw new IllegalStateException("No passphrase provided");
@@ -127,10 +127,12 @@ public class PayFastSubscriptionService {
                 failureDescription = "Org ID " + orgId + " not found.";
 
             } else if (org.getSubscription() != null && paymentLog != null) {
-                    paymentLog.setSubscriptionStatus(SubscriptionStatus.DELETED);
-                    paymentLog.setEndedAt(LocalDateTime.now());
-                    logRepo.save(paymentLog);
-                }
+                log.info("DEBUG: Payment entry found for PayFast id: [{}] with status of [{}]", payFastId, params.get("payment_status"));
+                paymentLog.setSubscriptionStatus(SubscriptionStatus.valueOf(params.get("payment_status")));
+                paymentLog.setEndedAt(LocalDateTime.now());
+                logRepo.saveAndFlush(paymentLog);
+                return "OK";
+            }
 
             PlanTypes planTerm = null;
             SubscriptionPlan subscriptionPlan = null;
@@ -183,7 +185,7 @@ public class PayFastSubscriptionService {
             }
 
             // 4. ALWAYS SAVE THE LOG
-            logRepo.save(PaymentLog.builder()
+            logRepo.saveAndFlush(PaymentLog.builder()
                     .pfPaymentId(payFastId)
                     .orgId(orgId)
                     .amount(BigDecimal.valueOf(receivedAmount))
@@ -364,7 +366,7 @@ public class PayFastSubscriptionService {
                 orgRepo.save(org);
                 // Evict the user from the cache.
                 cacheService.evictAuthUser(org.getEmail());
-                logRepo.delete(paymentLog);
+
                 return true;
             }
 
