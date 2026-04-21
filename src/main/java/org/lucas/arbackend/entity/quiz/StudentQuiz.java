@@ -1,5 +1,6 @@
 package org.lucas.arbackend.entity.quiz;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.lucas.arbackend.entity.student.Student;
@@ -12,7 +13,8 @@ import java.time.LocalDateTime;
 @Table(name = "student_quizzes")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class StudentQuiz implements TenantEntity {
-     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @Column(name = "sq_quiz_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -25,6 +27,8 @@ public class StudentQuiz implements TenantEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sq_quiz_id", nullable = false)
+    @MapsId
+    @JsonIgnore
     private Quiz quiz;
 
     @Column(name = "stq_assigned_at", updatable = false)

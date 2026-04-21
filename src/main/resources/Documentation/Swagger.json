@@ -103,16 +103,6 @@
               }
             }
           },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorDetailsResponse"
-                }
-              }
-            }
-          },
           "400": {
             "description": "Invalid input",
             "content": {
@@ -135,6 +125,16 @@
           },
           "500": {
             "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -329,6 +329,48 @@
         }
       }
     },
+    "/api/v1/payments/subscriptions/cancel": {
+      "put": {
+        "tags": [
+          "pay-fast-controller"
+        ],
+        "summary": "Cancel Subscription",
+        "description": "Sets a subscription status to cancelled on the PayFast gateway. Returns true if successful.",
+        "operationId": "cancelSubscription",
+        "responses": {
+          "200": {
+            "description": "Cancellation request processed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request or subscription already cancelled",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/organisation/update": {
       "put": {
         "tags": [
@@ -358,8 +400,8 @@
               }
             }
           },
-          "401": {
-            "description": "Unauthorized",
+          "404": {
+            "description": "Organisation or Profile not found",
             "content": {
               "*/*": {
                 "schema": {
@@ -378,6 +420,16 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
           "400": {
             "description": "Validation error in the request body",
             "content": {
@@ -387,9 +439,71 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/discussions/replies/{replyId}/accept": {
+      "put": {
+        "tags": [
+          "Course Discussions"
+        ],
+        "operationId": "acceptAnswer",
+        "parameters": [
+          {
+            "name": "replyId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "isAcceptedAnswer",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Forbidden: Insufficient permissions (Staff only)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Answer status updated"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Organisation or Profile not found",
+            "description": "Reply not found",
             "content": {
               "*/*": {
                 "schema": {
@@ -441,16 +555,6 @@
               }
             }
           },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorDetailsResponse"
-                }
-              }
-            }
-          },
           "403": {
             "description": "Forbidden: Insufficient permissions",
             "content": {
@@ -463,6 +567,16 @@
           },
           "500": {
             "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -499,6 +613,7 @@
               "schema": {
                 "type": "string",
                 "enum": [
+                  "INACTIVE",
                   "ORG_ADMIN",
                   "COURSE_EDITOR",
                   "SUPPORT",
@@ -516,16 +631,6 @@
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/StaffResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorDetailsResponse"
                 }
               }
             }
@@ -559,76 +664,13 @@
                 }
               }
             }
-          }
-        }
-      }
-    },
-    "/api/v1/student/{studentNumber}/quizzes/{quizId}/submit": {
-      "post": {
-        "tags": [
-          "5. Student Management"
-        ],
-        "summary": "Submit and grade a quiz",
-        "description": "Receives student answers, grades them on the server, creates an attempt record, and returns the final calculated score.",
-        "operationId": "submitQuiz",
-        "parameters": [
-          {
-            "name": "studentNumber",
-            "in": "path",
-            "description": "The student's unique number",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           },
-          {
-            "name": "quizId",
-            "in": "path",
-            "description": "The ID of the quiz",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/QuizSubmissionRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "400": {
-            "description": "Invalid submission data",
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "number"
-                }
-              }
-            }
-          },
-          "200": {
-            "description": "Quiz graded successfully",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "number"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Student is not registered for this quiz",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "number"
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
                 }
               }
             }
@@ -678,6 +720,9 @@
               }
             }
           },
+          "200": {
+            "description": "Student successfully registered for the quiz"
+          },
           "404": {
             "description": "Student or Quiz not found",
             "content": {
@@ -687,9 +732,6 @@
                 }
               }
             }
-          },
-          "200": {
-            "description": "Student successfully registered for the quiz"
           },
           "400": {
             "description": "Invalid student number or quiz ID provided",
@@ -743,8 +785,8 @@
               }
             }
           },
-          "404": {
-            "description": "Organisation or Course not found",
+          "400": {
+            "description": "Invalid request data or validation failure",
             "content": {
               "*/*": {
                 "schema": {
@@ -753,8 +795,8 @@
               }
             }
           },
-          "400": {
-            "description": "Invalid request data or validation failure",
+          "404": {
+            "description": "Organisation or Course not found",
             "content": {
               "*/*": {
                 "schema": {
@@ -920,6 +962,47 @@
         }
       }
     },
+    "/api/v1/payments/itn": {
+      "post": {
+        "tags": [
+          "pay-fast-controller"
+        ],
+        "summary": "PayFast Instant Transaction Notification",
+        "operationId": "handlePayFastItn",
+        "responses": {
+          "401": {
+            "description": "Security violation",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Notification received and processed",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/organisation/signup": {
       "post": {
         "tags": [
@@ -949,16 +1032,6 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict: Email already exists",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorDetailsResponse_Public"
-                }
-              }
-            }
-          },
           "400": {
             "description": "Validation failed (Invalid input data)",
             "content": {
@@ -975,6 +1048,78 @@
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorDetailsResponse_Public"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict: Email already exists",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse_Public"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organisation/api-key/generate": {
+      "post": {
+        "tags": [
+          "2. Organisations"
+        ],
+        "summary": "Generate API Key",
+        "description": "Generates a new API Key for the current organisation.",
+        "operationId": "renewApiKey",
+        "responses": {
+          "200": {
+            "description": "API Key generated successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiKeyResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Organisation not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Organisation has no active subscription or API Key already exists",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
                 }
               }
             }
@@ -1001,12 +1146,42 @@
           "required": true
         },
         "responses": {
-          "200": {
-            "description": "OK",
+          "201": {
+            "description": "Question created",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/CourseQuestionResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden: Only students can ask questions",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
                 }
               }
             }
@@ -1020,7 +1195,7 @@
           "Course Discussions"
         ],
         "summary": "Post a reply",
-        "description": "Allows students or staff to reply to a specific question.",
+        "description": "Allows students or staff to reply to a specific question. Only staff can accept an answer.",
         "operationId": "postReply",
         "parameters": [
           {
@@ -1044,12 +1219,42 @@
           "required": true
         },
         "responses": {
-          "200": {
-            "description": "OK",
+          "201": {
+            "description": "Reply posted successfully",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/ReplyResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Question not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
                 }
               }
             }
@@ -1086,16 +1291,6 @@
               }
             }
           },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorDetailsResponse"
-                }
-              }
-            }
-          },
           "403": {
             "description": "Forbidden: Insufficient permissions",
             "content": {
@@ -1108,6 +1303,16 @@
           },
           "500": {
             "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -1218,16 +1423,6 @@
           "required": true
         },
         "responses": {
-          "403": {
-            "description": "Forbidden: Only Org Admins can add staff",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorDetailsResponse_Public"
-                }
-              }
-            }
-          },
           "200": {
             "description": "Staff member created",
             "content": {
@@ -1238,18 +1433,8 @@
               }
             }
           },
-          "400": {
-            "description": "Validation error",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorDetailsResponse_Public"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
+          "403": {
+            "description": "Forbidden: Only Org Admins can add staff",
             "content": {
               "*/*": {
                 "schema": {
@@ -1270,6 +1455,26 @@
           },
           "500": {
             "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse_Public"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse_Public"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
             "content": {
               "*/*": {
                 "schema": {
@@ -1329,6 +1534,68 @@
           },
           "204": {
             "description": "Progress updated successfully"
+          }
+        }
+      }
+    },
+    "/api/v1/payments/subscriptions/update": {
+      "patch": {
+        "tags": [
+          "pay-fast-controller"
+        ],
+        "summary": "Update Recurring Subscription",
+        "description": "Modifies an existing PayFast subscription. Supports decreasing the amount, changing frequency (3 for monthly, 6 for yearly), adjusting cycles, or updating the next run date.",
+        "operationId": "updateSubscription",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayFastSubUpdateReqDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Subscription updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayFastSubscriptionDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No existing subscription found for this organization",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid update parameters provided",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Signature mismatch or unauthorized request",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -1500,6 +1767,16 @@
           }
         ],
         "responses": {
+          "200": {
+            "description": "Attempt found and returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
           "404": {
             "description": "Attempt not found",
             "content": {
@@ -1514,16 +1791,6 @@
             "description": "Access denied - Attempt belongs to another organization",
             "content": {
               "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "200": {
-            "description": "Attempt found and returned",
-            "content": {
-              "application/json": {
                 "schema": {
                   "type": "string"
                 }
@@ -1583,8 +1850,8 @@
               }
             }
           },
-          "404": {
-            "description": "Organisation not found",
+          "500": {
+            "description": "Internal Server Error",
             "content": {
               "*/*": {
                 "schema": {
@@ -1593,8 +1860,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error",
+          "404": {
+            "description": "Organisation not found",
             "content": {
               "*/*": {
                 "schema": {
@@ -1660,6 +1927,48 @@
         }
       }
     },
+    "/api/v1/payments/subscriptions/fetch": {
+      "get": {
+        "tags": [
+          "pay-fast-controller"
+        ],
+        "summary": "Fetch Subscription PaymentStatus",
+        "description": "Queries the PayFast API to retrieve current billing cycles, amount, and status for a subscription token.",
+        "operationId": "getSubscriptionStatus",
+        "responses": {
+          "200": {
+            "description": "Subscription details retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayFastSubscriptionDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Subscription token not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/organisation/details": {
       "get": {
         "tags": [
@@ -1679,8 +1988,8 @@
               }
             }
           },
-          "401": {
-            "description": "Full authentication is required to access this resource",
+          "500": {
+            "description": "Internal server error",
             "content": {
               "*/*": {
                 "schema": {
@@ -1689,8 +1998,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal server error",
+          "401": {
+            "description": "Full authentication is required to access this resource",
             "content": {
               "*/*": {
                 "schema": {
@@ -1733,7 +2042,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Questions retrieved successfully",
             "content": {
               "*/*": {
                 "schema": {
@@ -1741,6 +2050,36 @@
                   "items": {
                     "$ref": "#/components/schemas/CourseQuestionResponse"
                   }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Course not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
                 }
               }
             }
@@ -1798,8 +2137,8 @@
               }
             }
           },
-          "404": {
-            "description": "Organisation or Courses not found",
+          "401": {
+            "description": "Unauthorized: Authentication required",
             "content": {
               "*/*": {
                 "schema": {
@@ -1818,8 +2157,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error",
+          "404": {
+            "description": "Organisation or Courses not found",
             "content": {
               "*/*": {
                 "schema": {
@@ -1828,8 +2167,8 @@
               }
             }
           },
-          "401": {
-            "description": "Unauthorized: Authentication required",
+          "500": {
+            "description": "Internal Server Error",
             "content": {
               "*/*": {
                 "schema": {
@@ -1872,22 +2211,22 @@
           }
         ],
         "responses": {
+          "403": {
+            "description": "Forbidden: Access denied",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
           "200": {
             "description": "Staff retrieved successfully",
             "content": {
               "*/*": {
                 "schema": {
                   "$ref": "#/components/schemas/PagedModel"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorDetailsResponse"
                 }
               }
             }
@@ -1902,8 +2241,53 @@
               }
             }
           },
-          "403": {
-            "description": "Forbidden: Access denied",
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/organisation/api-key/revoke": {
+      "delete": {
+        "tags": [
+          "2. Organisations"
+        ],
+        "summary": "Revoke API Key",
+        "description": "Revokes the API Key for the current organisation.",
+        "operationId": "revokeApiKey",
+        "responses": {
+          "200": {
+            "description": "API Key revoked successfully"
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Organisation not found",
             "content": {
               "*/*": {
                 "schema": {
@@ -1935,16 +2319,6 @@
           }
         ],
         "responses": {
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorDetailsResponse"
-                }
-              }
-            }
-          },
           "204": {
             "description": "Course deleted"
           },
@@ -1960,6 +2334,16 @@
           },
           "500": {
             "description": "Internal Server Error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "*/*": {
                 "schema": {
@@ -2029,8 +2413,8 @@
           "204": {
             "description": "Staff deleted successfully"
           },
-          "404": {
-            "description": "Staff not found",
+          "500": {
+            "description": "Internal Server Error",
             "content": {
               "*/*": {
                 "schema": {
@@ -2049,8 +2433,8 @@
               }
             }
           },
-          "500": {
-            "description": "Internal Server Error",
+          "404": {
+            "description": "Staff not found",
             "content": {
               "*/*": {
                 "schema": {
@@ -2072,15 +2456,8 @@
         "operationId": "deleteOrganisation",
         "parameters": [],
         "responses": {
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorDetailsResponse"
-                }
-              }
-            }
+          "204": {
+            "description": "Organisation deleted successfully"
           },
           "500": {
             "description": "Internal server error",
@@ -2092,8 +2469,15 @@
               }
             }
           },
-          "204": {
-            "description": "Organisation deleted successfully"
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetailsResponse"
+                }
+              }
+            }
           },
           "404": {
             "description": "Organisation not found",
@@ -2137,7 +2521,14 @@
             "minLength": 8
           },
           "role": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "INACTIVE",
+              "ORG_ADMIN",
+              "COURSE_EDITOR",
+              "SUPPORT",
+              "STUDENT"
+            ]
           }
         },
         "required": [
@@ -2257,7 +2648,14 @@
             "type": "string"
           },
           "role": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "INACTIVE",
+              "ORG_ADMIN",
+              "COURSE_EDITOR",
+              "SUPPORT",
+              "STUDENT"
+            ]
           },
           "createdAt": {
             "type": "string",
@@ -2435,10 +2833,6 @@
           "zip": {
             "type": "string",
             "pattern": "^[0-9]{4}$"
-          },
-          "initialPlanId": {
-            "type": "integer",
-            "format": "int64"
           }
         },
         "required": [
@@ -2505,6 +2899,10 @@
           "subscriptionPlan": {
             "type": "string"
           },
+          "subscriptionAmount": {
+            "type": "number",
+            "format": "double"
+          },
           "subscriptionStartDate": {
             "type": "string",
             "format": "date-time"
@@ -2512,19 +2910,10 @@
           "subscriptionStatus": {
             "type": "string"
           },
+          "subscriptionUpdatedDate": {
+            "type": "string"
+          },
           "subscriptionEndDate": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "endedAt": {
             "type": "string",
             "format": "date-time"
           }
@@ -2839,31 +3228,6 @@
           }
         }
       },
-      "AnswerDTO": {
-        "type": "object",
-        "properties": {
-          "questionId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "selectedOptionId": {
-            "type": "integer",
-            "format": "int64"
-          }
-        }
-      },
-      "QuizSubmissionRequest": {
-        "type": "object",
-        "properties": {
-          "answers": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AnswerDTO"
-            },
-            "uniqueItems": true
-          }
-        }
-      },
       "StudentRequest": {
         "type": "object",
         "properties": {
@@ -2913,9 +3277,38 @@
           }
         }
       },
+      "AnswerDTO": {
+        "type": "object",
+        "properties": {
+          "questionId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "selectedOptionId": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "QuizSubmissionRequest": {
+        "type": "object",
+        "properties": {
+          "answers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AnswerDTO"
+            },
+            "uniqueItems": true
+          }
+        }
+      },
       "QuizResultResponse": {
         "type": "object",
         "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
           "score": {
             "type": "number"
           },
@@ -2985,10 +3378,6 @@
           "zip": {
             "type": "string",
             "pattern": "^[0-9]{4}$"
-          },
-          "initialPlanId": {
-            "type": "integer",
-            "format": "int64"
           }
         },
         "required": [
@@ -3144,6 +3533,10 @@
           "subscriptionPlan": {
             "type": "string"
           },
+          "subscriptionAmount": {
+            "type": "number",
+            "format": "double"
+          },
           "subscriptionStartDate": {
             "type": "string",
             "format": "date-time"
@@ -3151,17 +3544,37 @@
           "subscriptionStatus": {
             "type": "string"
           },
+          "subscriptionUpdatedDate": {
+            "type": "string"
+          },
           "subscriptionEndDate": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "ApiKeyResponse": {
+        "type": "object",
+        "properties": {
+          "orgId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "rawKey": {
+            "type": "string"
+          },
+          "prefix": {
+            "type": "string"
+          },
+          "hashedKey": {
+            "type": "string"
           },
           "createdAt": {
             "type": "string",
             "format": "date-time"
           },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
+          "isSubscriptionActive": {
+            "type": "boolean"
           }
         }
       },
@@ -3245,7 +3658,18 @@
         }
       },
       "ReplyRequest": {
-        "type": "object"
+        "type": "object",
+        "properties": {
+          "body": {
+            "type": "string"
+          },
+          "acceptedAnswer": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "body"
+        ]
       },
       "LoginRequest": {
         "type": "object",
@@ -3291,7 +3715,14 @@
             "minLength": 8
           },
           "role": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "INACTIVE",
+              "ORG_ADMIN",
+              "COURSE_EDITOR",
+              "SUPPORT",
+              "STUDENT"
+            ]
           }
         },
         "required": [
@@ -3322,7 +3753,14 @@
             "type": "string"
           },
           "role": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "INACTIVE",
+              "ORG_ADMIN",
+              "COURSE_EDITOR",
+              "SUPPORT",
+              "STUDENT"
+            ]
           },
           "createdAt": {
             "type": "string",
@@ -3331,6 +3769,88 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "PayFastSubUpdateReqDto": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "frequency": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cycles": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "run_date": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "DataPayload": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "$ref": "#/components/schemas/SubscriptionDetails"
+          }
+        }
+      },
+      "PayFastSubscriptionDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DataPayload"
+          }
+        }
+      },
+      "SubscriptionDetails": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cycles": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "frequency": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "token": {
+            "type": "string"
+          },
+          "cycles_complete": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "run_date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status_reason": {
+            "type": "string"
+          },
+          "status_text": {
+            "type": "string"
           }
         }
       },

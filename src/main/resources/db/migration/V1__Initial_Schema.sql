@@ -228,7 +228,7 @@ CREATE TABLE IF NOT EXISTS quiz (
     quiz_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     quiz_org_id BIGINT NOT NULL,
     quiz_course_id BIGINT NOT NULL,
-    title VARCHAR(255) NOT NULL,
+    quiz_title VARCHAR(255) NOT NULL,
     quiz_passing_score INT,
     quiz_max_attempts INT DEFAULT 3,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

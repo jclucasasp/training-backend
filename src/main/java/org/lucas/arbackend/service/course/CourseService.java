@@ -40,6 +40,7 @@ public class CourseService {
     private final QuizRepository quizRepo;
     private final ChapterRepository chapterRepo;
 
+    // TODO: Fix the totalTimeInMinutes for chapters not working
     public CourseResponse createCourse(CourseRequest request) {
 
         Organisation org = findOrganisation();
@@ -51,6 +52,7 @@ public class CourseService {
         // Map DTO to Entity
         Course course = new Course();
         courseMapper.updateCourse(request, course, ctx);
+        course.setOrganisation(org);
         course.setStaff(staff);
 
         if (request.getChapters() != null) {

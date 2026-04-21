@@ -30,6 +30,7 @@ import java.util.Set;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Quiz extends BaseEntity implements TenantEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "quiz_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

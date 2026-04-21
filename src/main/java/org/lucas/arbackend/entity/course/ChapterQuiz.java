@@ -1,5 +1,6 @@
 package org.lucas.arbackend.entity.course;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
@@ -17,7 +18,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @EntityListeners(AuditingEntityListener.class)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class ChapterQuiz extends BaseEntity implements TenantEntity {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @JoinColumn(name = "quiz_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -25,7 +27,9 @@ public class ChapterQuiz extends BaseEntity implements TenantEntity {
     private Chapter chapter;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId
     @JoinColumn(name = "quiz_id", nullable = false)
+    @JsonIgnore
     private Quiz quiz;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -18,6 +18,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Attachment extends BaseEntity implements TenantEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "att_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
