@@ -40,7 +40,7 @@ public interface QuizMapper {
             entity.setOrganisation(ctx.getOrganisation());
         }
     }
-
+    // TODO: Add the chapterId once saved to the chapter_quizzes in the QuizService
     @Mapping(target = "courseId", source = "course.id")
     QuizResponse toResponse(Quiz quiz);
 }

@@ -12,6 +12,7 @@ public record QuizResponse(
         Long courseId,
 //        List<Long> chapterIds,
         Integer chapterId,
+        // TODO: Check if we really need student numbers here.
         List<String> studentNumbers
 ) implements Serializable {
     @Serial
