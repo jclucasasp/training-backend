@@ -236,7 +236,7 @@ CREATE TABLE IF NOT EXISTS quiz (
     ended_at DATETIME NULL,
     CONSTRAINT fk_quiz_course_ref FOREIGN KEY (quiz_course_id) REFERENCES course(cou_id),
     CONSTRAINT fk_quiz_org_ref FOREIGN KEY (quiz_org_id) REFERENCES organisation(org_id),
-    UNIQUE INDEX idx_unique_quiz_title (quiz_course_id, title)
+    UNIQUE INDEX idx_unique_quiz_title (quiz_course_id, quiz_title)
 ) ENGINE=InnoDB;
 
 -- NEW: Quiz Questions
