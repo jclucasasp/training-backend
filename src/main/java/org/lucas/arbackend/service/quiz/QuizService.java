@@ -73,7 +73,8 @@ public class QuizService {
         MappingContext ctx = new MappingContext(creator.getOrganisation(), null, creator);
     // Convert request to quiz entity using mapper with the created context
         Quiz quiz = quizMapper.toEntity(request, ctx);
-    // Set the course for the quiz
+    // Set the course and organisation for the quiz
+        quiz.setOrganisation(creator.getOrganisation());
         quiz.setCourse(course);
 
     // Wire the quiz hierarchy structure
@@ -253,7 +254,10 @@ public class QuizService {
 
     private void wireQuizHierarchy(Quiz quiz, Staff creator) {
         if (quiz.getQuestions() == null) return;
-        quiz.getQuestions().forEach(q -> {
+
+        int index = 0;
+        for (QuizQuestion q : quiz.getQuestions()) {
+            q.setOrderIndex(index);
             q.setQuiz(quiz);
             q.setOrganisation(creator.getOrganisation());
             if (q.getOptions() != null) {
@@ -262,7 +266,9 @@ public class QuizService {
                     o.setOrganisation(creator.getOrganisation());
                 });
             }
-        });
+            index ++;
+        }
+
     }
 
     private void linkToChapter(Quiz quiz, Long chapterId, Long orgId) {
@@ -270,10 +276,11 @@ public class QuizService {
                 .orElseThrow(() -> new EntityNotFoundException("Chapter not found"));
 
         // Check if link already exists to prevent duplicates
+        if (quiz.getChapterQuizzes() != null) {
         boolean exists = quiz.getChapterQuizzes().stream()
                 .anyMatch(cq -> cq.getChapter().getId().equals(chapterId));
 
-        if (!exists) {
+            if (exists) return;
             ChapterQuiz link = ChapterQuiz.builder()
                     .quiz(quiz)
                     .chapter(chapter)
@@ -281,6 +288,7 @@ public class QuizService {
                     .build();
             quiz.getChapterQuizzes().add(link);
         }
+
     }
 
     private StudentQuiz findStudentQuiz(String studentNumber, Long quizId) {

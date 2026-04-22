@@ -41,12 +41,6 @@ public interface QuizMapper {
         }
     }
 
-//    default Course mapIdToCourse(Long id) {
-//        if (id == null) return null;
-//        Course course = new Course();
-//        course.setId(id);
-//        return course;
-//    }
-
+    @Mapping(target = "courseId", source = "course.id")
     QuizResponse toResponse(Quiz quiz);
 }

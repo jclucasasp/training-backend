@@ -36,7 +36,7 @@ public class ChapterQuiz extends BaseEntity implements TenantEntity {
     @JoinColumn(name = "quiz_org_id")
     Organisation organisation;
 
-        @Override
+    @Override
     public void setOrganisation(Organisation organisation) {
         this.organisation = organisation;
     }

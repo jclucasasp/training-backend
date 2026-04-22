@@ -51,9 +51,9 @@ public class CourseService {
         MappingContext ctx = new MappingContext(org, null, staff);
         // Map DTO to Entity
         Course course = new Course();
-        courseMapper.updateCourse(request, course, ctx);
         course.setOrganisation(org);
         course.setStaff(staff);
+        courseMapper.updateCourse(request, course, ctx);
 
         if (request.getChapters() != null) {
             AtomicInteger chapterIndex = new AtomicInteger(0);
@@ -85,6 +85,7 @@ public class CourseService {
                     chapter.setChapterSections(sections);
                 }
 
+                chapter.setTotalTimeInMinutes(getTotalDuration(chapter.getChapterSections()));
                 return chapter;
             }).collect(Collectors.toSet());
 

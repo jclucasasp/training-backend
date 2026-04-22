@@ -10,7 +10,8 @@ public record QuizResponse(
         Integer maxAttempts,
         Integer passingScore,
         Long courseId,
-        List<Long> chapterIds,
+//        List<Long> chapterIds,
+        Integer chapterId,
         List<String> studentNumbers
 ) implements Serializable {
     @Serial

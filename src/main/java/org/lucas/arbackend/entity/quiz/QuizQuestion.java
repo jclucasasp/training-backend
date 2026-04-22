@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "quiz_questions")
+@Table(name = "quiz_question")
 @SQLRestriction("ended_at IS NULL")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class QuizQuestion extends BaseEntity implements TenantEntity {
