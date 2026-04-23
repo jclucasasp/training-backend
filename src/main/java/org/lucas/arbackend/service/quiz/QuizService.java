@@ -37,15 +37,15 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional
 public class QuizService {
-    private final QuizRepository quizRepo;
     private final StudentQuizAttemptRepository attemptRepo;
-    private final QuizMapper quizMapper;
-    private final TenantProvider tenantProvider;
-    private final ChapterRepository chapterRepo;
     private final StudentQuizRepository studentQuizRepo;
     private final StudentRepository studentRepo;
+    private final TenantProvider tenantProvider;
+    private final ChapterRepository chapterRepo;
     private final CourseRepository courseRepo;
     private final ObjectMapper objectMapper;
+    private final QuizRepository quizRepo;
+    private final QuizMapper quizMapper;
 
     // ==========================================
     // CORE QUIZ OPERATIONS
@@ -276,8 +276,8 @@ public class QuizService {
         Chapter chapter = chapterRepo.findByIdAndOrganisationId(chapterId, orgId)
                 .orElseThrow(() -> new EntityNotFoundException("Chapter not found"));
 
-        // Check if link already exists to prevent duplicates
         if (quiz.getChapterQuizzes() != null) {
+        // Check if link already exists to prevent duplicates
         boolean exists = quiz.getChapterQuizzes().stream()
                 .anyMatch(cq -> cq.getChapter().getId().equals(chapterId));
 

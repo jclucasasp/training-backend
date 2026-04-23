@@ -6,7 +6,6 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.BaseEntity;
 import org.lucas.arbackend.entity.Organisation.Organisation;
-import org.lucas.arbackend.entity.quiz.Quiz;
 import org.lucas.arbackend.entity.course.misc.StatusTypes;
 import org.lucas.arbackend.util.tenant.TenantEntity;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -54,13 +53,16 @@ public class Chapter extends BaseEntity implements TenantEntity {
     @OrderBy("orderIndex ASC")
     private List<ChapterSection> chapterSections = new ArrayList<>();
 
-    @ManyToMany
-    @JoinTable(
-        name = "chapter_quizzes",
-        joinColumns = @JoinColumn(name = "cha_id"),
-        inverseJoinColumns = @JoinColumn(name = "quiz_id")
-    )
-    private Set<Quiz> quizzes = new HashSet<>();
+//    @ManyToMany
+//    @JoinTable(
+//        name = "chapter_quizzes",
+//        joinColumns = @JoinColumn(name = "cha_id"),
+//        inverseJoinColumns = @JoinColumn(name = "quiz_id")
+//    )
+//    private Set<Quiz> quizzes = new HashSet<>();
+
+    @OneToMany(mappedBy = "chapter", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ChapterQuiz> chapterQuizzes = new HashSet<>();
 
     @Override
     public Organisation getOrganisation() {

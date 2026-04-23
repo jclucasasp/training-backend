@@ -16,13 +16,14 @@ public interface CourseMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "status", source = "status")
-//    @Mapping(target = "organisation", ignore = true)
+    @Mapping(target = "chapters", ignore = true)
      void updateCourse(CourseRequest dto, @MappingTarget Course entity, @Context MappingContext ctx);
 
     // MapStruct will automatically look for this if CourseRequest has a List<CourseChapterRequest>
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "chapterSections", ignore = true)
     @Mapping(target = "status", source = "status")
+    @Mapping(target = "chapterQuizzes", ignore = true)
 //    @Mapping(target = "organisation", ignore = true)
     void updateChapter(CourseChapterRequest dto, @MappingTarget Chapter entity, @Context MappingContext ctx);
 
@@ -40,7 +41,6 @@ public interface CourseMapper {
 
     @Mapping(target = "staffEmail", source = "staff.email")
     @Mapping(target = "difficulty", source = "course.difficultyTypes")
-//    @Mapping(target = "status", source = "course.statusTypes")
     @Mapping(target = "chaptersResponse", source = "chapters")
     @Mapping(target = "totalTimeInMinutes", source = "totalTimeInMinutes")
     CourseResponse maptoCourseResponse(Course course);

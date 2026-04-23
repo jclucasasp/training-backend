@@ -8,12 +8,7 @@ public record QuizResponse(
         Long id,
         String title,
         Integer maxAttempts,
-        Integer passingScore,
-        Long courseId,
-//        List<Long> chapterIds,
-        Integer chapterId,
-        // TODO: Check if we really need student numbers here.
-        List<String> studentNumbers
+        Integer passingScore
 ) implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;

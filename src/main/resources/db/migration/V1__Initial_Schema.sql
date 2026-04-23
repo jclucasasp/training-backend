@@ -268,6 +268,9 @@ CREATE TABLE IF NOT EXISTS quiz_question_option (
 CREATE TABLE IF NOT EXISTS chapter_quizzes (
     cha_id BIGINT NOT NULL,
     quiz_id BIGINT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    ended_at TIMESTAMP NULL,
     PRIMARY KEY (cha_id, quiz_id),
     CONSTRAINT fk_cq_chapter FOREIGN KEY (cha_id) REFERENCES chapter(cha_id) ON DELETE CASCADE,
     CONSTRAINT fk_cq_quiz FOREIGN KEY (quiz_id) REFERENCES quiz(quiz_id) ON DELETE CASCADE

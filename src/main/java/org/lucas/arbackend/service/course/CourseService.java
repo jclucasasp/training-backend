@@ -6,6 +6,7 @@ import org.lucas.arbackend.dto.course.*;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.Organisation.Staff;
 import org.lucas.arbackend.entity.course.Chapter;
+import org.lucas.arbackend.entity.course.ChapterQuiz;
 import org.lucas.arbackend.entity.course.ChapterSection;
 import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.course.misc.Attachment;
@@ -125,28 +126,60 @@ public class CourseService {
         return courseMapper.maptoCourseResponse(courseRepo.save(course));
     }
 
-   private void updateChapters(Course course, List<CourseChapterRequest> chaptersRequest, MappingContext ctx) {
+    private void updateChapters(Course course, List<CourseChapterRequest> chaptersRequest, MappingContext ctx) {
+        // 1. Identify IDs coming from the request
+        Set<Long> requestIds = chaptersRequest.stream()
+                .map(CourseChapterRequest::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        // 2. Remove chapters that are NOT in the request (Manual Orphan Removal)
+        course.getChapters().removeIf(chapter -> !requestIds.contains(chapter.getId()));
 
         AtomicInteger index = new AtomicInteger();
-        List<Chapter> chapters = chaptersRequest.stream().map(chapterDto -> {
-                        Chapter chapter = (chapterDto.getId() != null)
-                                ? course.getChapters().stream()
-                                .filter(c -> c.getId().equals(chapterDto.getId())).findFirst()
-                                .orElseThrow(() -> new EntityNotFoundException("Chapter not found"))
-                                : new Chapter();
+        for (CourseChapterRequest dto : chaptersRequest) {
+            Chapter chapter;
+            if (dto.getId() != null) {
+                // 3. Update existing: It stays in the Set, preserving Quizzes
+                chapter = course.getChapters().stream()
+                        .filter(c -> c.getId().equals(dto.getId()))
+                        .findFirst()
+                        .orElseThrow(() -> new EntityNotFoundException("Chapter not found"));
+            } else {
+                // 4. Add new
+                chapter = new Chapter();
+                chapter.setCourse(course);
+                course.getChapters().add(chapter);
+            }
 
-                        courseMapper.updateChapter(chapterDto, chapter, ctx);
-                        chapter.setCourse(course);
-                        chapter.setOrderIndex(index.getAndIncrement());
+            courseMapper.updateChapter(dto, chapter, ctx);
+            chapter.setOrderIndex(index.getAndIncrement());
+            updateChapterSections(chapter, dto.getSections(), ctx);
+        }
+    }
 
-                        updateChapterSections(chapter, chapterDto.getSections(), ctx);
-
-                        return chapter;
-        }).toList();
-
-        course.getChapters().clear();
-        course.getChapters().addAll(chapters);
-   }
+//   private void updateChapters(Course course, List<CourseChapterRequest> chaptersRequest, MappingContext ctx) {
+//
+//        AtomicInteger index = new AtomicInteger();
+//        List<Chapter> chapters = chaptersRequest.stream().map(chapterDto -> {
+//                        Chapter chapter = (chapterDto.getId() != null)
+//                                ? course.getChapters().stream()
+//                                .filter(c -> c.getId().equals(chapterDto.getId())).findFirst()
+//                                .orElseThrow(() -> new EntityNotFoundException("Chapter not found"))
+//                                : new Chapter();
+//
+//                        courseMapper.updateChapter(chapterDto, chapter, ctx);
+//                        chapter.setCourse(course);
+//                        chapter.setOrderIndex(index.getAndIncrement());
+//
+//                        updateChapterSections(chapter, chapterDto.getSections(), ctx);
+//
+//                        return chapter;
+//        }).toList();
+//
+//        course.getChapters().clear(  );
+//        course.getChapters().addAll(chapters);
+//   }
 
 private void updateChapterSections(Chapter chapter, List<ChapterSectionRequest> sectionRequest, MappingContext ctx) {
     // If the request explicitly provides a null or empty list,
@@ -205,7 +238,13 @@ private void updateChapterSections(Chapter chapter, List<ChapterSectionRequest> 
         Quiz quiz = quizRepo.findByIdAndOrganisationIdAndEndedAtIsNull(quizId, tenantProvider.get())
                 .orElseThrow(() -> new EntityNotFoundException("Quiz not found"));
 
-        chapter.getQuizzes().add(quiz);
+        ChapterQuiz link = ChapterQuiz.builder()
+            .chapter(chapter)
+            .quiz(quiz)
+            .organisation(chapter.getOrganisation())
+            .build();
+
+        chapter.getChapterQuizzes().add(link);
         chapterRepo.save(chapter);
     }
 
@@ -214,7 +253,7 @@ private void updateChapterSections(Chapter chapter, List<ChapterSectionRequest> 
             .orElseThrow(() -> new EntityNotFoundException("Chapter not found"));
 
     // Remove by ID from the Set
-    chapter.getQuizzes().removeIf(q -> q.getId().equals(quizId));
+    chapter.getChapterQuizzes().removeIf(q -> q.getId().equals(quizId));
     chapterRepo.save(chapter);
 }
 
