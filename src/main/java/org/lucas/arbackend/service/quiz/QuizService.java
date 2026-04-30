@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.lucas.arbackend.dto.quiz.*;
 import org.lucas.arbackend.entity.Organisation.Staff;
 import org.lucas.arbackend.entity.course.Chapter;
@@ -13,6 +14,7 @@ import org.lucas.arbackend.entity.quiz.*;
 import org.lucas.arbackend.entity.student.Student;
 import org.lucas.arbackend.mapper.QuizMapper;
 import org.lucas.arbackend.mapper.context.MappingContext;
+import org.lucas.arbackend.repository.course.ChapterQuizRepository;
 import org.lucas.arbackend.repository.course.ChapterRepository;
 import org.lucas.arbackend.repository.course.CourseRepository;
 import org.lucas.arbackend.repository.course.StudentQuizRepository;
@@ -33,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -42,6 +45,7 @@ public class QuizService {
     private final StudentRepository studentRepo;
     private final TenantProvider tenantProvider;
     private final ChapterRepository chapterRepo;
+    private final ChapterQuizRepository chapterQuizRepo;
     private final CourseRepository courseRepo;
     private final ObjectMapper objectMapper;
     private final QuizRepository quizRepo;
@@ -82,8 +86,8 @@ public class QuizService {
         wireQuizHierarchy(quiz, creator);
 
     // If chapter ID is provided, link the quiz to the chapter
-        if (request.getChapterId() != null) {
-            linkToChapter(quiz, request.getChapterId(), orgId);
+        if (request.getCourseId() != null && request.getChapterId() != null) {
+            linkToChapter(quiz, request.getCourseId(), request.getChapterId(), orgId);
         }
 
     // Save the quiz to repository and convert to response
@@ -110,9 +114,9 @@ public class QuizService {
     // ASSIGNMENT OPERATIONS
     // ==========================================
 
-    public void assignQuizToChapter(Long quizId, Long courseId) {
+    public void assignQuizToChapter(Long quizId, Long courseId, Long chapterId) {
         Quiz quiz = getQuiz(quizId);
-        linkToChapter(quiz, courseId, tenantProvider.get());
+        linkToChapter(quiz, courseId, chapterId, tenantProvider.get());
         quizRepo.save(quiz);
     }
 
@@ -272,22 +276,42 @@ public class QuizService {
 
     }
 
-    private void linkToChapter(Quiz quiz, Long chapterId, Long orgId) {
-        Chapter chapter = chapterRepo.findByIdAndOrganisationId(chapterId, orgId)
+    private void linkToChapter(Quiz quiz, Long courseId, Long chapterId, Long orgId ) {
+        log.info("DEBUG: Incoming request to link quiz: [{}] to course: [{}] for chapter: [{}]", quiz.getId(), courseId, chapterId);
+
+        Course course = courseRepo.findByIdAndOrganisationId(courseId, orgId)
+                .orElseThrow(() -> new EntityNotFoundException("Now course found for organisation id: [" + orgId + "]"));
+
+//        Chapter chapter = chapterRepo.findByIdAndOrganisationId(chapterId, orgId)
+//                .orElseThrow(() -> new EntityNotFoundException("Chapter not found"));
+        Chapter chapter = course.getChapters().stream()
+                .filter(c -> c.getId().equals(chapterId))
+                .findFirst()
                 .orElseThrow(() -> new EntityNotFoundException("Chapter not found"));
 
         if (quiz.getChapterQuizzes() != null) {
+            log.info("Quizzes found for the chapter, checking if it already exist so no duplication happens...");
         // Check if link already exists to prevent duplicates
         boolean exists = quiz.getChapterQuizzes().stream()
                 .anyMatch(cq -> cq.getChapter().getId().equals(chapterId));
 
-            if (exists) return;
+            if (exists){
+                log.info("Link already exists for quiz: [{}] to chapter: [{}]", quiz.getId(), chapterId);
+                return;
+            }
+
+            log.info("DEBUG: No link exist, creating...");
             ChapterQuiz link = ChapterQuiz.builder()
                     .quiz(quiz)
                     .chapter(chapter)
                     .organisation(quiz.getOrganisation())
                     .build();
             quiz.getChapterQuizzes().add(link);
+
+            chapterQuizRepo.save(link);
+
+            chapter.getChapterQuizzes().add(link);
+            chapterRepo.save(chapter);
         }
 
     }

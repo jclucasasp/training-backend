@@ -207,23 +207,6 @@ private void updateChapterSections(Chapter chapter, List<ChapterSectionRequest> 
         courseRepo.delete(course);
     }
 
-    public void addQuizToChapter(Long chapterId, Long quizId) {
-        Chapter chapter = chapterRepo.findByIdAndOrganisationId(chapterId, tenantProvider.get())
-                .orElseThrow(() -> new EntityNotFoundException("Chapter not found"));
-
-        Quiz quiz = quizRepo.findByIdAndOrganisationIdAndEndedAtIsNull(quizId, tenantProvider.get())
-                .orElseThrow(() -> new EntityNotFoundException("Quiz not found"));
-
-        ChapterQuiz link = ChapterQuiz.builder()
-            .chapter(chapter)
-            .quiz(quiz)
-            .organisation(chapter.getOrganisation())
-            .build();
-
-        chapter.getChapterQuizzes().add(link);
-        chapterRepo.save(chapter);
-    }
-
     public void removeQuizFromChapter(Long chapterId, Long quizId) {
     Chapter chapter = chapterRepo.findByIdAndOrganisationId(chapterId, tenantProvider.get())
             .orElseThrow(() -> new EntityNotFoundException("Chapter not found"));

@@ -2,6 +2,8 @@ package org.lucas.arbackend.mapper;
 
 import org.lucas.arbackend.dto.course.*;
 import org.lucas.arbackend.dto.course.attachment.AttachmentRequest;
+import org.lucas.arbackend.dto.quiz.QuizResponse;
+import org.lucas.arbackend.entity.course.ChapterQuiz;
 import org.lucas.arbackend.entity.course.ChapterSection;
 import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.course.Chapter;
@@ -10,9 +12,10 @@ import org.lucas.arbackend.mapper.context.MappingContext;
 import org.lucas.arbackend.util.tenant.TenantEntity;
 import org.mapstruct.*;
 
-@Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+@Mapper(componentModel = "spring",
+        uses = { QuizMapper.class },
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface CourseMapper {
-
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "status", source = "status")
@@ -46,7 +49,15 @@ public interface CourseMapper {
     CourseResponse maptoCourseResponse(Course course);
 
     @Mapping(target = "sections", source = "chapterSections") // Map Set<ChapterSection> to Set<ChapterSectionResponse>
+    @Mapping(target = "chapterQuizzes", source = "chapterQuizzes")
     CourseChapterResponse mapToChapterResponse(Chapter chapter);
+
+    @Mapping(target = "id", source = "quiz.id")
+    @Mapping(target = "title", source = "quiz.title")
+    @Mapping(target = "maxAttempts", source = "quiz.maxAttempts")
+    @Mapping(target = "passingScore", source = "quiz.passingScore")
+// Replace 'QuizResponse' with the actual class name of your DTO
+    QuizResponse mapChapterQuizToQuizResponse(ChapterQuiz chapterQuiz);
 
     // 3. Define how ONE Section maps to ONE SectionResponse
     // (MapStruct handles this automatically if field names match, but you can be explicit)

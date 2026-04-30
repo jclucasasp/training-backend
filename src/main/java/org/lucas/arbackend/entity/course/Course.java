@@ -22,7 +22,8 @@ import java.util.Set;
 subgraphs = {
         @NamedSubgraph(name = "chapterSections",
                 attributeNodes = {
-                        @NamedAttributeNode(value = "chapterSections", subgraph = "attachments")
+                        @NamedAttributeNode(value = "chapterSections", subgraph = "attachments"),
+                        @NamedAttributeNode(value = "chapterQuizzes")
                 }),
         @NamedSubgraph(name = "attachments",
                 attributeNodes = {

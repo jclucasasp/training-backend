@@ -97,20 +97,7 @@ public class CourseController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/chapters/{chapterId}/quizzes/{quizId}")
-    @Operation(
-        summary = "Add a quiz to a chapter",
-        description = "Links an existing quiz to a specific chapter within a course. Validates tenant ownership for both."
-    )
-    public ResponseEntity<Void> addQuizToChapter(
-            @PathVariable @Parameter(description = "The ID of the Chapter") Long chapterId,
-            @PathVariable @Parameter(description = "The ID of the Quiz to be added") Long quizId
-    ) {
-        courseService.addQuizToChapter(chapterId, quizId);
-        return ResponseEntity.ok().build();
-    }
-
-     @DeleteMapping("/{chapterId}/quizzes/{quizId}")
+    @DeleteMapping("/{chapterId}/chapterQuizzes/{quizId}")
     @Operation(
         summary = "Remove quiz from chapter",
         description = "Unlinks a quiz from a chapter. Does not delete the quiz entity itself."

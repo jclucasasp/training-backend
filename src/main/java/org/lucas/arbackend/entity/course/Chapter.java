@@ -53,14 +53,6 @@ public class Chapter extends BaseEntity implements TenantEntity {
     @OrderBy("orderIndex ASC")
     private List<ChapterSection> chapterSections = new ArrayList<>();
 
-//    @ManyToMany
-//    @JoinTable(
-//        name = "chapter_quizzes",
-//        joinColumns = @JoinColumn(name = "cha_id"),
-//        inverseJoinColumns = @JoinColumn(name = "quiz_id")
-//    )
-//    private Set<Quiz> quizzes = new HashSet<>();
-
     @OneToMany(mappedBy = "chapter", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ChapterQuiz> chapterQuizzes = new HashSet<>();
 

@@ -20,9 +20,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/quizzes")
+@RequestMapping("/api/v1/chapterQuizzes")
 @RequiredArgsConstructor
-@Tag(name = "6. Quiz Management", description = "Endpoints for creating, fetching, and submitting course quizzes")
+@Tag(name = "6. Quiz Management", description = "Endpoints for creating, fetching, and submitting course chapterQuizzes")
 public class QuizController {
 
     private final QuizService quizService;
@@ -60,14 +60,15 @@ public class QuizController {
         return ResponseEntity.ok(quizService.submitAndGradeQuiz(userDetails.getUsername(), id, submission));
     }
 
-    @PutMapping("/{id}/assign-chapter/{chapterId}")
+    @PutMapping("/{id}/course/{courseId}/assign-chapter/{chapterId}")
     @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR')")
     @Operation(summary = "Assign quiz to a chapter")
     public ResponseEntity<Void> assignToChapter(
             @PathVariable Long id,
+            @PathVariable Long courseId,
             @PathVariable Long chapterId
     ) {
-        quizService.assignQuizToChapter(id, chapterId);
+        quizService.assignQuizToChapter(id, courseId, chapterId);
         return ResponseEntity.noContent().build();
     }
 

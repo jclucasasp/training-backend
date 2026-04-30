@@ -130,7 +130,7 @@ public class StudentController {
         @ApiResponse(responseCode = "200", description = "Successfully retrieved attempt history"),
         @ApiResponse(responseCode = "404", description = "Student or Quiz not found")
     })
-    @GetMapping("/{studentNumber}/quizzes/{quizId}/attempts")
+    @GetMapping("/{studentNumber}/chapterQuizzes/{quizId}/attempts")
     public ResponseEntity<List<QuizAttemptResponse>> getQuizAttempts(
             @Parameter(description = "Unique student identifier") @PathVariable String studentNumber,
             @Parameter(description = "ID of the quiz") @PathVariable Long quizId) {
