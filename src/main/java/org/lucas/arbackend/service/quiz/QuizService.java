@@ -110,9 +110,9 @@ public class QuizService {
     // ASSIGNMENT OPERATIONS
     // ==========================================
 
-    public void assignQuizToChapter(Long quizId, Long chapterId) {
+    public void assignQuizToChapter(Long quizId, Long courseId) {
         Quiz quiz = getQuiz(quizId);
-        linkToChapter(quiz, chapterId, tenantProvider.get());
+        linkToChapter(quiz, courseId, tenantProvider.get());
         quizRepo.save(quiz);
     }
 

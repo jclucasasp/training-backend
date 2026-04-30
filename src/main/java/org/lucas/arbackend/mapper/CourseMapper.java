@@ -41,11 +41,11 @@ public interface CourseMapper {
 
     @Mapping(target = "staffEmail", source = "staff.email")
     @Mapping(target = "difficulty", source = "course.difficultyTypes")
-    @Mapping(target = "chaptersResponse", source = "chapters")
+    @Mapping(target = "chapters", source = "chapters")
     @Mapping(target = "totalTimeInMinutes", source = "totalTimeInMinutes")
     CourseResponse maptoCourseResponse(Course course);
 
-    @Mapping(target = "sectionsResponse", source = "chapterSections") // Map Set<ChapterSection> to Set<ChapterSectionResponse>
+    @Mapping(target = "sections", source = "chapterSections") // Map Set<ChapterSection> to Set<ChapterSectionResponse>
     CourseChapterResponse mapToChapterResponse(Chapter chapter);
 
     // 3. Define how ONE Section maps to ONE SectionResponse

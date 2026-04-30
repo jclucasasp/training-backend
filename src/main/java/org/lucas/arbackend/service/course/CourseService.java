@@ -41,7 +41,6 @@ public class CourseService {
     private final QuizRepository quizRepo;
     private final ChapterRepository chapterRepo;
 
-    // TODO: Fix the totalTimeInMinutes for chapters not working
     public CourseResponse createCourse(CourseRequest request) {
 
         Organisation org = findOrganisation();
@@ -157,29 +156,6 @@ public class CourseService {
             updateChapterSections(chapter, dto.getSections(), ctx);
         }
     }
-
-//   private void updateChapters(Course course, List<CourseChapterRequest> chaptersRequest, MappingContext ctx) {
-//
-//        AtomicInteger index = new AtomicInteger();
-//        List<Chapter> chapters = chaptersRequest.stream().map(chapterDto -> {
-//                        Chapter chapter = (chapterDto.getId() != null)
-//                                ? course.getChapters().stream()
-//                                .filter(c -> c.getId().equals(chapterDto.getId())).findFirst()
-//                                .orElseThrow(() -> new EntityNotFoundException("Chapter not found"))
-//                                : new Chapter();
-//
-//                        courseMapper.updateChapter(chapterDto, chapter, ctx);
-//                        chapter.setCourse(course);
-//                        chapter.setOrderIndex(index.getAndIncrement());
-//
-//                        updateChapterSections(chapter, chapterDto.getSections(), ctx);
-//
-//                        return chapter;
-//        }).toList();
-//
-//        course.getChapters().clear(  );
-//        course.getChapters().addAll(chapters);
-//   }
 
 private void updateChapterSections(Chapter chapter, List<ChapterSectionRequest> sectionRequest, MappingContext ctx) {
     // If the request explicitly provides a null or empty list,

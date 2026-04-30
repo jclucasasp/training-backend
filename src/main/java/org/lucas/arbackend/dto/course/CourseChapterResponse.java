@@ -14,7 +14,7 @@ public record CourseChapterResponse(
         String summary,
         String status,
         Integer totalTimeInMinutes,
-        List<ChapterSectionResponse> sectionsResponse,
+        List<ChapterSectionResponse> sections,
         List<QuizResponse> quizzes
 
 ) implements Serializable {

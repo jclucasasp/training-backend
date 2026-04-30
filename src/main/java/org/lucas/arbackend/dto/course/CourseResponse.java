@@ -21,7 +21,7 @@ public record CourseResponse(
         String difficulty,
         String imageUrl,
         String tags,
-        List<CourseChapterResponse> chaptersResponse
+        List<CourseChapterResponse> chapters
 ) implements Serializable {
 
     @Serial
