@@ -27,18 +27,14 @@ public interface CourseMapper {
     @Mapping(target = "chapterSections", ignore = true)
     @Mapping(target = "status", source = "status")
     @Mapping(target = "chapterQuizzes", ignore = true)
-//    @Mapping(target = "organisation", ignore = true)
     void updateChapter(CourseChapterRequest dto, @MappingTarget Chapter entity, @Context MappingContext ctx);
 
     @Mapping(target = "id", ignore = true)
-//    @Mapping(target = "isPreview", source = "isPreview")
-//    @Mapping(target = "status", source = "status")
+
     @Mapping(target = "durationInMinutes", source = "durationInMinutes")
-//    @Mapping(target = "organisation", ignore = true)
     void updateChapterSection(ChapterSectionRequest dto, @MappingTarget ChapterSection entity, @Context MappingContext ctx);
 
     @Mapping(target = "id", ignore = true)
-//    @Mapping(target = "organisation", ignore = true)
     @Mapping(target = "chapterSection", ignore = true)
     void updateAttachment(AttachmentRequest dto, @MappingTarget Attachment entity, @Context MappingContext ctx);
 
@@ -56,7 +52,6 @@ public interface CourseMapper {
     @Mapping(target = "title", source = "quiz.title")
     @Mapping(target = "maxAttempts", source = "quiz.maxAttempts")
     @Mapping(target = "passingScore", source = "quiz.passingScore")
-// Replace 'QuizResponse' with the actual class name of your DTO
     QuizResponse mapChapterQuizToQuizResponse(ChapterQuiz chapterQuiz);
 
     // 3. Define how ONE Section maps to ONE SectionResponse

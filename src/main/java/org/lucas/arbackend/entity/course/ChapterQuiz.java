@@ -13,13 +13,15 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "chapter_quizzes")
-@SQLDelete(sql = "UPDATE chapter_quizzes SET ended_at = CURRENT_TIMESTAMP WHERE quiz_id = ?")
+@SQLDelete(sql = "UPDATE chapter_quizzes SET ended_at = CURRENT_TIMESTAMP WHERE cq_id = ?")
 @SQLRestriction("ended_at IS NULL")
 @EntityListeners(AuditingEntityListener.class)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class ChapterQuiz extends BaseEntity implements TenantEntity {
+
     @Id
-    @JoinColumn(name = "quiz_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "cq_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -27,9 +29,7 @@ public class ChapterQuiz extends BaseEntity implements TenantEntity {
     private Chapter chapter;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId
     @JoinColumn(name = "quiz_id", nullable = false)
-    @JsonIgnore
     private Quiz quiz;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -119,6 +119,23 @@ public class QuizService {
         linkToChapter(quiz, courseId, chapterId, tenantProvider.get());
         quizRepo.save(quiz);
     }
+    public void assignQuizToChapter(Quiz quiz, Chapter chapter) {
+         log.info("Creating new audit link for quiz: [{}] to new chapter: [{}]", quiz.getId(), chapter.getId());
+        if (quiz.getChapterQuizzes() != null) {
+           ChapterQuiz link = ChapterQuiz.builder()
+            .quiz(quiz) // @MapsId will take this ID
+            .chapter(chapter)
+            .organisation(quiz.getOrganisation())
+            .build();
+
+            chapter.getChapterQuizzes().add(link);
+            quiz.getChapterQuizzes().add(link);
+
+            chapterQuizRepo.saveAndFlush(link);
+            log.info("DEBUG: ChapterQuiz link saved with ID: {}", link.getId());
+        }
+    }
+
 
     public void assignQuizToEnrolledStudents(Long quizId, Long courseId) {
         Quiz quiz = getQuiz(quizId);
@@ -282,8 +299,6 @@ public class QuizService {
         Course course = courseRepo.findByIdAndOrganisationId(courseId, orgId)
                 .orElseThrow(() -> new EntityNotFoundException("Now course found for organisation id: [" + orgId + "]"));
 
-//        Chapter chapter = chapterRepo.findByIdAndOrganisationId(chapterId, orgId)
-//                .orElseThrow(() -> new EntityNotFoundException("Chapter not found"));
         Chapter chapter = course.getChapters().stream()
                 .filter(c -> c.getId().equals(chapterId))
                 .findFirst()
@@ -311,7 +326,7 @@ public class QuizService {
             chapterQuizRepo.save(link);
 
             chapter.getChapterQuizzes().add(link);
-            chapterRepo.save(chapter);
+//            chapterRepo.save(chapter);
         }
 
     }

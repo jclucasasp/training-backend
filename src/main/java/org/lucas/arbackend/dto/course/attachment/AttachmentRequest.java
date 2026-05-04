@@ -2,9 +2,12 @@ package org.lucas.arbackend.dto.course.attachment;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
+import lombok.*;
 import org.lucas.arbackend.util.ValidatedLabel;
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class AttachmentRequest {
 
     private Long id;

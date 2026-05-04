@@ -39,10 +39,10 @@ public class CourseRequest {
     @NotNull(message = "Course difficulty is required", groups = ValidatedLabel.OnCreate.class)
     private DifficultyTypes difficultyTypes; // BEGINNER, INTERMEDIATE, ADVANCED
 
+    private String imageUrl;
+
     @NotBlank(message = "Course tags are required", groups = ValidatedLabel.OnCreate.class)
     private String tags;
-
-    private String imageUrl;
 
     @NotNull(message = "Course courseModules are required", groups = ValidatedLabel.OnCreate.class)
     private List<CourseChapterRequest> chapters;

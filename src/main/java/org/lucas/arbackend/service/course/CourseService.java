@@ -2,11 +2,11 @@ package org.lucas.arbackend.service.course;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.lucas.arbackend.dto.course.*;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.Organisation.Staff;
 import org.lucas.arbackend.entity.course.Chapter;
-import org.lucas.arbackend.entity.course.ChapterQuiz;
 import org.lucas.arbackend.entity.course.ChapterSection;
 import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.course.misc.Attachment;
@@ -18,6 +18,7 @@ import org.lucas.arbackend.repository.course.CourseRepository;
 import org.lucas.arbackend.repository.quiz.QuizRepository;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.StaffRepository;
+import org.lucas.arbackend.service.quiz.QuizService;
 import org.lucas.arbackend.util.tenant.TenantProvider;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +29,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -39,6 +41,7 @@ public class CourseService {
     private final CourseMapper courseMapper;
     private final StaffRepository staffRepo;
     private final QuizRepository quizRepo;
+    private final QuizService quizService;
     private final ChapterRepository chapterRepo;
 
     public CourseResponse createCourse(CourseRequest request) {
@@ -66,9 +69,9 @@ public class CourseService {
                 chapter.setOrderIndex(chapterIndex.getAndIncrement());
 
                 // 3. MANUALLY MAP AND LINK SECTIONS
-                if (chapterDto.getSections() != null) {
+                if (chapterDto.getChapterSections() != null) {
                     AtomicInteger sectionIndex = new AtomicInteger(0);
-                    List<ChapterSection> sections = chapterDto.getSections().stream().map(sectionDto -> {
+                    List<ChapterSection> sections = chapterDto.getChapterSections().stream().map(sectionDto -> {
                         ChapterSection section = new ChapterSection();
 
                         courseMapper.updateChapterSection(sectionDto, section, ctx);
@@ -126,34 +129,41 @@ public class CourseService {
     }
 
     private void updateChapters(Course course, List<CourseChapterRequest> chaptersRequest, MappingContext ctx) {
-        // 1. Identify IDs coming from the request
-        Set<Long> requestIds = chaptersRequest.stream()
-                .map(CourseChapterRequest::getId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
+        // 1. Double-check: Is the Quiz ID really the Course ID?
+        // If not, change this to findByCourseId...
+        Optional<Quiz> courseQuiz = quizRepo.findByCourseIdAndOrganisationId(course.getId(), tenantProvider.get());
 
-        // 2. Remove chapters that are NOT in the request (Manual Orphan Removal)
-        course.getChapters().removeIf(chapter -> !requestIds.contains(chapter.getId()));
+        if (courseQuiz.isPresent()) {
+            log.info("Found Quiz ID: {} for Course ID: {}", courseQuiz.get().getId(), course.getId());
+            // Clear the QUIZ side of the old links so the session is clean
+            courseQuiz.get().getChapterQuizzes().clear();
+        } else {
+            log.error("No Quiz found for Course {}. Links will NOT be created.", course.getId());
+        }
+
+        course.getChapters().clear();
+        chapterRepo.flush();
+        quizRepo.flush();
 
         AtomicInteger index = new AtomicInteger();
         for (CourseChapterRequest dto : chaptersRequest) {
-            Chapter chapter;
-            if (dto.getId() != null) {
-                // 3. Update existing: It stays in the Set, preserving Quizzes
-                chapter = course.getChapters().stream()
-                        .filter(c -> c.getId().equals(dto.getId()))
-                        .findFirst()
-                        .orElseThrow(() -> new EntityNotFoundException("Chapter not found"));
-            } else {
-                // 4. Add new
-                chapter = new Chapter();
-                chapter.setCourse(course);
-                course.getChapters().add(chapter);
-            }
-
+            Chapter chapter = new Chapter();
+            chapter.setCourse(course);
+            chapter.setOrganisation(ctx.getOrganisation());
             courseMapper.updateChapter(dto, chapter, ctx);
             chapter.setOrderIndex(index.getAndIncrement());
-            updateChapterSections(chapter, dto.getSections(), ctx);
+
+            course.getChapters().add(chapter);
+
+            // Save the chapter first so it has an ID
+            Chapter savedChapter = chapterRepo.saveAndFlush(chapter);
+
+            courseQuiz.ifPresent(quiz -> {
+                log.info("Attempting to link Quiz {} to New Chapter {}", quiz.getId(), savedChapter.getId());
+                quizService.assignQuizToChapter(quiz, savedChapter);
+            });
+
+            updateChapterSections(savedChapter, dto.getChapterSections(), ctx);
         }
     }
 

@@ -50,10 +50,10 @@ public class Quiz extends BaseEntity implements TenantEntity {
     @Column(name = "quiz_passing_score")
     private Integer passingScore;
 
-    @OneToMany(mappedBy = "quiz")
+    @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<StudentQuiz> studentQuizzes = new HashSet<>();
 
-    @OneToMany(mappedBy = "quiz")
+    @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ChapterQuiz> chapterQuizzes = new HashSet<>();
 
     @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true)
