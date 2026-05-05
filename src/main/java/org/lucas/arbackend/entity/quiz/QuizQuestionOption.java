@@ -1,5 +1,6 @@
 package org.lucas.arbackend.entity.quiz;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import org.lucas.arbackend.entity.Organisation.Organisation;
@@ -29,7 +30,7 @@ public class QuizQuestionOption implements TenantEntity {
     private String text;
 
     @Column(name = "qto_is_correct")
-    private boolean isCorrect;
+    private boolean correct;
 
     @Override
     public Organisation getOrganisation() {

@@ -8,5 +8,5 @@ import lombok.Setter;
 public class OptionRequest {
 
     private String text;
-    private boolean isCorrect;
+    private boolean correct;
 }
