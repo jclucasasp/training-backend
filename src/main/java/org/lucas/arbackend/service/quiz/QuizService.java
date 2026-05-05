@@ -18,6 +18,7 @@ import org.lucas.arbackend.repository.course.ChapterQuizRepository;
 import org.lucas.arbackend.repository.course.ChapterRepository;
 import org.lucas.arbackend.repository.course.CourseRepository;
 import org.lucas.arbackend.repository.course.StudentQuizRepository;
+import org.lucas.arbackend.repository.quiz.QuizQuestionRepository;
 import org.lucas.arbackend.repository.quiz.QuizRepository;
 import org.lucas.arbackend.repository.quiz.StudentQuizAttemptRepository;
 import org.lucas.arbackend.repository.student.StudentRepository;
@@ -165,19 +166,27 @@ public class QuizService {
     // ==========================================
 
     public void addQuestionToQuiz(Long quizId, QuestionRequest request) {
+
         Quiz quiz = getQuiz(quizId);
-        MappingContext ctx = new MappingContext(quiz.getOrganisation(), null, null);
+        MappingContext ctx = new MappingContext(quiz.getOrganisation(), null, quiz.getCourse().getStaff());
 
-        QuizQuestion question = quizMapper.toQuestionEntity(request, ctx);
-        question.setQuiz(quiz);
+        QuizQuestion newQuestion = quizMapper.toQuestionEntity(request, ctx);
+        newQuestion.setQuiz(quiz);
+        newQuestion.setOrganisation(quiz.getOrganisation());
+        newQuestion.setOrderIndex(newQuestion.getOrderIndex() + 1);
 
-        question.getOptions().forEach(o -> {
-            o.setQuestion(question);
-            o.setOrganisation(quiz.getOrganisation());
-        });
+        if (newQuestion.getOptions() != null && !newQuestion.getOptions().isEmpty()) {
+             newQuestion.getOptions().forEach(option -> {
+                 option.setOrganisation(quiz.getOrganisation());
+                 option.setQuestion(newQuestion);
+             });
+        } else {
+            log.info("DEBUG: No questions detected, skipping...");
+            return;
+        }
 
-        quiz.getQuestions().add(question);
-        quizRepo.save(quiz);
+       quiz.getQuestions().add(newQuestion);
+       quizRepo.save(quiz);
     }
 
     public void updateQuestion(Long quizId, Long questionId, QuestionRequest request) {
@@ -188,9 +197,10 @@ public class QuizService {
                 .orElseThrow(() -> new EntityNotFoundException("Question not found in this quiz"));
 
         question.setText(request.getText());
+        question.setOrganisation(quiz.getOrganisation());
         question.getOptions().clear(); // Relies on orphanRemoval = true in Entity
 
-        MappingContext ctx = new MappingContext(quiz.getOrganisation(), null, null);
+        MappingContext ctx = new MappingContext(quiz.getOrganisation(), null, quiz.getCourse().getStaff());
         request.getOptions().forEach(optDto -> {
             QuizQuestionOption option = quizMapper.toOptionEntity(optDto, ctx);
             option.setQuestion(question);

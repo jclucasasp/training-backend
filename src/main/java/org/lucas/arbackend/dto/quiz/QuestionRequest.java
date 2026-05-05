@@ -8,9 +8,7 @@ import java.util.List;
 
 @Getter @Setter @Builder
 public class QuestionRequest {
-
     private String text;
     private String type;
     List<OptionRequest> options;
-
 }

@@ -52,6 +52,7 @@ public interface CourseMapper {
     @Mapping(target = "title", source = "quiz.title")
     @Mapping(target = "maxAttempts", source = "quiz.maxAttempts")
     @Mapping(target = "passingScore", source = "quiz.passingScore")
+    @Mapping(target = "questions", source = "quiz.questions")
     QuizResponse mapChapterQuizToQuizResponse(ChapterQuiz chapterQuiz);
 
     // 3. Define how ONE Section maps to ONE SectionResponse
