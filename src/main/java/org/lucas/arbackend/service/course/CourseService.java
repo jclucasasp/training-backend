@@ -69,9 +69,9 @@ public class CourseService {
                 chapter.setOrderIndex(chapterIndex.getAndIncrement());
 
                 // 3. MANUALLY MAP AND LINK SECTIONS
-                if (chapterDto.getChapterSections() != null) {
+                if (chapterDto.getSections() != null) {
                     AtomicInteger sectionIndex = new AtomicInteger(0);
-                    List<ChapterSection> sections = chapterDto.getChapterSections().stream().map(sectionDto -> {
+                    List<ChapterSection> sections = chapterDto.getSections().stream().map(sectionDto -> {
                         ChapterSection section = new ChapterSection();
 
                         courseMapper.updateChapterSection(sectionDto, section, ctx);
@@ -163,7 +163,7 @@ public class CourseService {
                 quizService.assignQuizToChapter(quiz, savedChapter);
             });
 
-            updateChapterSections(savedChapter, dto.getChapterSections(), ctx);
+            updateChapterSections(savedChapter, dto.getSections(), ctx);
         }
     }
 
@@ -172,9 +172,11 @@ private void updateChapterSections(Chapter chapter, List<ChapterSectionRequest> 
     // we might want to clear existing sections depending on business logic.
     // Assuming null means "no change" and empty means "remove all".
     if (sectionRequest == null)  return;
+    log.info("DEBUG: Incoming update for chapter sections for chapter: [{}]", chapter.getId());
 
     AtomicInteger index = new AtomicInteger();
     List<ChapterSection> updatedSections = sectionRequest.stream().map(sectionDto -> {
+                log.info("DEBUG: Adding section [{}]", sectionDto.getId());
         ChapterSection section = (sectionDto.getId() != null)
                 ? chapter.getChapterSections().stream()
                 .filter(s -> s.getId().equals(sectionDto.getId())).findFirst()
@@ -185,6 +187,7 @@ private void updateChapterSections(Chapter chapter, List<ChapterSectionRequest> 
         section.setOrderIndex(index.getAndIncrement());
 
         if (sectionDto.getAttachments() != null) {
+            log.info("DEBUG: Adding attachments to section: [{}]", section.getId());
             List<Attachment> attachments = sectionDto.getAttachments().stream().map(attDto -> {
                 Attachment attachment = (attDto.getId() != null && sectionDto.getAttachments() != null)
                         ? section.getAttachments().stream()

@@ -24,7 +24,7 @@ public class CourseChapterRequest {
     private StatusTypes status;
 
     @NotNull(message = "Chapter sections are required", groups = ValidatedLabel.OnCreate.class)
-    private List<ChapterSectionRequest> chapterSections;
+    private List<ChapterSectionRequest> sections;
 
     private List<Long> quizIds;
 }

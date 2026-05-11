@@ -16,26 +16,24 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "student_quizzes")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-@SQLDelete(sql = "UPDATE student_quizzes SET ended_at = CURRENT_TIMESTAMP WHERE sq_quiz_id = ?")
+@SQLDelete(sql = "UPDATE student_quizzes SET ended_at = CURRENT_TIMESTAMP WHERE stq_id = ?")
 @SQLRestriction("ended_at IS NULL")
 @EntityListeners(AuditingEntityListener.class)
 public class StudentQuiz extends BaseEntity implements TenantEntity {
-    @Id
-    @Column(name = "sq_quiz_id")
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "stq_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sq_org_id")
+    @JoinColumn(name = "stq_org_id")
     private Organisation organisation;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "stu_id", nullable = false)
+    @JoinColumn(name = "stq_student_id", nullable = false)
     private Student student;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sq_quiz_id", nullable = false)
-    @MapsId
-    @JsonIgnore
+    @JoinColumn(name = "stq_quiz_id", nullable = false)
     private Quiz quiz;
 
     @Column(name = "stq_assigned_at", updatable = false)

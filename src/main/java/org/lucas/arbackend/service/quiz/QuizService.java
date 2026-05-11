@@ -137,6 +137,11 @@ public class QuizService {
         }
     }
 
+    public void removeQuizFromChapter(Long quizId) {
+        Quiz quiz = getQuiz(quizId);
+
+        quizRepo.delete(quiz);
+    }
 
     public void assignQuizToEnrolledStudents(Long quizId, Long courseId) {
         Quiz quiz = getQuiz(quizId);

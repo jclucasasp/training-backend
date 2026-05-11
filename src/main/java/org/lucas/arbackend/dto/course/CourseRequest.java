@@ -38,7 +38,7 @@ public class CourseRequest {
     private String learningObjectives;
 
     @NotNull(message = "Course difficulty is required", groups = ValidatedLabel.OnCreate.class)
-    private DifficultyTypes difficultyTypes; // BEGINNER, INTERMEDIATE, ADVANCED
+    private DifficultyTypes difficulty; // BEGINNER, INTERMEDIATE, ADVANCED
 
     private String imageUrl;
 

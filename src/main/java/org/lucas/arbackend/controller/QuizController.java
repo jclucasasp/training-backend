@@ -74,6 +74,14 @@ public class QuizController {
         return ResponseEntity.noContent().build();
     }
 
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR')")
+    @Operation(summary = "Remove quiz from a chapter")
+    public ResponseEntity<Void> removeQuizFromChapter(@PathVariable Long id) {
+        quizService.removeQuizFromChapter(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/{id}/assign-enrolled-students/course/{courseId}")
     @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR')")
     @Operation(summary = "Assign quiz to all enrolled students")

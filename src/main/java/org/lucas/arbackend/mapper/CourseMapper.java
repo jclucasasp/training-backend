@@ -20,6 +20,7 @@ public interface CourseMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "status", source = "status")
     @Mapping(target = "chapters", ignore = true)
+    @Mapping(target = "difficultyTypes", source = "difficulty")
      void updateCourse(CourseRequest dto, @MappingTarget Course entity, @Context MappingContext ctx);
 
     // MapStruct will automatically look for this if CourseRequest has a List<CourseChapterRequest>
