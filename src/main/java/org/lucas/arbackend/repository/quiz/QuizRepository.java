@@ -13,9 +13,6 @@ import java.util.Optional;
 @Repository
 public interface QuizRepository extends JpaRepository<Quiz, Long> {
     @EntityGraph(value = "Quiz.questionsAndOptions", type = EntityGraph.EntityGraphType.LOAD)
-    Optional<Quiz> findByIdAndOrganisationIdAndEndedAtIsNull(Long quizId, Long orgId);
-
-    @EntityGraph(value = "Quiz.questionsAndOptions", type = EntityGraph.EntityGraphType.LOAD)
     Optional<Quiz> findByIdAndOrganisationId(Long id, Long orgId);
 
     @EntityGraph(value = "Quiz.questionsAndOptions", type = EntityGraph.EntityGraphType.LOAD)

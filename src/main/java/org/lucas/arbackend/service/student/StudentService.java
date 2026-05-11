@@ -342,7 +342,7 @@ public class StudentService {
     }
 
     private Quiz findQuiz(Long quizId, Long orgId) {
-        return quizRepo.findByIdAndOrganisationIdAndEndedAtIsNull(quizId, orgId)
+        return quizRepo.findByIdAndOrganisationId(quizId, orgId)
                 .orElseThrow(() -> new EntityNotFoundException("Quiz not found or belongs to another organisation"));
     }
 

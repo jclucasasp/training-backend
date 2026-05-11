@@ -24,7 +24,8 @@ import java.util.Set;
         attributeNodes = @NamedAttributeNode("options")
     )
 )
-@SQLDelete(sql = "UPDATE student SET ended_at = CURRENT_TIMESTAMP WHERE stu_id = ?")
+//@SQLDelete(sql = "UPDATE student SET ended_at = CURRENT_TIMESTAMP WHERE stu_id = ?")
+@SQLDelete(sql = "UPDATE quiz SET ended_at = CURRENT_TIMESTAMP WHERE quiz_id = ?")
 @SQLRestriction("ended_at IS NULL")
 @EntityListeners(AuditingEntityListener.class)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder

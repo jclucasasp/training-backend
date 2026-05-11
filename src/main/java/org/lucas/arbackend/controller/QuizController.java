@@ -44,12 +44,14 @@ public class QuizController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR', 'SUPPORT', 'STUDENT')")
     @Operation(summary = "Get quiz details", description = "Fetches quiz questions and metadata by ID.")
     public ResponseEntity<QuizResponse> getQuizById(@PathVariable Long id) {
         return ResponseEntity.ok(quizService.getQuizById(id));
     }
 
     @PostMapping("/{id}/submit")
+    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR', 'SUPPORT', 'STUDENT')")
     @Operation(summary = "Submit a quiz attempt", description = "Calculates the score and records a student's attempt.")
     public ResponseEntity<QuizResultResponse> submitAttempt(
             @PathVariable Long id,
@@ -88,7 +90,7 @@ public class QuizController {
     // ==========================================
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('ORG_ADMIN') or hasAuthority('COURSE_EDITOR')")
+    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR')")
     @Operation(summary = "Update quiz metadata")
     public ResponseEntity<QuizResponse> updateQuizMetadata(
             @PathVariable Long id,
@@ -101,7 +103,7 @@ public class QuizController {
     // ==========================================
 
     @PostMapping("/{id}/questions")
-    @PreAuthorize("hasAuthority('ORG_ADMIN') or hasAuthority('COURSE_EDITOR')")
+    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR', 'STUDENT')")
     @Operation(summary = "Add a question to an existing quiz")
     public ResponseEntity<Void> addQuestion(
             @PathVariable Long id,
@@ -111,7 +113,7 @@ public class QuizController {
     }
 
     @PutMapping("/{id}/questions/{questionId}")
-    @PreAuthorize("hasAuthority('ORG_ADMIN') or hasAuthority('COURSE_EDITOR')")
+    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR')")
     @Operation(summary = "Update an existing question")
     public ResponseEntity<Void> updateQuestion(
             @PathVariable Long id,
@@ -122,7 +124,7 @@ public class QuizController {
     }
 
     @DeleteMapping("/{id}/questions/{questionId}")
-    @PreAuthorize("hasAuthority('ORG_ADMIN') or hasAuthority('COURSE_EDITOR')")
+    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR')")
     @Operation(summary = "Remove a question from a quiz")
     public ResponseEntity<Void> deleteQuestion(
             @PathVariable Long id,

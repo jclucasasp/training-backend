@@ -31,7 +31,7 @@ subgraphs = {
                 })
 })
 @Table(name = "course")
-@SQLDelete(sql = "UPDATE course SET ended_at = CURRENT_TIMESTAMP WHERE cou_id = ?")
+@SQLDelete(sql = "UPDATE course SET ended_at = CURRENT_TIMESTAMP, cou_status = 'ARCHIVED' WHERE cou_id = ?")
 @SQLRestriction("ended_at IS NULL")
 @EntityListeners(AuditingEntityListener.class)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
