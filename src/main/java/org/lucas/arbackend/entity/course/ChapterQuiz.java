@@ -28,7 +28,7 @@ public class ChapterQuiz extends BaseEntity implements TenantEntity {
     @JoinColumn(name = "cha_id", nullable = false)
     private Chapter chapter;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "quiz_id", nullable = false)
     private Quiz quiz;
 

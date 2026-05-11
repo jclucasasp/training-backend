@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
+import org.lucas.arbackend.dto.quiz.QuizRequest;
 import org.lucas.arbackend.entity.course.ChapterQuiz;
 import org.lucas.arbackend.entity.course.misc.DifficultyTypes;
 import org.lucas.arbackend.entity.course.misc.StatusTypes;
@@ -47,7 +48,8 @@ public class CourseRequest {
     @NotNull(message = "Course courseModules are required", groups = ValidatedLabel.OnCreate.class)
     private List<CourseChapterRequest> chapters;
 
-    private List<ChapterQuiz> quizzes;
+//    private List<ChapterQuiz> quizzes;
+    private List<QuizRequest> quizzes;
 
 }
 

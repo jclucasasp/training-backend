@@ -53,7 +53,7 @@ public class Chapter extends BaseEntity implements TenantEntity {
     @OrderBy("orderIndex ASC")
     private List<ChapterSection> chapterSections = new ArrayList<>();
 
-    @OneToMany(mappedBy = "chapter", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "chapter", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ChapterQuiz> chapterQuizzes = new HashSet<>();
 
     @Override
