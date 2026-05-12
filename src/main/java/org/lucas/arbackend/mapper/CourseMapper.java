@@ -13,6 +13,7 @@ import org.lucas.arbackend.util.tenant.TenantEntity;
 import org.mapstruct.*;
 
 @Mapper(componentModel = "spring",
+        unmappedTargetPolicy = ReportingPolicy.WARN,
         uses = { QuizMapper.class },
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface CourseMapper {

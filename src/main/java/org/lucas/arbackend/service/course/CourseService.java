@@ -176,7 +176,7 @@ private void updateChapterSections(Chapter chapter, List<ChapterSectionRequest> 
 
     AtomicInteger index = new AtomicInteger();
     List<ChapterSection> updatedSections = sectionRequest.stream().map(sectionDto -> {
-                log.info("DEBUG: Adding section [{}]", sectionDto.getId());
+                log.info("DEBUG: Adding section [{}]", sectionDto.getTitle());
         ChapterSection section = (sectionDto.getId() != null)
                 ? chapter.getChapterSections().stream()
                 .filter(s -> s.getId().equals(sectionDto.getId())).findFirst()
@@ -187,7 +187,7 @@ private void updateChapterSections(Chapter chapter, List<ChapterSectionRequest> 
         section.setOrderIndex(index.getAndIncrement());
 
         if (sectionDto.getAttachments() != null) {
-            log.info("DEBUG: Adding attachments to section: [{}]", section.getId());
+            log.info("DEBUG: Adding attachments to section: [{}]", section.getChapter().getId());
             List<Attachment> attachments = sectionDto.getAttachments().stream().map(attDto -> {
                 Attachment attachment = (attDto.getId() != null && sectionDto.getAttachments() != null)
                         ? section.getAttachments().stream()

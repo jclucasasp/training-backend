@@ -36,6 +36,7 @@ public class StudentQuiz extends BaseEntity implements TenantEntity {
     @JoinColumn(name = "stq_quiz_id", nullable = false)
     private Quiz quiz;
 
+    @Builder.Default
     @Column(name = "stq_assigned_at", updatable = false)
     LocalDateTime assignedAt = LocalDateTime.now();
 
