@@ -12,12 +12,12 @@ public class AttachmentRequest {
 
     private Long id;
 
-    @NotNull(message = "Attachment fileName is required", groups = ValidatedLabel.OnCreate.class)
+    @NotBlank(message = "Param 'fileName' missing or blank", groups = ValidatedLabel.OnCreate.class)
     private String fileName;
 
-    @NotBlank(message = "Attachment fileType is required", groups = ValidatedLabel.OnCreate.class)
+    @NotBlank(message = "Param 'fileType' missing or blank", groups = ValidatedLabel.OnCreate.class)
     private String fileType;
 
-    @NotNull(message = "Attachment fileUrl is required", groups = ValidatedLabel.OnCreate.class)
+    @NotBlank(message = "Param 'fileUrl' missing or blank", groups = ValidatedLabel.OnCreate.class)
     private String fileUrl;
 }

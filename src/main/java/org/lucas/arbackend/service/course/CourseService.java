@@ -220,15 +220,6 @@ private void updateChapterSections(Chapter chapter, List<ChapterSectionRequest> 
         courseRepo.delete(course);
     }
 
-    public void removeQuizFromChapter(Long chapterId, Long quizId) {
-    Chapter chapter = chapterRepo.findByIdAndOrganisationId(chapterId, tenantProvider.get())
-            .orElseThrow(() -> new EntityNotFoundException("Chapter not found"));
-
-    // Remove by ID from the Set
-    chapter.getChapterQuizzes().removeIf(q -> q.getId().equals(quizId));
-    chapterRepo.save(chapter);
-}
-
     @Transactional(readOnly = true)
     private Organisation findOrganisation() {
         Long orgId = tenantProvider.get();
