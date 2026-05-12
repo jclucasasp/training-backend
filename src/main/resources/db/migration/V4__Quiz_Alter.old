@@ -1,0 +1,18 @@
+SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS quiz;
+
+CREATE TABLE quiz (
+    quiz_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    quiz_org_id BIGINT NOT NULL,
+    quiz_course_id BIGINT NOT NULL,
+    quiz_title VARCHAR(255) NOT NULL,
+    quiz_passing_score INT,
+    quiz_max_attempts INT DEFAULT 3,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
+    ended_at DATETIME NULL,
+    CONSTRAINT fk_quiz_course_ref FOREIGN KEY (quiz_course_id) REFERENCES course(cou_id),
+    CONSTRAINT fk_quiz_org_ref FOREIGN KEY (quiz_org_id) REFERENCES organisation(org_id)
+) ENGINE=InnoDB;
+
+SET FOREIGN_KEY_CHECKS = 1;
