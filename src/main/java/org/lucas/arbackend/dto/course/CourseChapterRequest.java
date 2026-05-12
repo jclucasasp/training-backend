@@ -1,6 +1,7 @@
 package org.lucas.arbackend.dto.course;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
@@ -15,15 +16,16 @@ public class CourseChapterRequest {
     @JsonIgnore
     private Long id;
 
-    @NotNull(message = "Chapter fileName is required", groups = ValidatedLabel.OnCreate.class)
+    @NotNull(message = "Param 'name' for the chapter missing or blank", groups = ValidatedLabel.OnCreate.class)
     private String name;
 
-    @NotNull(message = "Chapter summary is required", groups = ValidatedLabel.OnCreate.class)
+    @NotNull(message = "Param 'summary' missing or blank", groups = ValidatedLabel.OnCreate.class)
     private String summary;
 
+    @NotNull(message = "Param 'status' missing or blank", groups = ValidatedLabel.OnCreate.class)
     private StatusTypes status;
 
-    @NotNull(message = "Chapter sections are required", groups = ValidatedLabel.OnCreate.class)
+    @NotEmpty(message = "List 'sections' missing or empty", groups = ValidatedLabel.OnCreate.class)
     private List<ChapterSectionRequest> sections;
 
     private List<Long> quizIds;

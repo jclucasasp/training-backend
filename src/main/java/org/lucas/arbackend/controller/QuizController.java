@@ -13,10 +13,12 @@ import org.lucas.arbackend.repository.organisation.StaffRepository;
 import org.lucas.arbackend.repository.student.StudentRepository;
 import org.lucas.arbackend.service.quiz.QuizService;
 import org.lucas.arbackend.util.CustomUserDetails;
+import org.lucas.arbackend.util.ValidatedLabel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -33,7 +35,7 @@ public class QuizController {
     @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR')")
     @Operation(summary = "Create a new quiz", description = "Allows a staff member to create a quiz for a specific course.")
     public ResponseEntity<QuizResponse> createQuiz(
-            @Valid @RequestBody QuizRequest request,
+            @Validated(ValidatedLabel.OnCreate.class) @RequestBody QuizRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         // Resolve the Staff entity from the database using the logged-in user's ID

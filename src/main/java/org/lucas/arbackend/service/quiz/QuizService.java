@@ -66,7 +66,7 @@ public class QuizService {
  * @return QuizResponse representing the newly created quiz
  * @throws EntityNotFoundException If the specified course doesn't exist or access is denied
  */
-// TODO: Need to save the created quiz to the chapter_quizzes table
+
     public QuizResponse createQuiz(QuizRequest request, Staff creator) {
     // Get the organization ID from the tenant provider
         Long orgId = tenantProvider.get();
@@ -86,13 +86,15 @@ public class QuizService {
     // Wire the quiz hierarchy structure
         wireQuizHierarchy(quiz, creator);
 
+        Quiz savedQuiz = quizRepo.saveAndFlush(quiz);
+
     // If chapter ID is provided, link the quiz to the chapter
         if (request.getCourseId() != null && request.getChapterId() != null) {
-            linkToChapter(quiz, request.getCourseId(), request.getChapterId(), orgId);
+            linkToChapter(savedQuiz, request.getCourseId(), request.getChapterId(), orgId);
         }
 
     // Save the quiz to repository and convert to response
-        return quizMapper.toResponse(quizRepo.save(quiz));
+        return quizMapper.toResponse(savedQuiz);
     }
 
     @Transactional(readOnly = true)
@@ -120,6 +122,7 @@ public class QuizService {
         linkToChapter(quiz, courseId, chapterId, tenantProvider.get());
         quizRepo.save(quiz);
     }
+    //TODO: Check the id of the quiz and the chapter to make sure it is not attached to every single chapter
     public void assignQuizToChapter(Quiz quiz, Chapter chapter) {
          log.info("Creating new audit link for quiz: [{}] to new chapter: [{}]", quiz.getId(), chapter.getId());
         if (quiz.getChapterQuizzes() != null) {
@@ -318,16 +321,18 @@ public class QuizService {
                 .findFirst()
                 .orElseThrow(() -> new EntityNotFoundException("Chapter not found"));
 
-        if (quiz.getChapterQuizzes() != null) {
-            log.info("Quizzes found for the chapter, checking if it already exist so no duplication happens...");
-        // Check if link already exists to prevent duplicates
-        boolean exists = quiz.getChapterQuizzes().stream()
-                .anyMatch(cq -> cq.getChapter().getId().equals(chapterId));
+    if (quiz.getChapterQuizzes() == null) {
+        log.info("DEBUG: There are no current chapter quizzes, create a new hash set...");
+        quiz.setChapterQuizzes(new HashSet<>());
+    }
 
-            if (exists){
-                log.info("Link already exists for quiz: [{}] to chapter: [{}]", quiz.getId(), chapterId);
-                return;
-            }
+    log.info("Checking for duplication...");
+    boolean exists = quiz.getChapterQuizzes().stream()
+            .anyMatch(cq -> cq.getChapter().getId().equals(chapterId));
+
+    if (exists) {
+        return;
+    }
 
             log.info("DEBUG: No link exist, creating...");
             ChapterQuiz link = ChapterQuiz.builder()
@@ -340,10 +345,9 @@ public class QuizService {
             chapterQuizRepo.save(link);
 
             chapter.getChapterQuizzes().add(link);
-//            chapterRepo.save(chapter);
         }
 
-    }
+//    }
 
     private StudentQuiz findStudentQuiz(String studentNumber, Long quizId) {
         return studentQuizRepo.findRegistration(tenantProvider.get(), studentNumber, quizId)

@@ -1,6 +1,8 @@
 package org.lucas.arbackend.dto.quiz;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.lucas.arbackend.util.ValidatedLabel;
 
@@ -15,15 +17,18 @@ public class QuizRequest {
     @NotBlank(message = "Title cannot be blank.", groups = ValidatedLabel.OnCreate.class)
     private  String title;
 
-    @NotBlank(message = "Max attempts cannot be blank. Defaults to 3", groups = ValidatedLabel.OnCreate.class)
+    @NotNull(message = "Param 'maxAttempts' missing or null. Defaults to 3", groups = ValidatedLabel.OnCreate.class)
     private Integer maxAttempts;
 
-    @NotBlank(message = "Passing score cannot be blank", groups = ValidatedLabel.OnCreate.class)
+    @NotNull(message = "Param 'passingScore' missing or null", groups = ValidatedLabel.OnCreate.class)
     private Integer passingScore;
 
+    @NotNull(message = "Param 'courseId' missing or null", groups = ValidatedLabel.OnCreate.class)
     private Long courseId;
+
+    @NotNull(message = "Param 'chapterId' missing or null", groups = ValidatedLabel.OnCreate.class)
     private Long chapterId;
 
-    @NotBlank(message = "Quiz must have at least one question", groups = ValidatedLabel.OnCreate.class)
+    @NotEmpty(message = "List 'questions' missing or empty", groups = ValidatedLabel.OnCreate.class)
     private List<QuestionRequest> questions;
 }
