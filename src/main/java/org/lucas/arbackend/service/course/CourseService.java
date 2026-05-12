@@ -187,7 +187,7 @@ private void updateChapterSections(Chapter chapter, List<ChapterSectionRequest> 
         section.setOrderIndex(index.getAndIncrement());
 
         if (sectionDto.getAttachments() != null) {
-            log.info("DEBUG: Adding attachments to section: [{}]", section.getChapter().getId());
+            log.info("DEBUG: Adding section attachments for chapter: [{}]", section.getChapter().getId());
             List<Attachment> attachments = sectionDto.getAttachments().stream().map(attDto -> {
                 Attachment attachment = (attDto.getId() != null && sectionDto.getAttachments() != null)
                         ? section.getAttachments().stream()

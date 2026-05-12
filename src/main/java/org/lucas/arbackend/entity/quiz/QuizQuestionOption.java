@@ -3,8 +3,11 @@ package org.lucas.arbackend.entity.quiz;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.util.tenant.TenantEntity;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "quiz_question_option")
@@ -13,6 +16,9 @@ import org.lucas.arbackend.util.tenant.TenantEntity;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@SQLDelete(sql = "UPDATE quiz_question_option SET ended_at = CURRENT_TIMESTAMP WHERE qto_id = ?")
+@SQLRestriction("ended_at IS NULL")
+@EntityListeners(AuditingEntityListener.class)
 public class QuizQuestionOption implements TenantEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "qto_id")

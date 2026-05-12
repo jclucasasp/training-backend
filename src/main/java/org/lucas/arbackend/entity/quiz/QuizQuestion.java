@@ -2,17 +2,21 @@ package org.lucas.arbackend.entity.quiz;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.BaseEntity;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.util.tenant.TenantEntity;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "quiz_question")
+@SQLDelete(sql = "UPDATE quiz_question SET ended_at = CURRENT_TIMESTAMP WHERE qq_id = ?")
 @SQLRestriction("ended_at IS NULL")
+@EntityListeners(AuditingEntityListener.class)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class QuizQuestion extends BaseEntity implements TenantEntity {
 
