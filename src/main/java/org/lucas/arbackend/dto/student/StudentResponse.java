@@ -14,7 +14,7 @@ public record StudentResponse (
         String studentNumber,
         String firstName,
         String lastName,
-        Organisation organisation,
+        Long organisation,
         List<StudentQuiz> studentQuizzes
 ) implements Serializable {
 

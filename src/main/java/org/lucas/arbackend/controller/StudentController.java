@@ -67,7 +67,7 @@ public class StudentController {
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
-    @PreAuthorize("hasAuthority('ORG_ADMIN') or hasAuthority('COURSE_EDITOR') or hasAuthority('STUDENT')")
+//    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR')")
     @PostMapping("/{studentNumber}/quiz/{quizId}/register")
     public ResponseEntity<Void> registerForQuiz(
             @Parameter(description = "The unique student number", example = "STU-12345")
@@ -88,7 +88,7 @@ public class StudentController {
             @ApiResponse(responseCode = "404", description = "Student or Section not found"),
             @ApiResponse(responseCode = "403", description = "Access denied")
     })
-    @PreAuthorize("hasAuthority('STUDENT') or hasAuthority('ORG_ADMIN') or hasAuthority('COURSE_EDITOR') or hasAuthority('SUPPORT')")
+//    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR', 'STUDENT')")
     @PatchMapping("/{studentNumber}/progress")
     public ResponseEntity<Void> updateProgress(
             @Parameter(description = "The student's unique number") @PathVariable String studentNumber,
@@ -103,7 +103,7 @@ public class StudentController {
             description = "Retrieves a list of all course enrollments and current progress for a specific student."
     )
     @GetMapping("/{studentNumber}/dashboard")
-    @PreAuthorize("hasAuthority('STUDENT') or hasAuthority('ORG_ADMIN') or hasAuthority('COURSE_EDITOR') or hasAuthority('SUPPORT')")
+//    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR', 'STUDENT')")
     public ResponseEntity<List<EnrollmentResponse>> getDashboard(
             @Parameter(description = "The student's unique number") @PathVariable String studentNumber) {
         return ResponseEntity.ok(studentService.getStudentDashboard(studentNumber));
@@ -114,7 +114,7 @@ public class StudentController {
             description = "Returns enrollment details including the lastSectionId for a specific course to allow the student to resume where they left off."
     )
     @GetMapping("/{studentNumber}/resume/{courseSlug}")
-    @PreAuthorize("hasAuthority('STUDENT')")
+//    @PreAuthorize("hasAuthority('STUDENT')")
     public ResponseEntity<EnrollmentResponse> resumeCourse(
             @Parameter(description = "The student's unique number") @PathVariable String studentNumber,
             @Parameter(description = "The URL slug of the course") @PathVariable String courseSlug) {
@@ -130,6 +130,7 @@ public class StudentController {
         @ApiResponse(responseCode = "200", description = "Successfully retrieved attempt history"),
         @ApiResponse(responseCode = "404", description = "Student or Quiz not found")
     })
+//    @PreAuthorize("hasAuthority('STUDENT')")
     @GetMapping("/{studentNumber}/chapterQuizzes/{quizId}/attempts")
     public ResponseEntity<List<QuizAttemptResponse>> getQuizAttempts(
             @Parameter(description = "Unique student identifier") @PathVariable String studentNumber,
@@ -146,6 +147,7 @@ public class StudentController {
         @ApiResponse(responseCode = "403", description = "Access denied - Attempt belongs to another organization"),
         @ApiResponse(responseCode = "404", description = "Attempt ID not found")
     })
+//    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR', 'STUDENT')")
     @GetMapping("/attempts/{attemptId}")
     public ResponseEntity<QuizAttemptResponse> getAttemptDetail(
             @Parameter(description = "The unique ID of the quiz attempt") @PathVariable Long attemptId) {
@@ -162,6 +164,7 @@ public class StudentController {
             @ApiResponse(responseCode = "403", description = "Access denied - Attempt belongs to another organization"),
             @ApiResponse(responseCode = "404", description = "Attempt not found")
     })
+//    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR', 'STUDENT')")
     @GetMapping("/{studentNumber}/attempts/{attemptId}/review")
     public ResponseEntity<String> getAttemptReview(
             @Parameter(description = "The unique student number") @PathVariable String studentNumber,
@@ -183,7 +186,7 @@ public class StudentController {
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
-    @PreAuthorize("hasAuthority('ORG_ADMIN') or hasAuthority('COURSE_EDITOR') or hasAuthority('SUPPORT')")
+    //    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR', 'STUDENT')")
     @GetMapping("/list")
     public ResponseEntity<Page<StudentResponse>> listStudents(@RequestParam(defaultValue = "0") int page,
                                                            @RequestParam(defaultValue = "10") int size,

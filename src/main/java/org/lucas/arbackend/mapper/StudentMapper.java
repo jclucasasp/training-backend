@@ -11,7 +11,7 @@ import org.mapstruct.*;
 public interface StudentMapper {
 
     @Mapping(target = "studentQuizzes", source = "studentQuizzes")
-    @Mapping(target = "organisation", ignore = true)
+    @Mapping(target = "organisation", source = "entity.organisation.id")
     StudentResponse maptToStudentResponse(Student entity);
 
     @Mapping(target = "id", ignore = true)

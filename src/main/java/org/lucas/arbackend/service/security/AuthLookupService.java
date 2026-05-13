@@ -99,7 +99,7 @@ public class AuthLookupService {
 
         // Find API key by prefix or throw exception if not found
         ApiKey apiKey = apiKeyRepo.findByPrefix(prefix).orElseThrow(() -> new EntityNotFoundException("API Key not found: " + prefix));
-
+        log.info("DEBUG: Api key found for organisation [{}]", apiKey.getOrgId());
         // Check if the subscription is active for the organization
         boolean isSubscriptionActive = subRepo.findActiveByOrganisationId(apiKey.getOrgId())
                 .orElseThrow(() -> new EntityNotFoundException("Subscription not found")).getStatus() == 1;
