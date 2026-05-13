@@ -9,6 +9,7 @@ import org.lucas.arbackend.dto.student.EnrollmentResponse;
 import org.lucas.arbackend.dto.student.StudentRequest;
 import org.lucas.arbackend.dto.student.StudentResponse;
 import org.lucas.arbackend.entity.Organisation.Organisation;
+import org.lucas.arbackend.entity.course.Chapter;
 import org.lucas.arbackend.entity.course.ChapterSection;
 import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.quiz.Quiz;
@@ -37,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -85,7 +87,7 @@ public class StudentService {
                 .orElseThrow(() -> new EntityNotFoundException("Course not found"));
 
         // Create Enrollment
-        StudentEnrollment enrollment = enrollmentRepo.findByStudentIdAndCourseId(student.getId(), course.getId())
+        StudentEnrollment enrollment = enrollmentRepo.findByStudentIdAndCourseId(org.getId(), student.getId(), course.getId())
                 .orElseGet(() -> {
                             StudentEnrollment newEnrollment = new StudentEnrollment();
                             newEnrollment.setStudent(student);
@@ -107,19 +109,26 @@ public class StudentService {
     // ==========================================
     // 2. PROGRESS TRACKING
     // ==========================================
+    // TODO: Add a column ste_chapter_id to the student_entrollment entity and db
     @Transactional
-    public void updateProgress(String studentNumber, Long sectionId, Double percentage) {
+    public void updateProgress(String studentNumber, Long courseId, Long chapterId, Long sectionId, Double percentage) {
         // 1. Context Resolution (Org & Student)
         Organisation org = findOrganisation();
 
         Student student = findStudent(org.getId(), studentNumber);
 
         // 2. Resolve the Section first (needed for both Enrollment lookup and Progress)
-        ChapterSection currentSection = sectionRepo.findById(sectionId)
+        Course course = courseRepo.findById(courseId).orElseThrow(() -> new EntityNotFoundException("Course not found"));
+
+        ChapterSection currentSection = (ChapterSection) course.getChapters()
+                .stream()
+                .flatMap(chapter -> chapter.getChapterSections().stream())
+                .filter(section -> section.getId().equals(sectionId))
+                .findFirst()
                 .orElseThrow(() -> new EntityNotFoundException("Section not found"));
 
         // 3. Find Enrollment (Scoped by Student and the Course this section belongs to)
-        StudentEnrollment enrollment = findEnrollment(org.getId(), student.getId(), currentSection.getId());
+        StudentEnrollment enrollment = findEnrollment(student.getId(), course.getId());
 
         // 4. Update the "Pointer" for Resume functionality
         enrollment.setChapterSection(currentSection);
@@ -199,7 +208,7 @@ public class StudentService {
 
         Quiz quiz = findQuiz(quizId, org.getId());
 
-        boolean isEnrolled = enrollmentRepo.findByStudentIdAndCourseId(student.getId(), quiz.getCourse().getId()).isPresent();
+        boolean isEnrolled = enrollmentRepo.findByStudentIdAndCourseId(org.getId(), student.getId(), quiz.getCourse().getId()).isPresent();
         if (!isEnrolled) {
             throw new IllegalStateException("Student must be enrolled in a course to be assigned to a quiz");
         }
@@ -329,8 +338,8 @@ public class StudentService {
                 .orElseThrow(() -> new EntityNotFoundException("Enrollment not found"));
     }
 
-    private StudentEnrollment findEnrollment(Long orgId, Long studentId, Long sectionId){
-        return enrollmentRepo.findBySectionId(orgId, studentId, sectionId)
+    private StudentEnrollment findEnrollment(Long studentId, Long courseId){
+        return enrollmentRepo.findByStudentIdAndCourseId(tenantProvider.get(), studentId, courseId)
                 .orElseThrow(() -> new EntityNotFoundException("No active enrollment found for this course section"));
     }
 

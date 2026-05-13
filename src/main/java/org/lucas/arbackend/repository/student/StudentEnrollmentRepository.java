@@ -13,7 +13,8 @@ import java.util.Optional;
 public interface StudentEnrollmentRepository extends JpaRepository<StudentEnrollment, Long> {
 
 
-    Optional<StudentEnrollment> findByStudentIdAndCourseId(Long id, Long courseId);
+    @Query("SELECT ste FROM StudentEnrollment ste WHERE ste.organisation.id = :orgId AND ste.student.id = :studentId AND ste.course.id = :courseId")
+    Optional<StudentEnrollment> findByStudentIdAndCourseId(Long id, Long studentId, Long courseId);
 
     @Query("SELECT ste FROM StudentEnrollment ste WHERE ste.organisation.id = :orgId AND ste.student.id = :studentId AND ste.chapterSection.id = :sectionId")
     Optional<StudentEnrollment> findBySectionId(@Param("orgId") Long orgId, @Param("studentId") Long studentId, @Param("sectionId") Long sectionId);

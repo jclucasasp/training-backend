@@ -67,7 +67,7 @@ public class StudentController {
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
-    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR', 'SUPPORT')")
+    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR', 'SUPPORT', 'STUDENT')")
     @PostMapping("/{studentNumber}/quiz/{quizId}/register")
     public ResponseEntity<Void> registerForQuiz(
             @Parameter(description = "The unique student number", example = "STU-12345")
@@ -88,13 +88,15 @@ public class StudentController {
             @ApiResponse(responseCode = "404", description = "Student or Section not found"),
             @ApiResponse(responseCode = "403", description = "Access denied")
     })
-//    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR', 'STUDENT')")
+    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR', 'SUPPORT', 'STUDENT')")
     @PatchMapping("/{studentNumber}/progress")
     public ResponseEntity<Void> updateProgress(
             @Parameter(description = "The student's unique number") @PathVariable String studentNumber,
-            @Parameter(description = "The ID of the chapter section") @RequestParam Long sectionId,
+            @Parameter(description = "The course id") @PathVariable Long courseId,
+            @Parameter(description = "The chapter id") @PathVariable Long chapterId ,
+            @Parameter(description = "The chapter section id") @RequestParam Long sectionId,
             @Parameter(description = "Progress percentage (0.0 to 100.0)") @RequestParam Double percentage) {
-        studentService.updateProgress(studentNumber, sectionId, percentage);
+        studentService.updateProgress(studentNumber, courseId, chapterId, sectionId, percentage);
         return ResponseEntity.noContent().build();
     }
 
@@ -103,7 +105,7 @@ public class StudentController {
             description = "Retrieves a list of all course enrollments and current progress for a specific student."
     )
     @GetMapping("/{studentNumber}/dashboard")
-//    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR', 'STUDENT')")
+    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR', 'SUPPORT', 'STUDENT')")
     public ResponseEntity<List<EnrollmentResponse>> getDashboard(
             @Parameter(description = "The student's unique number") @PathVariable String studentNumber) {
         return ResponseEntity.ok(studentService.getStudentDashboard(studentNumber));
@@ -114,7 +116,7 @@ public class StudentController {
             description = "Returns enrollment details including the lastSectionId for a specific course to allow the student to resume where they left off."
     )
     @GetMapping("/{studentNumber}/resume/{courseSlug}")
-//    @PreAuthorize("hasAuthority('STUDENT')")
+    @PreAuthorize("hasAuthority('STUDENT')")
     public ResponseEntity<EnrollmentResponse> resumeCourse(
             @Parameter(description = "The student's unique number") @PathVariable String studentNumber,
             @Parameter(description = "The URL slug of the course") @PathVariable String courseSlug) {
@@ -186,7 +188,7 @@ public class StudentController {
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
-    //    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR', 'STUDENT')")
+    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR', 'SUPPORT')")
     @GetMapping("/list")
     public ResponseEntity<Page<StudentResponse>> listStudents(@RequestParam(defaultValue = "0") int page,
                                                            @RequestParam(defaultValue = "10") int size,
