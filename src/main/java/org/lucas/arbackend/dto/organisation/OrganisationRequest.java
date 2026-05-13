@@ -17,7 +17,7 @@ public class OrganisationRequest {
     private String password;
 
     @NotBlank(groups = ValidatedLabel.OnCreate.class)
-    @Size(min = 3, max = 50, message = "Organisation fileName must be between 3 and 50 characters long")
+    @Size(min = 3, max = 50, message = "Organisation 'orgName' must be between 3 and 50 characters long")
     private String orgName;
 
     // Profile
@@ -34,11 +34,11 @@ public class OrganisationRequest {
     private String vatNumber;
 
     @NotBlank(groups = ValidatedLabel.OnCreate.class)
-    @Size(min = 3, max = 20, message = "Contact person firstname must be between 3 and 20 characters long")
+    @Size(min = 3, max = 20, message = "Contact person 'firstName' must be between 3 and 20 characters long")
     private String firstName;
 
     @NotBlank(groups = ValidatedLabel.OnCreate.class)
-    @Size(min = 3, max = 20, message = "Contact person firstname must be between 3 and 20 characters long")
+    @Size(min = 3, max = 20, message = "Contact person 'lastName' must be between 3 and 20 characters long")
     private String lastName;
 
     // TODO: When going international, add the below dependency and remove the regex
@@ -54,19 +54,19 @@ public class OrganisationRequest {
     private String contactNumber;
 
     @NotBlank(groups = ValidatedLabel.OnCreate.class)
-    @Size(min = 3, max = 50, message = "Street fileName must be between 3 and 50 characters long")
+    @Size(min = 3, max = 50, message = "Street name must be between 3 and 50 characters long")
     private String street;
 
     @NotBlank(groups = ValidatedLabel.OnCreate.class)
-    @Size(min = 3, max = 50, message = "Suburb fileName must be between 3 and 50 characters long")
+    @Size(min = 3, max = 50, message = "Suburb name must be between 3 and 50 characters long")
     private String suburb;
 
     @NotBlank(groups = ValidatedLabel.OnCreate.class)
-    @Size(min = 3, max = 50, message = "City/Town fileName must be between 3 and 20 characters long")
+    @Size(min = 3, max = 50, message = "City/Town name must be between 3 and 20 characters long")
     private String city;
 
     @NotBlank(groups = ValidatedLabel.OnCreate.class)
-    @Size(min = 3, max = 20, message = "State/Region fileName must be between 3 and 20 characters long")
+    @Size(min = 3, max = 20, message = "State/Region name must be between 3 and 20 characters long")
     private String state;
 
     @NotBlank(groups = ValidatedLabel.OnCreate.class)

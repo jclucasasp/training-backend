@@ -6,10 +6,10 @@ import lombok.Data;
 
 @Data @Builder
 public class ApiKeyRequest {
-    @NotNull (message = "Must include an API key for access")
+    @NotNull (message = "Param 'apiKey' missing or blank")
     private String apiKey;
 
     private String username;
-    @NotNull (message = "Must include a student number for access")
+    @NotNull (message = "Param 'studentNumber' missing or blank")
     private String studentNumber;
 }

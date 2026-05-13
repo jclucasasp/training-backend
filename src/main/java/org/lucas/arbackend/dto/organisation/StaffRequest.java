@@ -10,11 +10,11 @@ import org.lucas.arbackend.util.ValidatedLabel;
 public class StaffRequest {
 
     @NotBlank(groups = ValidatedLabel.OnCreate.class)
-    @Size(min = 3, max = 20, message = "Contact person firstname must be between 3 and 20 characters long")
+    @Size(min = 3, max = 20, message = "Contact person 'firstName' must be between 3 and 20 characters long")
     private String firstName;
 
     @NotBlank(groups = ValidatedLabel.OnCreate.class)
-    @Size(min = 3, max = 20, message = "Contact person firstname must be between 3 and 20 characters long")
+    @Size(min = 3, max = 20, message = "Contact person 'lastName' must be between 3 and 20 characters long")
     private String lastName;
 
     @NotBlank(groups = ValidatedLabel.OnCreate.class)
@@ -23,7 +23,7 @@ public class StaffRequest {
 
     @Pattern(
             regexp = "^(\\+27|0)[6-8][0-9]{8}$",
-            message = "Invalid South African mobile number. Use 07x/08x... or +277x/278x...")
+            message = "Invalid South African number. Use 07x/08x... or +277x/278x...")
     private String contactNumber;
 
     @NotBlank(groups = ValidatedLabel.OnCreate.class)

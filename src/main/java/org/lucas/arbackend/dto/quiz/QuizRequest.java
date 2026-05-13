@@ -14,7 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class QuizRequest {
-    @NotBlank(message = "Title cannot be blank.", groups = ValidatedLabel.OnCreate.class)
+    @NotBlank(message = "Param 'title' is missing of blank", groups = ValidatedLabel.OnCreate.class)
     private  String title;
 
     @NotNull(message = "Param 'maxAttempts' missing or null. Defaults to 3", groups = ValidatedLabel.OnCreate.class)

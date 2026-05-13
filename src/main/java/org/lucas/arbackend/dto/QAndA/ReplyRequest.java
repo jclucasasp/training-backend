@@ -9,7 +9,7 @@ import java.io.Serializable;
 
 @Getter
 public class ReplyRequest {
-    @NotBlank(message = "Body is required", groups = ValidatedLabel.OnCreate.class)
+    @NotBlank(message = "Param 'body' is missing or blank", groups = ValidatedLabel.OnCreate.class)
     private String body;
 
     private boolean isAcceptedAnswer = false;

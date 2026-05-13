@@ -7,9 +7,9 @@ import lombok.Data;
 @Data @Builder
 public class ProgressUpdateRequest {
 
-    @NotNull(message = "Enrollment Id is required")
+    @NotNull(message = "Param 'enrollmentId' missing or blank")
     private Long enrollmentId;
 
-    @NotNull(message = "ChapterSectionRequest Id is required")
+    @NotNull(message = "Param 'sectionId' missing or blank")
     private Long sectionId;
 }

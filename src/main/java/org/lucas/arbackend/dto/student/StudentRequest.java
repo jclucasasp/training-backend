@@ -8,16 +8,16 @@ import org.lucas.arbackend.util.ValidatedLabel;
 @Data @Builder
 public class StudentRequest {
 
-    @NotNull(message = "Student number is required", groups = ValidatedLabel.OnCreate.class)
+    @NotNull(message = "Param 'studentNumber' missing or blank", groups = ValidatedLabel.OnCreate.class)
     private String studentNumber;
 
-    @NotNull(message = "First fileName is required", groups = ValidatedLabel.OnCreate.class)
+    @NotNull(message = "Param 'firstName' missing or blank", groups = ValidatedLabel.OnCreate.class)
     private String firstName;
 
-    @NotNull(message = "Last fileName is required", groups = ValidatedLabel.OnCreate.class)
+    @NotNull(message = "Param 'lastName' missing or blank", groups = ValidatedLabel.OnCreate.class)
     private String lastName;
 
-    @NotNull(message = "Course slug is required", groups = ValidatedLabel.OnCreate.class)
+    @NotNull(message = "Param 'slug' missing or blank", groups = ValidatedLabel.OnCreate.class)
     private String slug;
 
 }
