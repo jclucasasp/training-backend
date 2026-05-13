@@ -67,7 +67,7 @@ public class StudentController {
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
-//    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR')")
+    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR', 'SUPPORT')")
     @PostMapping("/{studentNumber}/quiz/{quizId}/register")
     public ResponseEntity<Void> registerForQuiz(
             @Parameter(description = "The unique student number", example = "STU-12345")

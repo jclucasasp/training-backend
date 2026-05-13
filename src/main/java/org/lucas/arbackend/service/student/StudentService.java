@@ -38,6 +38,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -240,9 +242,11 @@ public class StudentService {
                 .stream()
                 .map(e -> EnrollmentResponse.builder()
                         .enrollmentId(e.getId())
+                        .studentNumber(studentNumber)
                         .courseName(e.getCourse().getName())
                         .currentTotalProgress(e.getTotalProgress()) // This saves us from having to map through the studentProgresses set on every view
                         .enrolledAt(e.getEnrolledAt())
+                        .lastSectionId(Optional.ofNullable(e.getChapterSection()).map(ChapterSection::getId).orElse(null))
                         .build())
                 .toList();
     }
