@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.BadRequestException;
 import org.lucas.arbackend.dto.quiz.*;
 import org.lucas.arbackend.entity.Organisation.Staff;
 import org.lucas.arbackend.entity.course.Chapter;
@@ -30,10 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -178,19 +176,18 @@ public class QuizService {
         Quiz quiz = getQuiz(quizId);
         MappingContext ctx = new MappingContext(quiz.getOrganisation(), null, quiz.getCourse().getStaff());
 
+        int lastIndex = quiz.getQuestions().stream().mapToInt(QuizQuestion::getOrderIndex).max().orElse(-1) + 1;
+
         QuizQuestion newQuestion = quizMapper.toQuestionEntity(request, ctx);
         newQuestion.setQuiz(quiz);
         newQuestion.setOrganisation(quiz.getOrganisation());
-        newQuestion.setOrderIndex(newQuestion.getOrderIndex() + 1);
+        newQuestion.setOrderIndex(lastIndex);
 
         if (newQuestion.getOptions() != null && !newQuestion.getOptions().isEmpty()) {
              newQuestion.getOptions().forEach(option -> {
                  option.setOrganisation(quiz.getOrganisation());
                  option.setQuestion(newQuestion);
              });
-        } else {
-            log.info("DEBUG: No questions detected, skipping...");
-            return;
         }
 
        quiz.getQuestions().add(newQuestion);
@@ -211,6 +208,7 @@ public class QuizService {
         MappingContext ctx = new MappingContext(quiz.getOrganisation(), null, quiz.getCourse().getStaff());
         request.getOptions().forEach(optDto -> {
             QuizQuestionOption option = quizMapper.toOptionEntity(optDto, ctx);
+            option.setOrganisation(quiz.getOrganisation());
             option.setQuestion(question);
             question.getOptions().add(option);
         });

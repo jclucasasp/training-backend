@@ -5,7 +5,7 @@ import java.io.Serializable;
 import java.util.List;
 
 public record QuestionResponse(
-        Long id, String text, List<OptionResponse> options
+        Long id, String text, String type, List<OptionResponse> options
 ) implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
