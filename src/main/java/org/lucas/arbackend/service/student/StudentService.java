@@ -109,7 +109,6 @@ public class StudentService {
     // ==========================================
     // 2. PROGRESS TRACKING
     // ==========================================
-    // TODO: Add a column ste_chapter_id to the student_entrollment entity and db
     @Transactional
     public void updateProgress(String studentNumber, Long courseId, Long chapterId, Long sectionId, Double percentage) {
         // 1. Context Resolution (Org & Student)
@@ -120,9 +119,13 @@ public class StudentService {
         // 2. Resolve the Section first (needed for both Enrollment lookup and Progress)
         Course course = courseRepo.findById(courseId).orElseThrow(() -> new EntityNotFoundException("Course not found"));
 
-        ChapterSection currentSection = (ChapterSection) course.getChapters()
+        Chapter chapter = course.getChapters().stream()
+                .filter(c -> c.getId().equals(chapterId))
+                .findAny()
+                .orElseThrow(() -> new EntityNotFoundException("Chapter not found"));
+
+        ChapterSection currentSection = chapter.getChapterSections()
                 .stream()
-                .flatMap(chapter -> chapter.getChapterSections().stream())
                 .filter(section -> section.getId().equals(sectionId))
                 .findFirst()
                 .orElseThrow(() -> new EntityNotFoundException("Section not found"));
@@ -131,6 +134,7 @@ public class StudentService {
         StudentEnrollment enrollment = findEnrollment(student.getId(), course.getId());
 
         // 4. Update the "Pointer" for Resume functionality
+        enrollment.setChapter(chapter);
         enrollment.setChapterSection(currentSection);
 
         // 5. Track the specific Section Progress

@@ -1,0 +1,1 @@
+ALTER TABLE student_enrollment ADD COLUMN ste_chapter_id BIGINT AFTER ste_course_id;
