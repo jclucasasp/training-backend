@@ -38,9 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -66,6 +64,7 @@ public class StudentService {
     // ==========================================
     // 1. ENROLLMENT LOGIC (UPSERT Student)
     // ==========================================
+    // TODO: Add the student progress table as well.
     public EnrollmentResponse enrollStudent(StudentRequest request) {
 
         // Verify Organisation
@@ -109,8 +108,9 @@ public class StudentService {
     // ==========================================
     // 2. PROGRESS TRACKING
     // ==========================================
+    // TODO: Get the time from the section and calculate the percentage based on that.
     @Transactional
-    public void updateProgress(String studentNumber, Long courseId, Long chapterId, Long sectionId, Double percentage) {
+    public void updateProgress(String studentNumber, Long courseId, Long chapterId, Long sectionId, boolean isCompleted) {
         // 1. Context Resolution (Org & Student)
         Organisation org = findOrganisation();
 
@@ -119,26 +119,19 @@ public class StudentService {
         // 2. Resolve the Section first (needed for both Enrollment lookup and Progress)
         Course course = courseRepo.findById(courseId).orElseThrow(() -> new EntityNotFoundException("Course not found"));
 
-        Chapter chapter = course.getChapters().stream()
-                .filter(c -> c.getId().equals(chapterId))
-                .findAny()
-                .orElseThrow(() -> new EntityNotFoundException("Chapter not found"));
-
-        ChapterSection currentSection = chapter.getChapterSections()
-                .stream()
-                .filter(section -> section.getId().equals(sectionId))
+        ChapterSection chapterSection = course.getChapters().stream()
+                .flatMap(c -> c.getChapterSections().stream())
+                .filter(s -> s.getId().equals(sectionId))
                 .findFirst()
                 .orElseThrow(() -> new EntityNotFoundException("Section not found"));
 
         // 3. Find Enrollment (Scoped by Student and the Course this section belongs to)
         StudentEnrollment enrollment = findEnrollment(student.getId(), course.getId());
-
-        // 4. Update the "Pointer" for Resume functionality
-        enrollment.setChapter(chapter);
-        enrollment.setChapterSection(currentSection);
+        StudentProgress progress = progressRepo.findByStudentEnrollmentIdAndChapterSectionId(enrollment.getId(), chapterSection.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Student Progress not found"));
 
         // 5. Track the specific Section Progress
-        handleSectionProgress(enrollment, currentSection, percentage, org);
+        handleSectionProgress(enrollment, chapterSection, org);
 
         BigDecimal total = calculateTotalProgress(enrollment);
         enrollment.setTotalProgress(total);
@@ -151,18 +144,18 @@ public class StudentService {
         enrollmentRepo.save(enrollment);
     }
 
-    private void handleSectionProgress(StudentEnrollment enrollment, ChapterSection section, Double percentage, Organisation org) {
+    private void handleSectionProgress(StudentEnrollment enrollment, ChapterSection chapterSection, BigDecimal percentage, Organisation org) {
         // Look for existing progress for this specific enrollment + section
         StudentProgress progress = enrollment.getStudentProgresses().stream()
-                .filter(p -> p.getChapterSection().getId().equals(section.getId()))
+                .filter(p -> p.getChapterSection().getId().equals(chapterSection.getId()))
                 .findFirst()
                 .orElseGet(() -> {
                     StudentProgress newStudentProgress = StudentProgress.builder()
                             .studentEnrollment(enrollment)
-                            .chapterSection(section)
                             .organisation(org)
-                            .percentage(0.0)
-                            .isCompleted(false)
+                            .chapterSection(chapterSection)
+                            .isCompleted(true)
+                            .percentage(percentage)
                             .build();
 
                     enrollment.getStudentProgresses().add(newStudentProgress);
@@ -187,8 +180,8 @@ public class StudentService {
 
         int completedMinutes = enrollment.getStudentProgresses().stream()
                 .filter(StudentProgress::getIsCompleted)
-                .mapToInt(p -> p.getChapterSection().getDurationInMinutes() != null
-                        ? p.getChapterSection().getDurationInMinutes() : 0)
+                .mapToInt(p -> p.getChapter().getTotalTimeInMinutes() != null
+                        ? p.getChapter().getTotalTimeInMinutes() : 0)
                 .sum();
 
         if (course.getTotalTimeInMinutes() == null || course.getTotalTimeInMinutes() == 0) {
@@ -233,7 +226,7 @@ public class StudentService {
     // ==========================================
     // 3. RESUME & QUIZ SUBMISSION
     // ==========================================
-
+    // TODO: CHange to track the sections of each chapter
     @Transactional(readOnly = true)
     public EnrollmentResponse getResumeDetails(String studentNumber, String courseSlug) {
         StudentEnrollment enrollment = findEnrollment(studentNumber, courseSlug);
@@ -243,11 +236,11 @@ public class StudentService {
                 .courseName(enrollment.getCourse().getName())
                 .currentTotalProgress(enrollment.getTotalProgress())
                 // Provide the ID of the section they last viewed
-                .lastSectionId(enrollment.getChapterSection() != null ? enrollment.getChapterSection().getId() : null)
+                .lastSectionId(enrollment.getChapter() != null ? enrollment.getChapter().getId() : null)
                 .build();
     }
 
-
+    // TODO: Change to chapter section
     @Transactional(readOnly = true)
     public List<EnrollmentResponse> getStudentDashboard(String studentNumber) {
         Long orgId = tenantProvider.get();
@@ -259,7 +252,7 @@ public class StudentService {
                         .courseName(e.getCourse().getName())
                         .currentTotalProgress(e.getTotalProgress()) // This saves us from having to map through the studentProgresses set on every view
                         .enrolledAt(e.getEnrolledAt())
-                        .lastSectionId(Optional.ofNullable(e.getChapterSection()).map(ChapterSection::getId).orElse(null))
+                        .lastSectionId(Optional.ofNullable(e.getChapter()).map(Chapter::getId).orElse(null))
                         .build())
                 .toList();
     }

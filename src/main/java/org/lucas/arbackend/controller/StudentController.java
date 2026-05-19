@@ -7,10 +7,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.lucas.arbackend.dto.quiz.QuizAttemptResponse;
 import org.lucas.arbackend.dto.quiz.QuizSubmissionRequest;
 import org.lucas.arbackend.dto.student.EnrollmentResponse;
+import org.lucas.arbackend.dto.student.ProgressUpdateRequest;
 import org.lucas.arbackend.dto.student.StudentRequest;
 import org.lucas.arbackend.dto.student.StudentResponse;
 import org.lucas.arbackend.exception.ErrorDetailsResponse;
@@ -89,14 +91,13 @@ public class StudentController {
             @ApiResponse(responseCode = "403", description = "Access denied")
     })
     @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR', 'SUPPORT', 'STUDENT')")
-    @PatchMapping("/{studentNumber}/progress")
+    @PatchMapping("/{studentNumber}/course/{courseId}/progress")
     public ResponseEntity<Void> updateProgress(
             @Parameter(description = "The student's unique number") @PathVariable String studentNumber,
             @Parameter(description = "The course id") @PathVariable Long courseId,
-            @Parameter(description = "The chapter id") @PathVariable Long chapterId ,
-            @Parameter(description = "The chapter section id") @RequestParam Long sectionId,
-            @Parameter(description = "Progress percentage (0.0 to 100.0)") @RequestParam Double percentage) {
-        studentService.updateProgress(studentNumber, courseId, chapterId, sectionId, percentage);
+            @Valid @RequestBody ProgressUpdateRequest request)
+    {
+        studentService.updateProgress(studentNumber, courseId, request.getChapterId(), request.getSectionId(), request.getIsCompleted());
         return ResponseEntity.noContent().build();
     }
 

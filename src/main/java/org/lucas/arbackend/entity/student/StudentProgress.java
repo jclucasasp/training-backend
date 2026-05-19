@@ -6,10 +6,12 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.BaseEntity;
 import org.lucas.arbackend.entity.Organisation.Organisation;
+import org.lucas.arbackend.entity.course.Chapter;
 import org.lucas.arbackend.entity.course.ChapterSection;
 import org.lucas.arbackend.util.tenant.TenantEntity;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -32,12 +34,16 @@ public class StudentProgress extends BaseEntity implements TenantEntity {
     private StudentEnrollment studentEnrollment;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "stp_section_id")
+    @JoinColumn(name = "stp_chapter_id")
+    private Chapter chapter;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "stp_chapter_section_id")
     private ChapterSection chapterSection;
 
     @Builder.Default
     @Column(name = "stp_percentage")
-    private Double percentage = 0.0;
+    private BigDecimal percentage = BigDecimal.ZERO;
 
     @Builder.Default
     @Column(name = "stp_is_completed")

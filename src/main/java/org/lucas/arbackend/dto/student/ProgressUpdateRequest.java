@@ -7,9 +7,12 @@ import lombok.Data;
 @Data @Builder
 public class ProgressUpdateRequest {
 
-    @NotNull(message = "Param 'enrollmentId' missing or blank")
-    private Long enrollmentId;
+    @NotNull(message = "Param 'chapterId' missing or blank")
+    private Long chapterId;
 
     @NotNull(message = "Param 'sectionId' missing or blank")
     private Long sectionId;
+
+    @NotNull(message = "Param 'isCompleted' missing or blank")
+    private Boolean isCompleted;
 }

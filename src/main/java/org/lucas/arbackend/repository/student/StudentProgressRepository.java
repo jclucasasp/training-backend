@@ -10,23 +10,14 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface StudentProgressRepository extends JpaRepository<StudentProgress, Long> {
-    // Optimized: Calculate course completion % in a single DB call
-    @Query("""
-    SELECT (COUNT(sp) * 100.0 / NULLIF((SELECT COUNT(cs) FROM ChapterSection cs WHERE cs.chapter.course.id = :courseId), 0))
-    FROM StudentProgress sp
-    WHERE sp.studentEnrollment.id = :enrollmentId AND sp.isCompleted = true
-""")
-    BigDecimal calculateCourseCompletion(@Param("courseId") Long courseId, @Param("enrollmentId") Long enrollmentId);
+    // Finds the specific progress row for a single section
+    Optional<StudentProgress> findByStudentEnrollmentIdAndChapterSectionId(Long enrollmentId, Long sectionId);
 
-    // Optimized: Check if a student owns the enrollment before letting them update progress
-    @Query("SELECT CASE WHEN COUNT(se) > 0 THEN true ELSE false END FROM StudentEnrollment se " +
-           "WHERE se.id = :enId AND se.student.organisation.id = :orgId")
-    boolean isEnrollmentValidForOrg(@Param("enId") Long enrollmentId, @Param("orgId") Long orgId);
-
-    Optional<StudentProgress> findByStudentEnrollmentAndChapterSection(StudentEnrollment enrollment, ChapterSection section);
-
-    Long countByStudentEnrollmentAndIsCompletedTrue(StudentEnrollment enrollment);
+    // Easily pull all completed sections for a course to give the frontend its checkmarks
+    @Query("SELECT sp.chapterSection.id FROM StudentProgress sp WHERE sp.studentEnrollment.id = :enrollmentId AND sp.isCompleted = true")
+    Set<Long> findCompletedSectionIdsByEnrollmentId(@Param("enrollmentId") Long enrollmentId);
 }

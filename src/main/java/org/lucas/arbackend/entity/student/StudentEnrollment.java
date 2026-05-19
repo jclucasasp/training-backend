@@ -41,14 +41,6 @@ public class StudentEnrollment extends BaseEntity implements TenantEntity {
     @JoinColumn(name = "ste_course_id")
     private Course course;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ste_chapter_id")
-    private Chapter chapter;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ste_chapter_section_id")
-    private ChapterSection chapterSection;
-
     @CreatedDate
     @Column(name = "ste_enrolled_at", updatable = false)
     private LocalDateTime enrolledAt = LocalDateTime.now();
@@ -56,9 +48,6 @@ public class StudentEnrollment extends BaseEntity implements TenantEntity {
     @Column(name = "ste_completed_at")
     private LocalDateTime completedAt;
 
-
-    // We can now calculate the total progress of the student in the course only and save it here to lookup instead of having to map
-    // through the studentProgress on every request
     @Builder.Default
     @Column(name = "ste_total_progress", nullable = false)
     private BigDecimal totalProgress = BigDecimal.ZERO;

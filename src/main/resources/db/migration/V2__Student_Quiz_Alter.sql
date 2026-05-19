@@ -60,4 +60,41 @@ CREATE TABLE IF NOT EXISTS quiz_question_option (
     CONSTRAINT fk_qto_question FOREIGN KEY (qto_question_id) REFERENCES quiz_question(qq_id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+DROP TABLE IF EXISTS student_enrollment;
+CREATE TABLE IF NOT EXISTS student_enrollment (
+ ste_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    ste_org_id BIGINT NOT NULL,
+    ste_student_id BIGINT NOT NULL,
+    ste_course_id BIGINT NOT NULL,
+    ste_total_progress DECIMAL(5,2) DEFAULT 0.00,
+    ste_enrolled_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    ste_completed_at DATETIME NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
+    ended_at DATETIME NULL,
+    CONSTRAINT fk_ste_org FOREIGN KEY (ste_org_id) REFERENCES organisation(org_id),
+    CONSTRAINT fk_ste_student FOREIGN KEY (ste_student_id) REFERENCES student(stu_id),
+    CONSTRAINT fk_ste_course FOREIGN KEY (ste_course_id) REFERENCES course(cou_id)
+) ENGINE=InnoDB;
+
+DROP TABLE IF EXISTS student_progress;
+CREATE TABLE IF NOT EXISTS student_progress (
+    stp_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    stp_org_id BIGINT NOT NULL,
+    stp_student_enrollment_id BIGINT NOT NULL,
+    stp_chapter_id BIGINT NOT NULL,
+    stp_section_id BIGINT NOT NULL,
+    stp_percentage DECIMAL(5,2) DEFAULT 0.00,
+    stp_is_completed BOOLEAN DEFAULT FALSE,
+    stp_last_accessed_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    stp_updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    ended_at DATETIME NULL,
+    CONSTRAINT fk_stp_org FOREIGN KEY (stp_org_id) REFERENCES organisation(org_id),
+    CONSTRAINT fk_stp_enrollment_ref FOREIGN KEY (stp_student_enrollment_id) REFERENCES student_enrollment(ste_id),
+    CONSTRAINT fk_stp_chapter_ref FOREIGN KEY (stp_chapter_id) REFERENCES chapter(cha_id),
+    CONSTRAINT fk_stp_section_ref FOREIGN KEY (stp_section_id) REFERENCES chapter_section(chs_id),
+    UNIQUE INDEX idx_unique_stp (stp_student_enrollment_id, stp_section_id)
+) ENGINE=InnoDB;
+
 SET FOREIGN_KEY_CHECKS = 1;

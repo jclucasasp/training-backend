@@ -14,10 +14,10 @@ public interface StudentEnrollmentRepository extends JpaRepository<StudentEnroll
 
 
     @Query("SELECT ste FROM StudentEnrollment ste WHERE ste.organisation.id = :orgId AND ste.student.id = :studentId AND ste.course.id = :courseId")
-    Optional<StudentEnrollment> findByStudentIdAndCourseId(Long id, Long studentId, Long courseId);
+    Optional<StudentEnrollment> findByStudentIdAndCourseId(Long orgId, Long studentId, Long courseId);
 
-    @Query("SELECT ste FROM StudentEnrollment ste WHERE ste.organisation.id = :orgId AND ste.student.id = :studentId AND ste.chapterSection.id = :sectionId")
-    Optional<StudentEnrollment> findBySectionId(@Param("orgId") Long orgId, @Param("studentId") Long studentId, @Param("sectionId") Long sectionId);
+//    @Query("SELECT ste FROM StudentEnrollment ste WHERE ste.organisation.id = :orgId AND ste.student.id = :studentId AND ste.chapterSection.id = :sectionId")
+//    Optional<StudentEnrollment> findBySectionId(@Param("orgId") Long orgId, @Param("studentId") Long studentId, @Param("sectionId") Long sectionId);
 
     @Query("SELECT ste FROM StudentEnrollment ste WHERE ste.student.organisation.id = :orgId AND ste.student.studentNumber = :studentNumber")
     List<StudentEnrollment> findAllByStudentNumber(@Param("orgId") Long orgId, @Param("studentNumber") String studentNumber);
