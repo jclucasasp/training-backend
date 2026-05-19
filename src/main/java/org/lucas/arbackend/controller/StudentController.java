@@ -133,7 +133,7 @@ public class StudentController {
         @ApiResponse(responseCode = "200", description = "Successfully retrieved attempt history"),
         @ApiResponse(responseCode = "404", description = "Student or Quiz not found")
     })
-//    @PreAuthorize("hasAuthority('STUDENT')")
+    @PreAuthorize("hasAuthority('STUDENT')")
     @GetMapping("/{studentNumber}/chapterQuizzes/{quizId}/attempts")
     public ResponseEntity<List<QuizAttemptResponse>> getQuizAttempts(
             @Parameter(description = "Unique student identifier") @PathVariable String studentNumber,
@@ -195,5 +195,18 @@ public class StudentController {
                                                            @RequestParam(defaultValue = "10") int size,
                                                            @RequestParam(defaultValue = "id") String sort) {
         return ResponseEntity.ok(studentService.getPaginatedStudents(PageRequest.of(page, size, Sort.by(sort))));
+    }
+
+    @Operation(summary = "Remove a student", description = "Removes a student from the system.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Student removed successfully"),
+            @ApiResponse(responseCode = "404", description = "Student not found",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
+    })
+    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR')")
+    @DeleteMapping("/{studentNumber}/remove")
+    public ResponseEntity<Void> removeStudent(@PathVariable String studentNumber) {
+        studentService.removeStudent(studentNumber);
+        return ResponseEntity.noContent().build();
     }
 }

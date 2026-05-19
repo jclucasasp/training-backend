@@ -9,7 +9,6 @@ import org.lucas.arbackend.dto.student.EnrollmentResponse;
 import org.lucas.arbackend.dto.student.StudentRequest;
 import org.lucas.arbackend.dto.student.StudentResponse;
 import org.lucas.arbackend.entity.Organisation.Organisation;
-import org.lucas.arbackend.entity.course.Chapter;
 import org.lucas.arbackend.entity.course.ChapterSection;
 import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.quiz.Quiz;
@@ -39,8 +38,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @RequiredArgsConstructor
@@ -108,10 +105,16 @@ public class StudentService {
                 .build();
     }
 
+    public void removeStudent(String studentNumber) {
+        Student student = studentRepo.findByOrganisationIdAndStudentNumber(tenantProvider.get(), studentNumber)
+                        .orElseThrow(() -> new EntityNotFoundException("Student not found"));
+
+        studentRepo.delete(student);
+    }
+
     // ==========================================
     // 2. PROGRESS TRACKING
     // ==========================================
-    // TODO: Get the time from the section and calculate the percentage based on that.
     @Transactional
     public void updateProgress(String studentNumber, Long courseId, Long chapterId, Long sectionId, boolean isCompleted) {
         // 1. Context Resolution (Org & Student)
