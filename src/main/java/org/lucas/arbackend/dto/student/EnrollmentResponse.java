@@ -13,8 +13,7 @@ public record EnrollmentResponse (
         String studentNumber,
         String courseName,
         LocalDateTime enrolledAt,
-        BigDecimal currentTotalProgress,
-        Long lastSectionId
+        BigDecimal currentTotalProgress
 ) implements Serializable {
 
     @Serial

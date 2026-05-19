@@ -20,4 +20,7 @@ public interface StudentProgressRepository extends JpaRepository<StudentProgress
     // Easily pull all completed sections for a course to give the frontend its checkmarks
     @Query("SELECT sp.chapterSection.id FROM StudentProgress sp WHERE sp.studentEnrollment.id = :enrollmentId AND sp.isCompleted = true")
     Set<Long> findCompletedSectionIdsByEnrollmentId(@Param("enrollmentId") Long enrollmentId);
+
+    @Query("SELECT sp FROM StudentProgress sp WHERE sp.studentEnrollment.id = :enrollmentId AND sp.studentEnrollment.organisation.id = :orgId")
+    Optional<StudentProgress> findByStudentEnrollmentId(Long enrollmentId, Long orgId);
 }

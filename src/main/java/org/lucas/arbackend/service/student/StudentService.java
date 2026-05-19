@@ -40,6 +40,7 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @RequiredArgsConstructor
@@ -88,10 +89,12 @@ public class StudentService {
         // Create Enrollment
         StudentEnrollment enrollment = enrollmentRepo.findByStudentIdAndCourseId(org.getId(), student.getId(), course.getId())
                 .orElseGet(() -> {
-                            StudentEnrollment newEnrollment = new StudentEnrollment();
-                            newEnrollment.setStudent(student);
-                            newEnrollment.setCourse(course);
-                            newEnrollment.setOrganisation(org);
+                            StudentEnrollment newEnrollment = StudentEnrollment.builder()
+                                    .student(student)
+                                    .course(course)
+                                    .organisation(org)
+                                    .totalProgress(BigDecimal.ZERO)
+                                    .build();
                             return enrollmentRepo.save(newEnrollment);
                         }
                 );
@@ -123,12 +126,11 @@ public class StudentService {
                 .flatMap(c -> c.getChapterSections().stream())
                 .filter(s -> s.getId().equals(sectionId))
                 .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException("Section not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Section not found")
+                );
 
         // 3. Find Enrollment (Scoped by Student and the Course this section belongs to)
         StudentEnrollment enrollment = findEnrollment(student.getId(), course.getId());
-        StudentProgress progress = progressRepo.findByStudentEnrollmentIdAndChapterSectionId(enrollment.getId(), chapterSection.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Student Progress not found"));
 
         // 5. Track the specific Section Progress
         handleSectionProgress(enrollment, chapterSection, org);
@@ -144,7 +146,9 @@ public class StudentService {
         enrollmentRepo.save(enrollment);
     }
 
-    private void handleSectionProgress(StudentEnrollment enrollment, ChapterSection chapterSection, BigDecimal percentage, Organisation org) {
+    private void handleSectionProgress(StudentEnrollment enrollment, ChapterSection chapterSection, Organisation org) {
+
+        BigDecimal percentage = handleSectionPercentage(chapterSection);
         // Look for existing progress for this specific enrollment + section
         StudentProgress progress = enrollment.getStudentProgresses().stream()
                 .filter(p -> p.getChapterSection().getId().equals(chapterSection.getId()))
@@ -163,16 +167,23 @@ public class StudentService {
                 });
 
         // Update percentage only if the new progress is higher (don't let progress go backwards)
-        if (percentage > progress.getPercentage()) {
+        if (percentage.compareTo(progress.getPercentage()) > 0) {
             progress.setPercentage(percentage);
         }
 
         // Mark as completed if percentage hits 100 (or your specific threshold)
-        if (percentage >= 100.0) {
+        if (percentage.compareTo(BigDecimal.valueOf(100)) >= 0) {
             progress.setIsCompleted(true);
         }
 
         progressRepo.save(progress);
+    }
+
+    private BigDecimal handleSectionPercentage(ChapterSection chapterSection) {
+        int chapterTotalMinutes = chapterSection.getChapter().getTotalTimeInMinutes();
+        int sectionTotalMinutes = chapterSection.getDurationInMinutes();
+
+        return BigDecimal.valueOf(sectionTotalMinutes * 100.0 / chapterTotalMinutes);
     }
 
     private BigDecimal calculateTotalProgress(StudentEnrollment enrollment) {
@@ -226,7 +237,6 @@ public class StudentService {
     // ==========================================
     // 3. RESUME & QUIZ SUBMISSION
     // ==========================================
-    // TODO: CHange to track the sections of each chapter
     @Transactional(readOnly = true)
     public EnrollmentResponse getResumeDetails(String studentNumber, String courseSlug) {
         StudentEnrollment enrollment = findEnrollment(studentNumber, courseSlug);
@@ -236,7 +246,6 @@ public class StudentService {
                 .courseName(enrollment.getCourse().getName())
                 .currentTotalProgress(enrollment.getTotalProgress())
                 // Provide the ID of the section they last viewed
-                .lastSectionId(enrollment.getChapter() != null ? enrollment.getChapter().getId() : null)
                 .build();
     }
 
@@ -252,7 +261,6 @@ public class StudentService {
                         .courseName(e.getCourse().getName())
                         .currentTotalProgress(e.getTotalProgress()) // This saves us from having to map through the studentProgresses set on every view
                         .enrolledAt(e.getEnrolledAt())
-                        .lastSectionId(Optional.ofNullable(e.getChapter()).map(Chapter::getId).orElse(null))
                         .build())
                 .toList();
     }
