@@ -9,6 +9,7 @@ import org.lucas.arbackend.dto.student.EnrollmentResponse;
 import org.lucas.arbackend.dto.student.StudentRequest;
 import org.lucas.arbackend.dto.student.StudentResponse;
 import org.lucas.arbackend.entity.Organisation.Organisation;
+import org.lucas.arbackend.entity.course.Chapter;
 import org.lucas.arbackend.entity.course.ChapterSection;
 import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.quiz.Quiz;
@@ -38,6 +39,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -138,7 +140,8 @@ public class StudentService {
         // 5. Track the specific Section Progress
         handleSectionProgress(enrollment, chapterSection, org);
 
-        BigDecimal total = calculateTotalProgress(enrollment);
+        BigDecimal total = calculateTotalProgress(enrollment, course);
+
         enrollment.setTotalProgress(total);
 
         // 6. Optional: Check if the whole Course is now 100% complete
@@ -148,70 +151,137 @@ public class StudentService {
         enrollmentRepo.save(enrollment);
     }
 
+//    private void handleSectionProgress(StudentEnrollment enrollment, ChapterSection chapterSection, Organisation org) {
+//
+//        int chapterTotalMinutes = chapterSection.getChapter().getTotalTimeInMinutes();
+//        int sectionTotalMinutes = chapterSection.getChapter().getTotalTimeInMinutes();
+//        BigDecimal percentage = calculatePercentage(sectionTotalMinutes, chapterTotalMinutes);
+//
+//        // Look for existing progress for this specific enrollment + section
+//        StudentProgress progress = enrollment.getStudentProgresses().stream()
+//                .filter(p -> p.getChapterSection().getId().equals(chapterSection.getId()))
+//                .findFirst()
+//                .orElseGet(() -> {
+//                    StudentProgress newStudentProgress = StudentProgress.builder()
+//                            .studentEnrollment(enrollment)
+//                            .organisation(org)
+//                            .chapter(chapterSection.getChapter())
+//                            .chapterSection(chapterSection)
+//                            .isCompleted(true)
+//                            .percentage(percentage)
+//                            .lastAccessedAt(LocalDateTime.now())
+//                            .build();
+//
+//                    enrollment.getStudentProgresses().add(newStudentProgress);
+//                    return newStudentProgress;
+//                });
+//
+//        // Update percentage only if the new progress is higher (don't let progress go backwards)
+//        if (percentage.compareTo(progress.getPercentage()) > 0) {
+//            progress.setPercentage(percentage);
+//        }
+//
+//        // Mark as completed if percentage hits 100 (or your specific threshold)
+//        if (percentage.compareTo(BigDecimal.valueOf(100)) >= 0) {
+//            progress.setIsCompleted(true);
+//        }
+//
+//        progressRepo.save(progress);
+//    }
+
     private void handleSectionProgress(StudentEnrollment enrollment, ChapterSection chapterSection, Organisation org) {
 
-        BigDecimal percentage = handleSectionPercentage(chapterSection);
-        // Look for existing progress for this specific enrollment + section
-        StudentProgress progress = enrollment.getStudentProgresses().stream()
-                .filter(p -> p.getChapterSection().getId().equals(chapterSection.getId()))
-                .findFirst()
-                .orElseGet(() -> {
-                    StudentProgress newStudentProgress = StudentProgress.builder()
-                            .studentEnrollment(enrollment)
-                            .organisation(org)
-                            .chapter(chapterSection.getChapter())
-                            .chapterSection(chapterSection)
-                            .isCompleted(true)
-                            .percentage(percentage)
-                            .lastAccessedAt(LocalDateTime.now())
-                            .build();
+    // 1. A section's own tracking row always aims for 100% completion
+    BigDecimal sectionPercentage = BigDecimal.valueOf(100).setScale(2, RoundingMode.HALF_UP);
 
-                    enrollment.getStudentProgresses().add(newStudentProgress);
-                    return newStudentProgress;
-                });
+    // 2. Look for existing progress for this specific enrollment + section
+    StudentProgress progress = enrollment.getStudentProgresses().stream()
+            .filter(p -> p.getChapterSection().getId().equals(chapterSection.getId()))
+            .findFirst()
+            .orElseGet(() -> {
+                StudentProgress newStudentProgress = StudentProgress.builder()
+                        .studentEnrollment(enrollment)
+                        .organisation(org)
+                        .chapter(chapterSection.getChapter())
+                        .chapterSection(chapterSection)
+                        .isCompleted(false) // Let the downstream logic handle this cleanly
+                        .percentage(BigDecimal.ZERO)
+                        .lastAccessedAt(LocalDateTime.now())
+                        .build();
 
-        // Update percentage only if the new progress is higher (don't let progress go backwards)
-        if (percentage.compareTo(progress.getPercentage()) > 0) {
-            progress.setPercentage(percentage);
-        }
+                enrollment.getStudentProgresses().add(newStudentProgress);
+                return newStudentProgress;
+            });
 
-        // Mark as completed if percentage hits 100 (or your specific threshold)
-        if (percentage.compareTo(BigDecimal.valueOf(100)) >= 0) {
-            progress.setIsCompleted(true);
-        }
-
-        progressRepo.save(progress);
+    // 3. Update the section record percentage safely (don't move backward)
+    if (sectionPercentage.compareTo(progress.getPercentage()) > 0) {
+        progress.setPercentage(sectionPercentage);
     }
 
-    private BigDecimal handleSectionPercentage(ChapterSection chapterSection) {
-        int chapterTotalMinutes = chapterSection.getChapter().getTotalTimeInMinutes();
-        int sectionTotalMinutes = chapterSection.getDurationInMinutes();
+    // 4. Mark section as complete when it hits 100
+    if (sectionPercentage.compareTo(BigDecimal.valueOf(100)) >= 0) {
+        progress.setIsCompleted(true);
+    }
+    progress.setLastAccessedAt(LocalDateTime.now());
 
-        return BigDecimal.valueOf(sectionTotalMinutes * 100.0 / chapterTotalMinutes);
+    // 5. Save the section progress record first to update the database state
+    progressRepo.save(progress);
+
+    // 6. NOW it is safe to calculate aggregated snapshots!
+    // Since the database/collection is updated, you can safely compute overall metrics:
+    BigDecimal finalCourseProgress = calculateTotalProgress(enrollment, enrollment.getCourse());
+    enrollment.setTotalProgress(finalCourseProgress);
+
+    if (finalCourseProgress.compareTo(BigDecimal.valueOf(100)) >= 0) {
+        enrollment.setCompletedAt(LocalDateTime.now());
+    }
+    enrollmentRepo.save(enrollment);
+}
+
+    private BigDecimal calculateChapterProgress(StudentEnrollment enrollment, Chapter chapter) {
+        List<StudentProgress> allSectionsInChapter = progressRepo
+    .findByStudentEnrollmentIdAndChapterId(enrollment.getId(), chapter.getId());
+
+int chapterTotalMinutes = chapter.getTotalTimeInMinutes();
+int completedMinutesInChapter = allSectionsInChapter.stream()
+        .filter(StudentProgress::getIsCompleted)
+        .map(StudentProgress::getChapterSection)
+        .filter(Objects::nonNull)
+        .mapToInt(ChapterSection::getDurationInMinutes)
+        .sum(); // Sum up the unique completed sections inside this chapter
+
+// 3. This gives you your true, safely accumulated Chapter Progress percentage
+       return calculatePercentage(completedMinutesInChapter, chapterTotalMinutes);
     }
 
-    private BigDecimal calculateTotalProgress(StudentEnrollment enrollment) {
-        Course course = enrollment.getCourse();
+    private BigDecimal calculateTotalProgress(StudentEnrollment enrollment, Course course) {
+        int courseTotalTime = course.getTotalTimeInMinutes();
 
-        int completedMinutes = enrollment.getStudentProgresses().stream()
-                .filter(StudentProgress::getIsCompleted)
-                .findFirst()
-                .map(p -> p.getChapter().getTotalTimeInMinutes() != null
-                        ? p.getChapter().getTotalTimeInMinutes() : 0)
-                .orElseThrow(() -> new EntityNotFoundException("Enrollment does not exist"));
+        int totalCompletedMinutesAcrossCourse = enrollment.getStudentProgresses().stream()
+                .filter(StudentProgress::getIsCompleted) // Rely on the child records
+                .map(StudentProgress::getChapterSection)
+                .filter(Objects::nonNull)
+                .mapToInt(ChapterSection::getDurationInMinutes)
+                .sum(); // Total time of everything they have finished so far
 
-        if (course.getTotalTimeInMinutes() == null || course.getTotalTimeInMinutes() == 0) {
-            return BigDecimal.ZERO;
-        }
-
-        double rate = (double) completedMinutes / course.getTotalTimeInMinutes() * 100;
-        return BigDecimal.valueOf(Math.min(rate, 100)).setScale(2, RoundingMode.HALF_UP);
+// 3. Pass the accumulated sum to your utility method safely
+        return calculatePercentage(totalCompletedMinutesAcrossCourse, courseTotalTime);
     }
 
     @Transactional(readOnly = true)
     public Page<StudentResponse> getPaginatedStudents(Pageable pageable) {
         return studentRepo.findAllByOrganisationId(tenantProvider.get(), pageable)
                 .map(studentMapper::maptToStudentResponse);
+    }
+
+    private BigDecimal calculatePercentage(int sectionCompletedMinutes, int totalMinutes) {
+        if (totalMinutes == 0) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal completed = BigDecimal.valueOf(sectionCompletedMinutes);
+        BigDecimal total = BigDecimal.valueOf(totalMinutes);
+
+        return completed.multiply(BigDecimal.valueOf(100)).divide(total, 2, RoundingMode.HALF_UP);
     }
 
     public void registerStudentForQuiz(String studentNumber, Long quizId) {

@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -23,4 +24,6 @@ public interface StudentProgressRepository extends JpaRepository<StudentProgress
 
     @Query("SELECT sp FROM StudentProgress sp WHERE sp.studentEnrollment.id = :enrollmentId AND sp.studentEnrollment.organisation.id = :orgId")
     Optional<StudentProgress> findByStudentEnrollmentId(Long enrollmentId, Long orgId);
+
+    List<StudentProgress> findByStudentEnrollmentIdAndChapterId(Long enrollmentId, Long chapterId);
 }
