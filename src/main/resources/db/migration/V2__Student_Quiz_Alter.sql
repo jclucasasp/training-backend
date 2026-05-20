@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS student_progress (
     stp_percentage DECIMAL(5,2) DEFAULT 0.00,
     stp_is_completed BOOLEAN DEFAULT FALSE,
     stp_last_accessed_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    stp_updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
+    updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     ended_at DATETIME NULL,
     CONSTRAINT fk_stp_org FOREIGN KEY (stp_org_id) REFERENCES organisation(org_id),

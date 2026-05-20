@@ -38,7 +38,7 @@ public class StudentProgress extends BaseEntity implements TenantEntity {
     private Chapter chapter;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "stp_chapter_section_id")
+    @JoinColumn(name = "stp_section_id")
     private ChapterSection chapterSection;
 
     @Builder.Default
@@ -49,7 +49,7 @@ public class StudentProgress extends BaseEntity implements TenantEntity {
     @Column(name = "stp_is_completed")
     private Boolean isCompleted = false;
 
-    @Column(name = "stp_last_access_at")
+    @Column(name = "stp_last_accessed_at")
     private LocalDateTime lastAccessedAt;
 
     @Override

@@ -160,9 +160,11 @@ public class StudentService {
                     StudentProgress newStudentProgress = StudentProgress.builder()
                             .studentEnrollment(enrollment)
                             .organisation(org)
+                            .chapter(chapterSection.getChapter())
                             .chapterSection(chapterSection)
                             .isCompleted(true)
                             .percentage(percentage)
+                            .lastAccessedAt(LocalDateTime.now())
                             .build();
 
                     enrollment.getStudentProgresses().add(newStudentProgress);
