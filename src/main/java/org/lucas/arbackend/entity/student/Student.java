@@ -41,13 +41,8 @@ public class Student extends BaseEntity implements TenantEntity {
     @Column(name = "stu_student_number", nullable = false)
     private String studentNumber;
 
-    @ManyToMany
-    @JoinTable(
-            name = "student_courses",
-            joinColumns = @JoinColumn(name = "stu_id"),
-            inverseJoinColumns = @JoinColumn(name = "course_id")
-    )
-    private Set<Course> enrolledCourses = new HashSet<>();
+    @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<StudentEnrollment> studentEnrollment = new HashSet<>();
 
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<StudentQuiz> studentQuizzes = new HashSet<>();

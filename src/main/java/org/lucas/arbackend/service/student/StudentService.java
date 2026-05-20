@@ -145,7 +145,6 @@ public class StudentService {
         if (total.compareTo(BigDecimal.valueOf(100)) > 0 && enrollment.getCompletedAt() == null) {
             enrollment.setCompletedAt(LocalDateTime.now());
         }
-
         enrollmentRepo.save(enrollment);
     }
 
@@ -196,9 +195,10 @@ public class StudentService {
 
         int completedMinutes = enrollment.getStudentProgresses().stream()
                 .filter(StudentProgress::getIsCompleted)
-                .mapToInt(p -> p.getChapter().getTotalTimeInMinutes() != null
+                .findFirst()
+                .map(p -> p.getChapter().getTotalTimeInMinutes() != null
                         ? p.getChapter().getTotalTimeInMinutes() : 0)
-                .sum();
+                .orElseThrow(() -> new EntityNotFoundException("Enrollment does not exist"));
 
         if (course.getTotalTimeInMinutes() == null || course.getTotalTimeInMinutes() == 0) {
             return BigDecimal.ZERO;
