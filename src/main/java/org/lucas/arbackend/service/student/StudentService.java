@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.lucas.arbackend.dto.quiz.QuizAttemptResponse;
 import org.lucas.arbackend.dto.student.EnrollmentResponse;
 import org.lucas.arbackend.dto.student.StudentRequest;
@@ -41,6 +42,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -64,7 +66,6 @@ public class StudentService {
     // ==========================================
     // 1. ENROLLMENT LOGIC (UPSERT Student)
     // ==========================================
-    // TODO: Add the student progress table as well.
     public EnrollmentResponse enrollStudent(StudentRequest request) {
 
         // Verify Organisation
@@ -118,21 +119,17 @@ public class StudentService {
     // 2. PROGRESS TRACKING
     // ==========================================
     @Transactional
-    public void updateProgress(String studentNumber, Long courseId, Long chapterId, Long sectionId, boolean isCompleted) {
+    public void updateProgress(String studentNumber, Long courseId, Long chapterId, Long sectionId) {
         // 1. Context Resolution (Org & Student)
         Organisation org = findOrganisation();
 
         Student student = findStudent(org.getId(), studentNumber);
 
         // 2. Resolve the Section first (needed for both Enrollment lookup and Progress)
-        Course course = courseRepo.findById(courseId).orElseThrow(() -> new EntityNotFoundException("Course not found"));
+        ChapterSection chapterSection = sectionRepo.findWithContext(courseId, chapterId, sectionId)
+                .orElseThrow(() -> new EntityNotFoundException("Section not found"));
 
-        ChapterSection chapterSection = course.getChapters().stream()
-                .flatMap(c -> c.getChapterSections().stream())
-                .filter(s -> s.getId().equals(sectionId))
-                .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException("Section not found")
-                );
+        Course course = chapterSection.getChapter().getCourse();
 
         // 3. Find Enrollment (Scoped by Student and the Course this section belongs to)
         StudentEnrollment enrollment = findEnrollment(student.getId(), course.getId());
@@ -145,49 +142,12 @@ public class StudentService {
         enrollment.setTotalProgress(total);
 
         // 6. Optional: Check if the whole Course is now 100% complete
-        if (total.compareTo(BigDecimal.valueOf(100)) > 0 && enrollment.getCompletedAt() == null) {
-            enrollment.setCompletedAt(LocalDateTime.now());
-        }
+//        if (total.compareTo(BigDecimal.valueOf(100.00)) >= 0 && enrollment.getCompletedAt() == null) {
+//            log.info("DEBUG: Course is now complete, marking completed at with today's date");
+//            enrollment.setCompletedAt(LocalDateTime.now());
+//        }
         enrollmentRepo.save(enrollment);
     }
-
-//    private void handleSectionProgress(StudentEnrollment enrollment, ChapterSection chapterSection, Organisation org) {
-//
-//        int chapterTotalMinutes = chapterSection.getChapter().getTotalTimeInMinutes();
-//        int sectionTotalMinutes = chapterSection.getChapter().getTotalTimeInMinutes();
-//        BigDecimal percentage = calculatePercentage(sectionTotalMinutes, chapterTotalMinutes);
-//
-//        // Look for existing progress for this specific enrollment + section
-//        StudentProgress progress = enrollment.getStudentProgresses().stream()
-//                .filter(p -> p.getChapterSection().getId().equals(chapterSection.getId()))
-//                .findFirst()
-//                .orElseGet(() -> {
-//                    StudentProgress newStudentProgress = StudentProgress.builder()
-//                            .studentEnrollment(enrollment)
-//                            .organisation(org)
-//                            .chapter(chapterSection.getChapter())
-//                            .chapterSection(chapterSection)
-//                            .isCompleted(true)
-//                            .percentage(percentage)
-//                            .lastAccessedAt(LocalDateTime.now())
-//                            .build();
-//
-//                    enrollment.getStudentProgresses().add(newStudentProgress);
-//                    return newStudentProgress;
-//                });
-//
-//        // Update percentage only if the new progress is higher (don't let progress go backwards)
-//        if (percentage.compareTo(progress.getPercentage()) > 0) {
-//            progress.setPercentage(percentage);
-//        }
-//
-//        // Mark as completed if percentage hits 100 (or your specific threshold)
-//        if (percentage.compareTo(BigDecimal.valueOf(100)) >= 0) {
-//            progress.setIsCompleted(true);
-//        }
-//
-//        progressRepo.save(progress);
-//    }
 
     private void handleSectionProgress(StudentEnrollment enrollment, ChapterSection chapterSection, Organisation org) {
 
@@ -225,7 +185,7 @@ public class StudentService {
     progress.setLastAccessedAt(LocalDateTime.now());
 
     // 5. Save the section progress record first to update the database state
-    progressRepo.save(progress);
+    progressRepo.saveAndFlush(progress);
 
     // 6. NOW it is safe to calculate aggregated snapshots!
     // Since the database/collection is updated, you can safely compute overall metrics:
@@ -235,7 +195,7 @@ public class StudentService {
     if (finalCourseProgress.compareTo(BigDecimal.valueOf(100)) >= 0) {
         enrollment.setCompletedAt(LocalDateTime.now());
     }
-    enrollmentRepo.save(enrollment);
+    enrollmentRepo.saveAndFlush(enrollment);
 }
 
     private BigDecimal calculateChapterProgress(StudentEnrollment enrollment, Chapter chapter) {
@@ -284,6 +244,8 @@ int completedMinutesInChapter = allSectionsInChapter.stream()
         return completed.multiply(BigDecimal.valueOf(100)).divide(total, 2, RoundingMode.HALF_UP);
     }
 
+    // TODO: Check if all the sections have been completed on the frontend and give a warning if not
+    // Need to loop through all the sections and check if they have been completed
     public void registerStudentForQuiz(String studentNumber, Long quizId) {
         Organisation org = findOrganisation();
 
@@ -336,6 +298,7 @@ int completedMinutesInChapter = allSectionsInChapter.stream()
                         .courseName(e.getCourse().getName())
                         .currentTotalProgress(e.getTotalProgress()) // This saves us from having to map through the studentProgresses set on every view
                         .enrolledAt(e.getEnrolledAt())
+                        .completedAt(e.getCompletedAt())
                         .build())
                 .toList();
     }

@@ -13,6 +13,7 @@ public record EnrollmentResponse (
         String studentNumber,
         String courseName,
         LocalDateTime enrolledAt,
+        LocalDateTime completedAt,
         BigDecimal currentTotalProgress
 ) implements Serializable {
 

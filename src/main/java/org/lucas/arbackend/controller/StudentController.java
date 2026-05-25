@@ -97,7 +97,7 @@ public class StudentController {
             @Parameter(description = "The course id") @PathVariable Long courseId,
             @Valid @RequestBody ProgressUpdateRequest request)
     {
-        studentService.updateProgress(studentNumber, courseId, request.getChapterId(), request.getSectionId(), request.getIsCompleted());
+        studentService.updateProgress(studentNumber, courseId, request.getChapterId(), request.getSectionId());
         return ResponseEntity.noContent().build();
     }
 

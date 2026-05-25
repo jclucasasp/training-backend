@@ -12,7 +12,4 @@ public class ProgressUpdateRequest {
 
     @NotNull(message = "Param 'sectionId' missing or blank")
     private Long sectionId;
-
-    @NotNull(message = "Param 'isCompleted' missing or blank")
-    private Boolean isCompleted;
 }
