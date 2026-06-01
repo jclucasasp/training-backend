@@ -10,7 +10,6 @@ import org.lucas.arbackend.dto.student.EnrollmentResponse;
 import org.lucas.arbackend.dto.student.StudentRequest;
 import org.lucas.arbackend.dto.student.StudentResponse;
 import org.lucas.arbackend.entity.Organisation.Organisation;
-import org.lucas.arbackend.entity.course.Chapter;
 import org.lucas.arbackend.entity.course.ChapterSection;
 import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.quiz.Quiz;
@@ -60,7 +59,6 @@ public class StudentService {
     private final StudentQuizRepository studentQuizRepo;
     private final StudentQuizAttemptRepository attemptRepo;
     private final ObjectMapper objectMapper;
-    private final StudentQuizAttemptRepository studentQuizAttemptRepo;
 
 
     // ==========================================
@@ -198,22 +196,6 @@ public class StudentService {
     enrollmentRepo.saveAndFlush(enrollment);
 }
 
-    private BigDecimal calculateChapterProgress(StudentEnrollment enrollment, Chapter chapter) {
-        List<StudentProgress> allSectionsInChapter = progressRepo
-    .findByStudentEnrollmentIdAndChapterId(enrollment.getId(), chapter.getId());
-
-int chapterTotalMinutes = chapter.getTotalTimeInMinutes();
-int completedMinutesInChapter = allSectionsInChapter.stream()
-        .filter(StudentProgress::getIsCompleted)
-        .map(StudentProgress::getChapterSection)
-        .filter(Objects::nonNull)
-        .mapToInt(ChapterSection::getDurationInMinutes)
-        .sum(); // Sum up the unique completed sections inside this chapter
-
-// 3. This gives you your true, safely accumulated Chapter Progress percentage
-       return calculatePercentage(completedMinutesInChapter, chapterTotalMinutes);
-    }
-
     private BigDecimal calculateTotalProgress(StudentEnrollment enrollment, Course course) {
         int courseTotalTime = course.getTotalTimeInMinutes();
 
@@ -231,7 +213,7 @@ int completedMinutesInChapter = allSectionsInChapter.stream()
     @Transactional(readOnly = true)
     public Page<StudentResponse> getPaginatedStudents(Pageable pageable) {
         return studentRepo.findAllByOrganisationId(tenantProvider.get(), pageable)
-                .map(studentMapper::maptToStudentResponse);
+                .map(studentMapper::mapToStudentResponse);
     }
 
     private BigDecimal calculatePercentage(int sectionCompletedMinutes, int totalMinutes) {
@@ -286,7 +268,6 @@ int completedMinutesInChapter = allSectionsInChapter.stream()
                 .build();
     }
 
-    // TODO: Change to chapter section
     @Transactional(readOnly = true)
     public List<EnrollmentResponse> getStudentDashboard(String studentNumber) {
         Long orgId = tenantProvider.get();
@@ -343,7 +324,7 @@ int completedMinutesInChapter = allSectionsInChapter.stream()
                 .filter(a -> a.getOrganisation().getId().equals(currentOrgId))
                 .orElseThrow(() -> new EntityNotFoundException("Attempt not found or access denied"));
 
-        Object parsedAnswers = null;
+        Object parsedAnswers;
         try {
             // Parse the JSON string back into a Map or List for the frontend
             parsedAnswers = objectMapper.readValue(attempt.getSubmittedAnswersJson(), Object.class);
@@ -362,13 +343,13 @@ int completedMinutesInChapter = allSectionsInChapter.stream()
                 .build();
     }
 
-    private String convertToJson(Object answers) {
-        try {
-            return objectMapper.writeValueAsString(answers);
-        } catch (JsonProcessingException e) {
-            return "[]";
-        }
-    }
+//    private String convertToJson(Object answers) {
+//        try {
+//            return objectMapper.writeValueAsString(answers);
+//        } catch (JsonProcessingException e) {
+//            return "[]";
+//        }
+//    }
 
     private Organisation findOrganisation() {
         return orgRepo.findById(tenantProvider.get())

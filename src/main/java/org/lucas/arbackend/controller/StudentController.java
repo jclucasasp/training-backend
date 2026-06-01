@@ -33,7 +33,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/student")
-@Tag(name = "5. Student Management", description = "Student onboarding and enrollment tracking")
+@Tag(name = "7. Student Management", description = "Student onboarding and enrollment tracking")
 public class StudentController {
 
     private final StudentService studentService;

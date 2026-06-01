@@ -115,4 +115,21 @@ public class OrganisationController {
         return ResponseEntity.ok(apiKeyService.generateKeyForOrg(new ApiKey(), false));
     }
 
+    @Operation(summary = "Soft Delete Organisation", description = "Marks the organisation as deleted. It will no longer be accessible via standard lookups.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Organisation deleted successfully"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Organisation not found",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
+    })
+    @JsonView(AccessLevelViews.Internal.class)
+    @DeleteMapping("/{orgId}/delete")
+    public ResponseEntity<Void> deleteOrganisation(@PathVariable Long orgId) {
+        orgService.softDeleteOrg(orgId);
+        return ResponseEntity.noContent().build();
+    }
+
 }
