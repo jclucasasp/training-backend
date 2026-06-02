@@ -229,8 +229,9 @@ public class QuizService {
     // GRADING LOGIC
     // ==========================================
 
-    public QuizResultResponse submitAndGradeQuiz(String studentNumber, Long quizId, QuizSubmissionRequest submission) {
-        StudentQuiz studentQuiz = findStudentQuiz(studentNumber, quizId);
+    public QuizResultResponse submitAndGradeQuiz(Long quizId, QuizSubmissionRequest submission) {
+
+        StudentQuiz studentQuiz = findStudentQuiz(submission.getStudentNumber(), quizId);
         Quiz quiz = studentQuiz.getQuiz();
 
         // A. Check Attempt Limit
@@ -348,7 +349,10 @@ public class QuizService {
 //    }
 
     private StudentQuiz findStudentQuiz(String studentNumber, Long quizId) {
-        return studentQuizRepo.findRegistration(tenantProvider.get(), studentNumber, quizId)
+        Student student = studentRepo.findByOrganisationIdAndStudentNumber(tenantProvider.get(), studentNumber)
+                .orElseThrow(() -> new EntityNotFoundException("Student not found"));
+
+        return studentQuizRepo.findRegistration(tenantProvider.get(), student.getId(), quizId)
                 .orElseThrow(() -> new EntityNotFoundException("Student not registered for this quiz"));
     }
 

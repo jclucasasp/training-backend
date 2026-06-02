@@ -53,15 +53,14 @@ public class QuizController {
     }
 
     @PostMapping("/{id}/submit")
-    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR', 'SUPPORT', 'STUDENT')")
+    @PreAuthorize("hasAuthority('STUDENT')")
     @Operation(summary = "Submit a quiz attempt", description = "Calculates the score and records a student's attempt.")
     public ResponseEntity<QuizResultResponse> submitAttempt(
             @PathVariable Long id,
-            @Valid @RequestBody QuizSubmissionRequest submission,
-            @AuthenticationPrincipal CustomUserDetails userDetails
+            @Valid @RequestBody QuizSubmissionRequest submission
     ) {
         // We pass the email/studentNumber to the service as per our previous service fix
-        return ResponseEntity.ok(quizService.submitAndGradeQuiz(userDetails.getUsername(), id, submission));
+        return ResponseEntity.ok(quizService.submitAndGradeQuiz(id, submission));
     }
 
     @PutMapping("/{id}/course/{courseId}/assign-chapter/{chapterId}")

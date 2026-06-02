@@ -73,6 +73,7 @@ public class TenantFilter extends OncePerRequestFilter {
         TenantContext.setCurrentTenant(orgId);
 
         // Manually set Student in SecurityContext so @PreAuthorize works
+//        CustomUserDetails student = new CustomUserDetails(null,"API_KEY_" + prefix, "", orgId, RoleTypes.STUDENT.name());
         CustomUserDetails student = new CustomUserDetails(null,"API_KEY_" + prefix, "", orgId, RoleTypes.STUDENT.name());
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(student, null, student.getAuthorities())

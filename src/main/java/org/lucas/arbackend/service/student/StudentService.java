@@ -284,44 +284,45 @@ public class StudentService {
                 .toList();
     }
 
+//    @Transactional(readOnly = true)
+//    public String getAttemptReview(String studentNumber, Long attemptId) {
+//        StudentQuizAttempt attempt = attemptRepo.findByIdAndStudentNumber(attemptId, studentNumber, tenantProvider.get())
+//                .orElseThrow(() -> new EntityNotFoundException("Attempt not found"));
+//
+//        return attempt.getSubmittedAnswersJson();
+//    }
+
+//     @Transactional(readOnly = true)
+//    public List<QuizAttemptResponse> getQuizAttempts(String studentNumber, Long quizId) {
+//        Long orgId = tenantProvider.get();
+//
+//        // 1. Find the student in this Org
+//        Student student = studentRepo.findByOrganisationIdAndStudentNumber(orgId, studentNumber)
+//                .orElseThrow(() -> new EntityNotFoundException("Student not found in this organisation"));
+//
+//        // 2. Fetch all attempts for this student/quiz combination
+//        // We use a specific repository method to ensure multi-tenant safety
+//        return attemptRepo.findRecentAttempts(
+//                orgId, student.getId(), quizId)
+//                .stream()
+//                .map(attempt -> QuizAttemptResponse.builder()
+//                        .attemptId(attempt.getId())
+//                        .quizId(attempt.getQuiz().getId())
+//                        .score(attempt.getScore())
+//                        .isPassed(attempt.isPassed())
+//                        .completedAt(attempt.getCompletedAt())
+//                        // We leave 'answers' null here to keep the list response small
+//                        .build())
+//                .toList();
+//    }
+
     @Transactional(readOnly = true)
-    public String getAttemptReview(String studentNumber, Long attemptId) {
-        StudentQuizAttempt attempt = attemptRepo.findByIdAndStudentNumber(attemptId, studentNumber, tenantProvider.get())
-                .orElseThrow(() -> new EntityNotFoundException("Attempt not found"));
-
-        return attempt.getSubmittedAnswersJson();
-    }
-
-     @Transactional(readOnly = true)
-    public List<QuizAttemptResponse> getQuizAttempts(String studentNumber, Long quizId) {
-        Long orgId = tenantProvider.get();
-
-        // 1. Find the student in this Org
-        Student student = studentRepo.findByOrganisationIdAndStudentNumber(orgId, studentNumber)
-                .orElseThrow(() -> new EntityNotFoundException("Student not found in this organisation"));
-
-        // 2. Fetch all attempts for this student/quiz combination
-        // We use a specific repository method to ensure multi-tenant safety
-        return attemptRepo.findRecentAttempts(
-                orgId, student.getId(), quizId)
-                .stream()
-                .map(attempt -> QuizAttemptResponse.builder()
-                        .attemptId(attempt.getId())
-                        .quizId(attempt.getQuiz().getId())
-                        .score(attempt.getScore())
-                        .isPassed(attempt.isPassed())
-                        .completedAt(attempt.getCompletedAt())
-                        // We leave 'answers' null here to keep the list response small
-                        .build())
-                .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public QuizAttemptResponse getAttemptDetails(Long attemptId) {
+    public QuizAttemptResponse getAttemptDetails(String StudentNumber, Long attemptId) {
         Long currentOrgId = tenantProvider.get();
 
         StudentQuizAttempt attempt = attemptRepo.findById(attemptId)
-                .filter(a -> a.getOrganisation().getId().equals(currentOrgId))
+                .filter(a -> a.getOrganisation().getId().equals(currentOrgId)
+                        && a.getStudent().getStudentNumber().equals(StudentNumber))
                 .orElseThrow(() -> new EntityNotFoundException("Attempt not found or access denied"));
 
         Object parsedAnswers;
@@ -365,12 +366,6 @@ public class StudentService {
     private StudentEnrollment findEnrollment(Long studentId, Long courseId){
         return enrollmentRepo.findByStudentIdAndCourseId(tenantProvider.get(), studentId, courseId)
                 .orElseThrow(() -> new EntityNotFoundException("No active enrollment found for this course section"));
-    }
-
-    private StudentQuiz findStudentQuiz(String studentNumber, Long quizId){
-        return studentQuizRepo.findRegistration(
-                        tenantProvider.get(), studentNumber, quizId)
-                .orElseThrow(() -> new EntityNotFoundException("Student is not registered for this quiz"));
     }
 
     private Student findStudent(Long orgId, String studentNumber) {

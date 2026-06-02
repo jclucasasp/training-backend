@@ -24,6 +24,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.parameters.P;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -125,21 +126,21 @@ public class StudentController {
     }
 
 
- @Operation(
-        summary = "Get quiz attempt history",
-        description = "Retrieves a list of all previous attempts made by a specific student for a specific quiz. Useful for showing a history table."
-    )
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Successfully retrieved attempt history"),
-        @ApiResponse(responseCode = "404", description = "Student or Quiz not found")
-    })
-    @PreAuthorize("hasAuthority('STUDENT')")
-    @GetMapping("/{studentNumber}/chapterQuizzes/{quizId}/attempts")
-    public ResponseEntity<List<QuizAttemptResponse>> getQuizAttempts(
-            @Parameter(description = "Unique student identifier") @PathVariable String studentNumber,
-            @Parameter(description = "ID of the quiz") @PathVariable Long quizId) {
-        return ResponseEntity.ok(studentService.getQuizAttempts(studentNumber, quizId));
-    }
+// @Operation(
+//        summary = "Get quiz attempt history",
+//        description = "Retrieves a list of all previous attempts made by a specific student for a specific quiz. Useful for showing a history table."
+//    )
+//    @ApiResponses(value = {
+//        @ApiResponse(responseCode = "200", description = "Successfully retrieved attempt history"),
+//        @ApiResponse(responseCode = "404", description = "Student or Quiz not found")
+//    })
+//    @PreAuthorize("hasAuthority('STUDENT')")
+//    @GetMapping("/{studentNumber}/chapterQuizzes/{quizId}/attempts")
+//    public ResponseEntity<List<QuizAttemptResponse>> getQuizAttempts(
+//            @Parameter(description = "Unique student identifier") @PathVariable String studentNumber,
+//            @Parameter(description = "ID of the quiz") @PathVariable Long quizId) {
+//        return ResponseEntity.ok(studentService.getQuizAttempts(studentNumber, quizId));
+//    }
 
     @Operation(
         summary = "Get specific attempt details",
@@ -150,36 +151,37 @@ public class StudentController {
         @ApiResponse(responseCode = "403", description = "Access denied - Attempt belongs to another organization"),
         @ApiResponse(responseCode = "404", description = "Attempt ID not found")
     })
-//    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR', 'STUDENT')")
-    @GetMapping("/attempts/{attemptId}")
+    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR', 'STUDENT')")
+    @GetMapping("/{studentNumber}/attempts/{attemptId}")
     public ResponseEntity<QuizAttemptResponse> getAttemptDetail(
+            @Parameter(description = "Student id number") @PathVariable String studentNumber,
             @Parameter(description = "The unique ID of the quiz attempt") @PathVariable Long attemptId) {
-        return ResponseEntity.ok(studentService.getAttemptDetails(attemptId));
+        return ResponseEntity.ok(studentService.getAttemptDetails(studentNumber, attemptId));
     }
 
-    @Operation(
-            summary = "Review a specific quiz attempt",
-            description = "Returns the raw JSON of submitted answers for a specific attempt. Requires tenant-level access."
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Attempt found and returned",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))),
-            @ApiResponse(responseCode = "403", description = "Access denied - Attempt belongs to another organization"),
-            @ApiResponse(responseCode = "404", description = "Attempt not found")
-    })
+//    @Operation(
+//            summary = "Review a specific quiz attempt",
+//            description = "Returns the raw JSON of submitted answers for a specific attempt. Requires tenant-level access."
+//    )
+//    @ApiResponses(value = {
+//            @ApiResponse(responseCode = "200", description = "Attempt found and returned",
+//                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))),
+//            @ApiResponse(responseCode = "403", description = "Access denied - Attempt belongs to another organization"),
+//            @ApiResponse(responseCode = "404", description = "Attempt not found")
+//    })
 //    @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR', 'STUDENT')")
-    @GetMapping("/{studentNumber}/attempts/{attemptId}/review")
-    public ResponseEntity<String> getAttemptReview(
-            @Parameter(description = "The unique student number") @PathVariable String studentNumber,
-            @Parameter(description = "The ID of the specific quiz attempt") @PathVariable Long attemptId) {
-
-        String jsonReview = studentService.getAttemptReview(studentNumber, attemptId);
-
-        // We return it as a String, but tell the browser/Postman it is JSON
-        return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(jsonReview);
-    }
+//    @GetMapping("/{studentNumber}/attempts/{attemptId}/review")
+//    public ResponseEntity<String> getAttemptReview(
+//            @Parameter(description = "The unique student number") @PathVariable String studentNumber,
+//            @Parameter(description = "The ID of the specific quiz attempt") @PathVariable Long attemptId) {
+//
+//        String jsonReview = studentService.getAttemptReview(studentNumber, attemptId);
+//
+//        // We return it as a String, but tell the browser/Postman it is JSON
+//        return ResponseEntity.ok()
+//                .contentType(MediaType.APPLICATION_JSON)
+//                .body(jsonReview);
+//    }
 
     @Operation(summary = "Get Student List", description = "Paginated list of all students registered under this tenant.")
     @ApiResponses(value = {

@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter @Setter
 @Schema(name = "AnswerDTO", description = "A student's individual submitted choice response mapping to a single quiz question assessment block")
-public class AnswerDTO extends QuizSubmissionRequest {
+public class AnswerDTO  {
 
     @Schema(description = "The unique internal primary identifier tracking the targeted quiz question", example = "250", requiredMode = Schema.RequiredMode.REQUIRED)
     private Long questionId;

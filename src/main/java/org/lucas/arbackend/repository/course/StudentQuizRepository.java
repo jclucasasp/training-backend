@@ -14,8 +14,8 @@ import java.util.Optional;
 public interface StudentQuizRepository extends JpaRepository<StudentQuiz, Long> {
         boolean existsByStudentAndQuiz(Student student, Quiz quiz);
 
-        @Query("SELECT sq from StudentQuiz sq WHERE sq.student.organisation.id = :orgId AND sq.student.studentNumber = :studentNumber AND sq.quiz.id = :quizId")
-        Optional<StudentQuiz> findRegistration(@Param("orgId") Long orgId, @Param(("studentNumber")) String studentNumber, @Param("quizId") Long quizId);
+        @Query("SELECT sq from StudentQuiz sq WHERE sq.student.organisation.id = :orgId AND sq.student.id = :studentId AND sq.quiz.id = :quizId")
+        Optional<StudentQuiz> findRegistration(@Param("orgId") Long orgId, @Param(("studentId")) Long studentId, @Param("quizId") Long quizId);
 
     boolean existsByStudentIdAndQuizId(Long id, Long quizId);
 }

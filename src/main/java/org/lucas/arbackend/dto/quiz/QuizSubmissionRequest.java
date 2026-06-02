@@ -12,6 +12,10 @@ import java.util.Set;
 @Schema(name = "QuizSubmissionRequest", description = "Payload wrapper containing a collection of user-selected answers submitted for quiz verification evaluation processing")
 public class QuizSubmissionRequest {
 
+   @NotEmpty(message = "Student number must be provided")
+   @Schema(description = "The unique alphanumeric identifier string locating the student entity associated with this quiz attempt", example = "STU003269", requiredMode = Schema.RequiredMode.REQUIRED)
+   private String studentNumber;
+
    @NotEmpty(message = "Submission must contain at least one answered question selection")
    @Valid
    @Schema(description = "The comprehensive distinct collection of questions paired with their chosen answer options parameters", requiredMode = Schema.RequiredMode.REQUIRED)
