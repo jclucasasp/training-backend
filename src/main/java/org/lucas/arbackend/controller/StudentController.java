@@ -50,9 +50,11 @@ public class StudentController {
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
-    @PostMapping("/enroll")
-    public ResponseEntity<EnrollmentResponse> enroll(@Validated(ValidatedLabel.OnCreate.class) @RequestBody StudentRequest request) {
-        return ResponseEntity.ok(studentService.enrollStudent(request));
+    @PostMapping("{studentNumber}/enroll")
+    public ResponseEntity<EnrollmentResponse> enroll(
+            @Parameter(description = "Student number") @PathVariable String studentNumber,
+            @Validated(ValidatedLabel.OnCreate.class) @RequestBody StudentRequest request) {
+        return ResponseEntity.ok(studentService.enrollStudent(studentNumber, request));
     }
 
     @Operation(

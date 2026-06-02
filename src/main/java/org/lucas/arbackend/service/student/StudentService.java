@@ -64,7 +64,7 @@ public class StudentService {
     // ==========================================
     // 1. ENROLLMENT LOGIC (UPSERT Student)
     // ==========================================
-    public EnrollmentResponse enrollStudent(StudentRequest request) {
+    public EnrollmentResponse enrollStudent(String studentNumber, StudentRequest request) {
 
         // Verify Organisation
         Organisation org = findOrganisation();
@@ -72,7 +72,7 @@ public class StudentService {
         MappingContext ctx = new MappingContext(org, null, null);
 
         // Find or Create student within this Org
-        Student student = studentRepo.findByOrganisationIdAndStudentNumber(org.getId(), request.getStudentNumber())
+        Student student = studentRepo.findByOrganisationIdAndStudentNumber(org.getId(), studentNumber)
                 .orElseGet(() -> {
                     Student newStudent = new Student();
                     studentMapper.updateStudent(request, newStudent, ctx);
@@ -138,12 +138,6 @@ public class StudentService {
         BigDecimal total = calculateTotalProgress(enrollment, course);
 
         enrollment.setTotalProgress(total);
-
-        // 6. Optional: Check if the whole Course is now 100% complete
-//        if (total.compareTo(BigDecimal.valueOf(100.00)) >= 0 && enrollment.getCompletedAt() == null) {
-//            log.info("DEBUG: Course is now complete, marking completed at with today's date");
-//            enrollment.setCompletedAt(LocalDateTime.now());
-//        }
         enrollmentRepo.save(enrollment);
     }
 
