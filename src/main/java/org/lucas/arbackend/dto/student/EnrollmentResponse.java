@@ -21,6 +21,9 @@ public record EnrollmentResponse (
         @Schema(description = "The descriptive public marketing name of the target curriculum entity", example = "AWS Cloud Practitioner Essentials Architecture")
         String courseName,
 
+        @Schema(description = "The URL slug of the course", example = "aws-cloud-practitioner-essentials-architecture")
+        String courseSlug,
+
         @Schema(description = "ISO date-time checkpoint record detailing exactly when the student gained initial access privileges to this course", example = "2026-02-15T09:00:00")
         LocalDateTime enrolledAt,
 

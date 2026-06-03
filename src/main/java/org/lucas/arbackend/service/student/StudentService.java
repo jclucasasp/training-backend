@@ -263,6 +263,7 @@ public class StudentService {
                         .enrollmentId(e.getId())
                         .studentNumber(studentNumber)
                         .courseName(e.getCourse().getName())
+                        .courseSlug(e.getCourse().getSlug())
                         .currentTotalProgress(e.getTotalProgress()) // This saves us from having to map through the studentProgresses set on every view
                         .enrolledAt(e.getEnrolledAt())
                         .completedAt(e.getCompletedAt())
