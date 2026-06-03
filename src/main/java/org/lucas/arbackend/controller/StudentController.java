@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.lucas.arbackend.dto.course.CourseResponse;
 import org.lucas.arbackend.dto.quiz.QuizAttemptResponse;
 import org.lucas.arbackend.dto.quiz.QuizSubmissionRequest;
 import org.lucas.arbackend.dto.student.EnrollmentResponse;
@@ -44,14 +45,14 @@ public class StudentController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Student enrolled successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid request data or validation failure",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class))),
             @ApiResponse(responseCode = "404", description = "Organisation or Course not found",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class))),
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
     @PostMapping("{studentNumber}/enroll")
-    public ResponseEntity<EnrollmentResponse> enroll(
+    public ResponseEntity<CourseResponse> enroll(
             @Parameter(description = "Student number") @PathVariable String studentNumber,
             @Validated(ValidatedLabel.OnCreate.class) @RequestBody StudentRequest request) {
         return ResponseEntity.ok(studentService.enrollStudent(studentNumber, request));

@@ -2,6 +2,7 @@ package org.lucas.arbackend.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -16,6 +17,7 @@ import org.lucas.arbackend.service.course.CourseService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -31,15 +33,24 @@ public class CourseController {
     @Operation(summary = "List Org Courses (Paginated)",
             description = "Returns a list of active courses. Use 'page', 'size' and 'sort' parameters for optimization.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successful operation"),
+            @ApiResponse(responseCode = "200", description = "Successful operation",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(
+                                    // 1. Tells Swagger this response uses the PagedModel layout
+                                    implementation = PagedModel.class,
+                                    // 2. Explicitly forces your CourseResponse definition to be compiled into the components array
+                                    anyOf = { CourseResponse.class }
+                            )
+                    )),
             @ApiResponse(responseCode = "401", description = "Unauthorized: Authentication required",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class))),
             @ApiResponse(responseCode = "403", description = "Forbidden: Insufficient permissions",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class))),
             @ApiResponse(responseCode = "404", description = "Organisation or Courses not found",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class))),
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
     @GetMapping()
     public ResponseEntity<Page<CourseResponse>> getCourses(@RequestParam(defaultValue = "0") int page,
@@ -52,11 +63,11 @@ public class CourseController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Course created"),
             @ApiResponse(responseCode = "401", description = "Unauthorized",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class))),
             @ApiResponse(responseCode = "403", description = "Forbidden: Insufficient permissions",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class))),
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class))),
     })
     @PreAuthorize("hasAuthority('ORG_ADMIN') or hasAuthority('COURSE_EDITOR')")
     @PostMapping("/course/add")
@@ -68,11 +79,11 @@ public class CourseController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Course updated"),
             @ApiResponse(responseCode = "401", description = "Unauthorized",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class))),
             @ApiResponse(responseCode = "403", description = "Forbidden: Insufficient permissions",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class))),
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class))),
     })
     @PreAuthorize("hasAuthority('ORG_ADMIN') or (hasAuthority('COURSE_EDITOR') and @courseService.isOwner(#courseId, principal.id))")
     @PutMapping("{courseId}/update")
@@ -84,11 +95,11 @@ public class CourseController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Course deleted"),
             @ApiResponse(responseCode = "401", description = "Unauthorized",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class))),
             @ApiResponse(responseCode = "403", description = "Forbidden: Insufficient permissions",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class))),
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
-                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class))),
         })
     @PreAuthorize("hasAuthority('ORG_ADMIN') or (hasAuthority('COURSE_EDITOR') and @courseService.isOwner(#courseId, principal.id))")
     @DeleteMapping("/{courseId}/delete")

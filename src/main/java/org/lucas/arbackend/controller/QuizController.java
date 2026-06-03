@@ -2,6 +2,10 @@ package org.lucas.arbackend.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
@@ -9,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.lucas.arbackend.dto.quiz.*;
 import org.lucas.arbackend.entity.Organisation.Staff;
 import org.lucas.arbackend.entity.student.Student;
+import org.lucas.arbackend.exception.ErrorDetailsResponse;
 import org.lucas.arbackend.repository.organisation.StaffRepository;
 import org.lucas.arbackend.repository.student.StudentRepository;
 import org.lucas.arbackend.service.quiz.QuizService;
@@ -33,7 +38,19 @@ public class QuizController {
 
     @PostMapping
     @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR')")
-    @Operation(summary = "Create a new quiz", description = "Allows a staff member to create a quiz for a specific course.")
+    @Operation(summary = "Create a new quiz", description = "Allows an authorized staff member to create a quiz for a specific course.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Quiz successfully compiled and stored.",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = QuizResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized: Authentication required",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Forbidden: Insufficient permissions",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Organisation or Courses not found",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class)))
+    })
     public ResponseEntity<QuizResponse> createQuiz(
             @Validated(ValidatedLabel.OnCreate.class) @RequestBody QuizRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails
@@ -48,6 +65,18 @@ public class QuizController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR', 'SUPPORT', 'STUDENT')")
     @Operation(summary = "Get quiz details", description = "Fetches quiz questions and metadata by ID.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Quiz successfully fetched.",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = QuizResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized: Authentication required",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Forbidden: Insufficient permissions",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Organisation or Courses not found",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class)))
+    })
     public ResponseEntity<QuizResponse> getQuizById(@PathVariable Long id) {
         return ResponseEntity.ok(quizService.getQuizById(id));
     }
@@ -55,6 +84,18 @@ public class QuizController {
     @PostMapping("/{id}/submit")
     @PreAuthorize("hasAuthority('STUDENT')")
     @Operation(summary = "Submit a quiz attempt", description = "Calculates the score and records a student's attempt.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Quiz attempt accepted.",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = QuizResultResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized: Authentication required",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Forbidden: Insufficient permissions",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Organisation or Courses not found",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class)))
+    })
     public ResponseEntity<QuizResultResponse> submitAttempt(
             @PathVariable Long id,
             @Valid @RequestBody QuizSubmissionRequest submission

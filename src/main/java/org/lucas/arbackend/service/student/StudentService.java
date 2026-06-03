@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lucas.arbackend.dto.course.CourseResponse;
 import org.lucas.arbackend.dto.quiz.QuizAttemptResponse;
 import org.lucas.arbackend.dto.student.EnrollmentResponse;
 import org.lucas.arbackend.dto.student.StudentRequest;
@@ -18,6 +19,7 @@ import org.lucas.arbackend.entity.quiz.StudentQuizAttempt;
 import org.lucas.arbackend.entity.student.Student;
 import org.lucas.arbackend.entity.student.StudentEnrollment;
 import org.lucas.arbackend.entity.student.StudentProgress;
+import org.lucas.arbackend.mapper.CourseMapper;
 import org.lucas.arbackend.mapper.StudentMapper;
 import org.lucas.arbackend.mapper.context.MappingContext;
 import org.lucas.arbackend.repository.course.ChapterSectionRepository;
@@ -59,12 +61,13 @@ public class StudentService {
     private final StudentQuizRepository studentQuizRepo;
     private final StudentQuizAttemptRepository attemptRepo;
     private final ObjectMapper objectMapper;
+    private final CourseMapper courseMapper;
 
 
     // ==========================================
     // 1. ENROLLMENT LOGIC (UPSERT Student)
     // ==========================================
-    public EnrollmentResponse enrollStudent(String studentNumber, StudentRequest request) {
+    public CourseResponse enrollStudent(String studentNumber, StudentRequest request) {
 
         // Verify Organisation
         Organisation org = findOrganisation();
@@ -85,7 +88,7 @@ public class StudentService {
                 .orElseThrow(() -> new EntityNotFoundException("Course not found"));
 
         // Create Enrollment
-        StudentEnrollment enrollment = enrollmentRepo.findByStudentIdAndCourseId(org.getId(), student.getId(), course.getId())
+        enrollmentRepo.findByStudentIdAndCourseId(org.getId(), student.getId(), course.getId())
                 .orElseGet(() -> {
                             StudentEnrollment newEnrollment = StudentEnrollment.builder()
                                     .student(student)
@@ -97,13 +100,15 @@ public class StudentService {
                         }
                 );
 
-        return EnrollmentResponse.builder()
-                .enrollmentId(enrollment.getId())
-                .studentNumber(student.getStudentNumber())
-                .courseName(course.getName())
-                .enrolledAt(enrollment.getEnrolledAt())
-                .currentTotalProgress(BigDecimal.ZERO)
-                .build();
+        return courseMapper.maptoCourseResponse(course);
+
+//        return EnrollmentResponse.builder()
+//                .enrollmentId(enrollment.getId())
+//                .studentNumber(student.getStudentNumber())
+//                .courseName(course.getName())
+//                .enrolledAt(enrollment.getEnrolledAt())
+//                .currentTotalProgress(BigDecimal.ZERO)
+//                .build();
     }
 
     public void removeStudent(String studentNumber) {
