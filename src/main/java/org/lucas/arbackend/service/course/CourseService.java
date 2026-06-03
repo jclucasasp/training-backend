@@ -63,6 +63,7 @@ public class CourseService {
             Set<Chapter> chapters = request.getChapters().stream().map(chapterDto -> {
                 Chapter chapter = new Chapter();
 
+                chapter.setOrganisation(org);
                 courseMapper.updateChapter(chapterDto, chapter, ctx);
                 // LINK THE BACK-REFERENCE
                 chapter.setCourse(course);
@@ -73,10 +74,17 @@ public class CourseService {
                     AtomicInteger sectionIndex = new AtomicInteger(0);
                     List<ChapterSection> sections = chapterDto.getSections().stream().map(sectionDto -> {
                         ChapterSection section = new ChapterSection();
-
+                        section.setOrganisation(org);
                         courseMapper.updateChapterSection(sectionDto, section, ctx);
                         section.setChapter(chapter);
                         section.setOrderIndex(sectionIndex.getAndIncrement());
+
+                        if (section.getAttachments() != null) {
+                            section.getAttachments().forEach(attachment -> {
+                                attachment.setChapterSection(section);
+                                attachment.setOrganisation(org);
+                            });
+                        }
 
                         return section;
                     }).toList();

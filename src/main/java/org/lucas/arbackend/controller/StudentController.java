@@ -11,7 +11,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.lucas.arbackend.dto.course.CourseResponse;
 import org.lucas.arbackend.dto.quiz.QuizAttemptResponse;
-import org.lucas.arbackend.dto.quiz.QuizSubmissionRequest;
 import org.lucas.arbackend.dto.student.EnrollmentResponse;
 import org.lucas.arbackend.dto.student.ProgressUpdateRequest;
 import org.lucas.arbackend.dto.student.StudentRequest;
@@ -22,14 +21,11 @@ import org.lucas.arbackend.util.ValidatedLabel;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.parameters.P;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -120,30 +116,24 @@ public class StudentController {
             summary = "Resume course from last viewed section",
             description = "Returns enrollment details including the lastSectionId for a specific course to allow the student to resume where they left off."
     )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized: Authentication required",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Forbidden: Insufficient permissions",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Organisation or Courses not found",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class)))
+    })
     @GetMapping("/{studentNumber}/resume/{courseSlug}")
     @PreAuthorize("hasAuthority('STUDENT')")
-    public ResponseEntity<EnrollmentResponse> resumeCourse(
+    public ResponseEntity<CourseResponse> resumeCourse(
             @Parameter(description = "The student's unique number") @PathVariable String studentNumber,
             @Parameter(description = "The URL slug of the course") @PathVariable String courseSlug) {
         return ResponseEntity.ok(studentService.getResumeDetails(studentNumber, courseSlug));
     }
-
-
-// @Operation(
-//        summary = "Get quiz attempt history",
-//        description = "Retrieves a list of all previous attempts made by a specific student for a specific quiz. Useful for showing a history table."
-//    )
-//    @ApiResponses(value = {
-//        @ApiResponse(responseCode = "200", description = "Successfully retrieved attempt history"),
-//        @ApiResponse(responseCode = "404", description = "Student or Quiz not found")
-//    })
-//    @PreAuthorize("hasAuthority('STUDENT')")
-//    @GetMapping("/{studentNumber}/chapterQuizzes/{quizId}/attempts")
-//    public ResponseEntity<List<QuizAttemptResponse>> getQuizAttempts(
-//            @Parameter(description = "Unique student identifier") @PathVariable String studentNumber,
-//            @Parameter(description = "ID of the quiz") @PathVariable Long quizId) {
-//        return ResponseEntity.ok(studentService.getQuizAttempts(studentNumber, quizId));
-//    }
 
     @Operation(
         summary = "Get specific attempt details",
@@ -151,8 +141,14 @@ public class StudentController {
     )
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Successfully retrieved attempt details"),
-        @ApiResponse(responseCode = "403", description = "Access denied - Attempt belongs to another organization"),
-        @ApiResponse(responseCode = "404", description = "Attempt ID not found")
+            @ApiResponse(responseCode = "401", description = "Unauthorized: Authentication required",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Forbidden: Insufficient permissions",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Organisation or Courses not found",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
     @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR', 'STUDENT')")
     @GetMapping("/{studentNumber}/attempts/{attemptId}")

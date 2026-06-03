@@ -22,6 +22,6 @@ public interface StudentEnrollmentRepository extends JpaRepository<StudentEnroll
     @Query("SELECT ste FROM StudentEnrollment ste WHERE ste.student.organisation.id = :orgId AND ste.student.studentNumber = :studentNumber")
     List<StudentEnrollment> findAllByStudentNumber(@Param("orgId") Long orgId, @Param("studentNumber") String studentNumber);
 
-    @Query("SELECT ste FROM StudentEnrollment ste WHERE ste.student.organisation.id = :orgId AND ste.student.studentNumber = :studentNumber AND ste.course.slug = :courseSlug")
+    @Query("SELECT ste FROM StudentEnrollment ste JOIN FETCH ste.course WHERE ste.student.organisation.id = :orgId AND ste.student.studentNumber = :studentNumber AND ste.course.slug = :courseSlug")
     Optional<StudentEnrollment> findByCourseSlug(@Param("orgId") Long orgId, @Param("studentNumber") String studentNumber, @Param("courseSlug") String courseSlug);
 }

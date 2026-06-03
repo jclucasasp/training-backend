@@ -102,13 +102,6 @@ public class StudentService {
 
         return courseMapper.maptoCourseResponse(course);
 
-//        return EnrollmentResponse.builder()
-//                .enrollmentId(enrollment.getId())
-//                .studentNumber(student.getStudentNumber())
-//                .courseName(course.getName())
-//                .enrolledAt(enrollment.getEnrolledAt())
-//                .currentTotalProgress(BigDecimal.ZERO)
-//                .build();
     }
 
     public void removeStudent(String studentNumber) {
@@ -256,15 +249,9 @@ public class StudentService {
     // 3. RESUME & QUIZ SUBMISSION
     // ==========================================
     @Transactional(readOnly = true)
-    public EnrollmentResponse getResumeDetails(String studentNumber, String courseSlug) {
+    public CourseResponse getResumeDetails(String studentNumber, String courseSlug) {
         StudentEnrollment enrollment = findEnrollment(studentNumber, courseSlug);
-
-        return EnrollmentResponse.builder()
-                .enrollmentId(enrollment.getId())
-                .courseName(enrollment.getCourse().getName())
-                .currentTotalProgress(enrollment.getTotalProgress())
-                // Provide the ID of the section they last viewed
-                .build();
+        return courseMapper.maptoCourseResponse(enrollment.getCourse());
     }
 
     @Transactional(readOnly = true)
@@ -282,38 +269,6 @@ public class StudentService {
                         .build())
                 .toList();
     }
-
-//    @Transactional(readOnly = true)
-//    public String getAttemptReview(String studentNumber, Long attemptId) {
-//        StudentQuizAttempt attempt = attemptRepo.findByIdAndStudentNumber(attemptId, studentNumber, tenantProvider.get())
-//                .orElseThrow(() -> new EntityNotFoundException("Attempt not found"));
-//
-//        return attempt.getSubmittedAnswersJson();
-//    }
-
-//     @Transactional(readOnly = true)
-//    public List<QuizAttemptResponse> getQuizAttempts(String studentNumber, Long quizId) {
-//        Long orgId = tenantProvider.get();
-//
-//        // 1. Find the student in this Org
-//        Student student = studentRepo.findByOrganisationIdAndStudentNumber(orgId, studentNumber)
-//                .orElseThrow(() -> new EntityNotFoundException("Student not found in this organisation"));
-//
-//        // 2. Fetch all attempts for this student/quiz combination
-//        // We use a specific repository method to ensure multi-tenant safety
-//        return attemptRepo.findRecentAttempts(
-//                orgId, student.getId(), quizId)
-//                .stream()
-//                .map(attempt -> QuizAttemptResponse.builder()
-//                        .attemptId(attempt.getId())
-//                        .quizId(attempt.getQuiz().getId())
-//                        .score(attempt.getScore())
-//                        .isPassed(attempt.isPassed())
-//                        .completedAt(attempt.getCompletedAt())
-//                        // We leave 'answers' null here to keep the list response small
-//                        .build())
-//                .toList();
-//    }
 
     @Transactional(readOnly = true)
     public QuizAttemptResponse getAttemptDetails(String StudentNumber, Long attemptId) {
