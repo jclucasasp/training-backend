@@ -2,11 +2,14 @@ package org.lucas.arbackend.entity.course;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.type.SqlTypes;
 import org.lucas.arbackend.entity.BaseEntity;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.course.misc.Attachment;
+import org.lucas.arbackend.entity.course.misc.SceneConfig;
 import org.lucas.arbackend.util.tenant.TenantEntity;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -52,6 +55,10 @@ public class ChapterSection extends BaseEntity implements TenantEntity {
 
     @Column(name = "chs_resource_media_type")
     private String resourceMediaType;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "chs_scene_config", columnDefinition = "LONGTEXT")
+    private SceneConfig sceneConfig;
 
     @Column(name = "chs_tags", columnDefinition = "TEXT")
     private String tags;

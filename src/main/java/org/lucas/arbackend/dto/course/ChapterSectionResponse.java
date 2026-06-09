@@ -3,6 +3,7 @@ package org.lucas.arbackend.dto.course;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import org.lucas.arbackend.dto.course.attachment.AttachmentResponse;
+import org.lucas.arbackend.entity.course.misc.SceneConfig;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -18,7 +19,13 @@ public record ChapterSectionResponse (
         String title,
 
         @Schema(description = "The textbook content, copy, or description of this section", example = "In this section, we discuss the evolution of data centers...")
-        String content,
+         String content,
+
+        @Schema(description = "True if this resource bypasses strict paywall enrollment logic", example = "false")
+        boolean isPreview,
+
+         @Schema(description = "The web track address for subtitles", example = "https://www.resource.com/subs_en.vtt")
+        String subtitlesUrl,
 
         @Schema(description = "The duration length calculated in minutes", example = "15")
         Integer durationInMinutes,
@@ -29,11 +36,8 @@ public record ChapterSectionResponse (
         @Schema(description = "The medium categorization", example = "video")
         String resourceMediaType,
 
-        @Schema(description = "The web track address for subtitles", example = "https://www.resource.com/subs_en.vtt")
-        String subtitlesUrl,
-
-        @Schema(description = "True if this resource bypasses strict paywall enrollment logic", example = "false")
-        boolean isPreview,
+        @Schema(description = "The 3D scene configuration", example = "https://www.resource.com/scene.json")
+        SceneConfig sceneConfig,
 
         @Schema(description = "Meta tags coupled to this section record", example = "intro, history")
         String tags,

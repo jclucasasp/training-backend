@@ -60,6 +60,7 @@ public interface CourseMapper {
     // 3. Define how ONE Section maps to ONE SectionResponse
     // (MapStruct handles this automatically if field names match, but you can be explicit)
     @Mapping(target = "content", source = "content")
+    @Mapping(target = "sceneConfig", source = "sceneConfig")
     ChapterSectionResponse mapToSectionResponse(ChapterSection section);
 
     @AfterMapping

@@ -1,0 +1,1 @@
+ALTER TABLE chapter_section Add COLUMN chs_scene_config LONGTEXT DEFAULT '{}' AFTER chs_resource_media_type;

@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
 import org.lucas.arbackend.dto.course.attachment.AttachmentRequest;
+import org.lucas.arbackend.entity.course.misc.SceneConfig;
 import org.lucas.arbackend.util.ValidatedLabel;
 
 import java.util.List;
@@ -25,6 +26,12 @@ public class ChapterSectionRequest {
     @Schema(description = "The markdown content, description, or transcript for the chapter", example = "In this chapter we cover VPC structures...", requiredMode = Schema.RequiredMode.REQUIRED)
     private String content;
 
+    @Schema(description = "Flags whether unauthenticated users can access this section as a free preview", example = "false")
+    private boolean isPreview;
+
+    @Schema(description = "Optional URL mapping for VTT or SRT closed captions", example = "https://www.resource.com/captions.vtt")
+    private String subtitlesUrl;
+
     @NotNull(message = "Section durationInMinutes missing or null", groups = ValidatedLabel.OnCreate.class)
     @Schema(description = "The duration of the chapter in minutes", example = "5", requiredMode = Schema.RequiredMode.REQUIRED)
     private Integer durationInMinutes;
@@ -35,17 +42,15 @@ public class ChapterSectionRequest {
     @Schema(description = "The media type of the resource, eg video, audio, etc", example = "video/mp4", allowableValues = {"video", "document", "audio", "text"})
     private String resourceMediaType;
 
-    @Schema(description = "Optional URL mapping for VTT or SRT closed captions", example = "https://www.resource.com/captions.vtt")
-    private String subtitlesUrl;
-
-    @Schema(description = "Flags whether unauthenticated users can access this section as a free preview", example = "false")
-    private boolean isPreview;
-
-    @Schema(description = "List of supplementary files or downloadable assets attached to this section")
-    private List<AttachmentRequest> attachments;
+    @Schema(description = "The configuration for the scene, eg objects, environment, etc")
+    private SceneConfig sceneConfig;
 
     @NotNull(message = "Keywords for faster searching, eg Javascript, Anatomy, etc", groups = ValidatedLabel.OnCreate.class)
     @Schema(description = "Keywords for faster searching, eg Javascript, Anatomy, etc", example = "Javascript, Anatomy, etc", requiredMode = Schema.RequiredMode.REQUIRED)
     private String tags;
+
+    @Schema(description = "List of supplementary files or downloadable assets attached to this section")
+    private List<AttachmentRequest> attachments;
+
 
 }
