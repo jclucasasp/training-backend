@@ -52,12 +52,8 @@ public class AuthController {
         @ApiResponse(responseCode = "200", description = "Logout successful")
     })
    @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpServletRequest request) {
-
-        HttpSession session = request.getSession(true);
-        session.invalidate();
-        session.removeAttribute("SPRING_SECURITY_CONTEXT");
-
+    public ResponseEntity<Void> logout() {
         return ResponseEntity.ok().build();
     }
+
 }

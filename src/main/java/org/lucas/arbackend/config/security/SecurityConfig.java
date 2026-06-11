@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.lucas.arbackend.config.filter.TenantFilter;
 import org.lucas.arbackend.entity.security.RoleTypes;
 import org.lucas.arbackend.exception.CustomAuthenticationExceptionHandler;
+import org.lucas.arbackend.service.cache.CacheService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -25,6 +26,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final TenantFilter tenantFilter;
+    private final CacheService cacheService;
     private final CustomAuthenticationExceptionHandler authEntryPointExceptionHandler;
 
     @Bean
@@ -63,6 +65,11 @@ public class SecurityConfig {
                 )
                 .logout(logout -> logout
                         .logoutUrl("/api/v1/auth/logout")
+                        .addLogoutHandler((request, response, authentication) ->{
+                            if (authentication != null && authentication.getName() != null) {
+                                cacheService.evictAuthUser(authentication.getName());
+                            }
+                        })
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
                         .logoutSuccessHandler((request, response, authentication)

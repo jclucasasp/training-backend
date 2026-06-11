@@ -36,13 +36,18 @@ public class TenantFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String apiKeyHeader = request.getHeader("X-API-KEY");
+        String studentToken = request.getHeader("X-STUDENT-TOKEN");
 
         try {
             if (apiKeyHeader != null) {
-                // PATH A: Student via API Key
+                // PATH A: Student signup via API Key
                 handleApiKeyAuthentication(apiKeyHeader);
+            } else if (studentToken != null) {
+                // PATH B: Student via temp student token
+                handleTokenAuthentication(studentToken);
+
             } else {
-                // PATH B: Staff/Org via Session (Already populated by Spring Session)
+                // PATH C: Staff/Org via Session (Already populated by Spring Session)
                 handleSessionAuthentication();
             }
 
@@ -50,6 +55,11 @@ public class TenantFilter extends OncePerRequestFilter {
         } finally {
             TenantContext.clear();
         }
+    }
+
+    private void handleTokenAuthentication(String studentToken) throws BadRequestException, AccessDeniedException {
+        if (studentToken.length() < 12) throw new BadRequestException("Malformed Student Token");
+
     }
 
     private void handleApiKeyAuthentication(String apiKeyHeader) throws BadRequestException, AccessDeniedException {
@@ -73,7 +83,6 @@ public class TenantFilter extends OncePerRequestFilter {
         TenantContext.setCurrentTenant(orgId);
 
         // Manually set Student in SecurityContext so @PreAuthorize works
-//        CustomUserDetails student = new CustomUserDetails(null,"API_KEY_" + prefix, "", orgId, RoleTypes.STUDENT.name());
         CustomUserDetails student = new CustomUserDetails(null,"API_KEY_" + prefix, "", orgId, RoleTypes.STUDENT.name());
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(student, null, student.getAuthorities())

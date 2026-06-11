@@ -50,7 +50,7 @@ public class CacheConfig implements CachingConfigurer {
 
         // 1. Default configuration (Standard 1 hour TTL)
         RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofHours(1))
+                .entryTtl(Duration.ofHours(24))
                 .disableCachingNullValues()
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer(mapper)));
 
@@ -58,12 +58,13 @@ public class CacheConfig implements CachingConfigurer {
         Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
 
         // User login cache
-        cacheConfigurations.put("org_user", defaultConfig.entryTtl(Duration.ofHours(24)));
-        cacheConfigurations.put("staff_user", defaultConfig.entryTtl(Duration.ofHours(24)));
+        cacheConfigurations.put("org_user", defaultConfig);
+        cacheConfigurations.put("staff_user", defaultConfig);
 
         // Other cache
         cacheConfigurations.put("api_key", defaultConfig.entryTtl(Duration.ofHours(24)));
-        cacheConfigurations.put("active_subscriptions", defaultConfig.entryTtl(Duration.ofDays(30)));
+        cacheConfigurations.put("student_token", defaultConfig.entryTtl(Duration.ofHours(24)));
+//        cacheConfigurations.put("active_subscriptions", defaultConfig.entryTtl(Duration.ofDays(30)));
 
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(defaultConfig)
