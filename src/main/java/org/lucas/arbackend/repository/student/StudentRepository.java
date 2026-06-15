@@ -23,4 +23,6 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
 
     @Query("SELECT e.student FROM StudentEnrollment e WHERE e.organisation.id = :orgId AND e.course.id = :courseId")
     List<Student> findAllByEnrolledCourses(@Param("orgId") Long orgId, @Param("courseId") Long courseId);
+
+        Optional<Student> findByEmail(String email);
 }

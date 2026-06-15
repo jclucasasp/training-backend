@@ -42,6 +42,10 @@ public class StaffService {
     @Cacheable(value = "staff_user", key = "#request.getEmail()")
     public StaffResponse createStaff(StaffRequest request) {
 
+        if (staffRepo.findByEmail(request.getEmail()).isPresent()) {
+            throw new IllegalStateException("Email already registered");
+        }
+
         Organisation org = findOrganisation();
 
         Role role = roleRepo.findByRoleName(request.getRole());

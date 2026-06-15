@@ -36,6 +36,29 @@ public class StudentController {
 
     private final StudentService studentService;
 
+//    @PreAuthorize("hasAuthority('ORG_ADMIN') or hasAuthority('COURSE_EDITOR') or hasAuthority('SUPPORT')")
+    @PostMapping("/{studentNumber}/add")
+    @Operation(summary = "Add Student", description = "Creates a student account.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Student member created"),
+            @ApiResponse(responseCode = "400", description = "Validation error",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Forbidden: Only Org Admins and Staff Editors/Support can add students",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Conflict: Email already in use",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error",
+                    content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
+    })
+    public ResponseEntity<StudentResponse> addStaff(
+            @Parameter (description = "Student number") @PathVariable String studentNumber,
+            @Validated(ValidatedLabel.OnCreate.class
+            ) @RequestBody StudentRequest request) {
+        return ResponseEntity.ok(studentService.createStudent(studentNumber, request));
+    }
+
     @Operation(summary = "Enroll Student in Course",
             description = "Verifies if the student exists in the Org; if not, creates them and starts enrollment.")
     @ApiResponses(value = {

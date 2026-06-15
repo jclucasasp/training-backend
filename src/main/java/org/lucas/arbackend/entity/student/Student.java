@@ -2,6 +2,7 @@ package org.lucas.arbackend.entity.student;
 
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
@@ -9,6 +10,8 @@ import org.lucas.arbackend.entity.BaseEntity;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.quiz.StudentQuiz;
+import org.lucas.arbackend.entity.security.Role;
+import org.lucas.arbackend.entity.security.RoleTypes;
 import org.lucas.arbackend.util.tenant.TenantEntity;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -28,18 +31,29 @@ public class Student extends BaseEntity implements TenantEntity {
     @Column(name = "stu_id")
     private Long id;
 
-    @Column(name = "stu_first_name", nullable = true)
-    private String firstName;
-
-    @Column(name = "stu_last_name", nullable = true)
-    private String lastName;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "stu_org_id", nullable = false)
     private Organisation organisation;
 
     @Column(name = "stu_student_number", nullable = false)
     private String studentNumber;
+
+    @Column(name = "stu_first_name", nullable = true)
+    private String firstName;
+
+    @Column(name = "stu_last_name", nullable = true)
+    private String lastName;
+
+    @Column(name = "stu_email", nullable = true)
+    @Email
+    private String email;
+
+    @Column(name = "stu_password", nullable = true)
+    private String password;
+
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "stu_role_id")
+    private Role role;
 
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<StudentEnrollment> studentEnrollment = new HashSet<>();

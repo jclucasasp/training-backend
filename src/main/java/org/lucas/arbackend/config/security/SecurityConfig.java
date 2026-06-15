@@ -43,7 +43,7 @@ public class SecurityConfig {
                         // Admin & Staff Endpoints (Must be logged in)
                         .requestMatchers("/api/v1/admin/**").hasAuthority(RoleTypes.ORG_ADMIN.name())
                         .requestMatchers("/api/v1/staff/**").hasAnyAuthority(RoleTypes.ORG_ADMIN.name(), RoleTypes.COURSE_EDITOR.name(), RoleTypes.SUPPORT.name())
-
+                        .requestMatchers("/api/v1/student/**").hasAnyAuthority(RoleTypes.ORG_ADMIN.name(), RoleTypes.COURSE_EDITOR.name(), RoleTypes.SUPPORT.name(), RoleTypes.STUDENT.name())
                         // Student Endpoints (Must have API Key via Filter)
                         .requestMatchers("/api/v1/courses/**").authenticated()
 

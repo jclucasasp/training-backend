@@ -23,6 +23,9 @@ public record StudentResponse (
         @Schema(description = "The family name or surname of the student", example = "Devan")
         String lastName,
 
+        @Schema(description = "The email address of the student", example = "lucas@devan.com")
+        String email,
+
         @Schema(description = "The unique internal database identifier referencing the parent organization tenant registry", example = "104")
         Long organisation,
 

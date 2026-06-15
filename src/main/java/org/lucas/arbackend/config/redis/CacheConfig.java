@@ -3,8 +3,6 @@ package org.lucas.arbackend.config.redis;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
-import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.lucas.arbackend.exception.CustomCacheErrorHandler;
@@ -72,7 +70,7 @@ public class CacheConfig implements CachingConfigurer {
                 .build();
     }
 
-    // Add this temporarily inside CacheConfig class
+    // Add this temporarily inside CacheConfig class to clear Redis cache on startup
 //    @Bean
 //    public org.springframework.boot.CommandLineRunner clearRedis(RedisConnectionFactory connectionFactory) {
 //        return args -> {

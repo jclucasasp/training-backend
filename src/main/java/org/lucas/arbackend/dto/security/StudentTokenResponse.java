@@ -1,12 +1,18 @@
 package org.lucas.arbackend.dto.security;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.*;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-public class StudentToken implements Serializable {
+@Builder
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class StudentTokenResponse implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;

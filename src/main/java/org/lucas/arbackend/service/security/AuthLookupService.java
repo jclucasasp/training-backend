@@ -8,10 +8,12 @@ import org.lucas.arbackend.dto.CacheDto;
 import org.lucas.arbackend.dto.security.ApiKeyResponse;
 import org.lucas.arbackend.entity.Organisation.OrganisationSubscription;
 import org.lucas.arbackend.entity.security.ApiKey;
+import org.lucas.arbackend.entity.security.RoleTypes;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.OrganisationSubscriptionRepository;
 import org.lucas.arbackend.repository.organisation.StaffRepository;
 import org.lucas.arbackend.repository.security.ApiKeyRepository;
+import org.lucas.arbackend.repository.student.StudentRepository;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,7 @@ public class AuthLookupService {
 
     private final OrganisationRepository orgRepo;
     private final StaffRepository staffRepo;
+    private final StudentRepository studentRepo;
     private final ApiKeyRepository apiKeyRepo;
     private final OrganisationSubscriptionRepository subRepo;
 
@@ -38,6 +41,7 @@ public class AuthLookupService {
  * @return CacheDto containing user authentication data
  * @throws UsernameNotFoundException if user is not found in either repository
  */
+
     @Cacheable(value = "auth_user", key = "#email", unless = "#result == null")
     public CacheDto getAuthCacheDto(String email) {
 
@@ -80,7 +84,28 @@ public class AuthLookupService {
                                             isSubscriptionActive
                                     );
                         })
-                        .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email)));
+                        .orElseGet(() -> studentRepo.findByEmail(email)
+                                .map(student -> {
+                                    boolean isSubscriptionActive = Optional.ofNullable(student.getOrganisation().getSubscription())
+                                            .map(OrganisationSubscription::getStatus).orElse(0) == 1;
+                                    String apiKey = Optional.ofNullable(student.getOrganisation().getApiKey())
+                                            .map(ApiKey::getPrefix).orElse("");
+                                    // Create CacheDto from staff data
+                                    return new CacheDto
+                                            (
+                                                    student.getId(),
+                                                    student.getEmail(),
+                                                    student.getPassword(),
+                                                    student.getFirstName(),
+                                                    student.getLastName(),
+                                                    "",
+                                                    student.getRole().getRoleName().name(),
+                                                    student.getOrganisation().getId(),
+                                                    apiKey,
+                                                    isSubscriptionActive
+                                            );
+                                })
+                                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email))));
 
     }
 

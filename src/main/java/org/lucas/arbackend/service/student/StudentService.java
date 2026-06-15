@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lucas.arbackend.dto.course.CourseResponse;
 import org.lucas.arbackend.dto.quiz.QuizAttemptResponse;
+import org.lucas.arbackend.dto.security.StudentTokenResponse;
 import org.lucas.arbackend.dto.student.EnrollmentResponse;
 import org.lucas.arbackend.dto.student.StudentRequest;
 import org.lucas.arbackend.dto.student.StudentResponse;
@@ -16,6 +17,7 @@ import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.quiz.Quiz;
 import org.lucas.arbackend.entity.quiz.StudentQuiz;
 import org.lucas.arbackend.entity.quiz.StudentQuizAttempt;
+import org.lucas.arbackend.entity.security.RoleTypes;
 import org.lucas.arbackend.entity.student.Student;
 import org.lucas.arbackend.entity.student.StudentEnrollment;
 import org.lucas.arbackend.entity.student.StudentProgress;
@@ -28,12 +30,15 @@ import org.lucas.arbackend.repository.course.StudentQuizRepository;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.quiz.QuizRepository;
 import org.lucas.arbackend.repository.quiz.StudentQuizAttemptRepository;
+import org.lucas.arbackend.repository.security.RoleRepository;
 import org.lucas.arbackend.repository.student.StudentEnrollmentRepository;
 import org.lucas.arbackend.repository.student.StudentProgressRepository;
 import org.lucas.arbackend.repository.student.StudentRepository;
+import org.lucas.arbackend.service.cache.CacheService;
 import org.lucas.arbackend.util.tenant.TenantProvider;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +47,7 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -61,12 +67,37 @@ public class StudentService {
     private final StudentQuizRepository studentQuizRepo;
     private final StudentQuizAttemptRepository attemptRepo;
     private final ObjectMapper objectMapper;
+    private final PasswordEncoder passwordEncoder;
+    private final RoleRepository roleRepo;
     private final CourseMapper courseMapper;
+    private final CacheService cacheService;
 
+    public StudentResponse createStudent(String studentNumber, StudentRequest request) {
+
+        if (studentRepo.findByEmail(request.getEmail()).isPresent()) {
+            throw new IllegalStateException("Email already registered");
+        }
+        // Verify Organisation
+        Organisation org = findOrganisation();
+
+        MappingContext ctx = new MappingContext(org, null, null);
+
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
+        request.setPassword(encodedPassword);
+        // Create Student
+        Student student = new Student();
+        student.setStudentNumber(studentNumber);
+        student.setRole(roleRepo.findByRoleName(RoleTypes.STUDENT));
+        student.setOrganisation(org);
+        studentMapper.updateStudent(request, student, ctx);
+
+        return studentMapper.mapToStudentResponse(studentRepo.save(student));
+    }
 
     // ==========================================
     // 1. ENROLLMENT LOGIC (UPSERT Student)
     // ==========================================
+
     public CourseResponse enrollStudent(String studentNumber, StudentRequest request) {
 
         // Verify Organisation
@@ -79,7 +110,6 @@ public class StudentService {
                 .orElseGet(() -> {
                     Student newStudent = new Student();
                     studentMapper.updateStudent(request, newStudent, ctx);
-
                     return studentRepo.save(newStudent);
                 });
 
@@ -102,6 +132,19 @@ public class StudentService {
 
         return courseMapper.maptoCourseResponse(course);
 
+    }
+
+    private void createStudentToken(String studentNumber, StudentRequest studentRequest, boolean subscriptionStatus) {
+        String sessionToken = UUID.randomUUID().toString().replaceAll("-","");
+        StudentTokenResponse response = StudentTokenResponse.builder()
+                .studentToken(sessionToken)
+                .studentName(studentRequest.getFirstName())
+                .studentLastname(studentRequest.getLastName())
+                .createdAt(LocalDateTime.now())
+                .isSubscriptionActive(subscriptionStatus)
+                .build();
+
+        cacheService.updateCache(studentNumber, sessionToken, response);
     }
 
     public void removeStudent(String studentNumber) {

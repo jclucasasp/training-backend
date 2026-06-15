@@ -10,6 +10,8 @@ import org.apache.coyote.BadRequestException;
 import org.jspecify.annotations.NonNull;
 import org.lucas.arbackend.dto.security.ApiKeyResponse;
 import org.lucas.arbackend.entity.security.RoleTypes;
+import org.lucas.arbackend.entity.student.Student;
+import org.lucas.arbackend.repository.student.StudentRepository;
 import org.lucas.arbackend.service.security.AuthLookupService;
 import org.lucas.arbackend.util.CustomUserDetails;
 import org.lucas.arbackend.util.tenant.TenantContext;
@@ -47,7 +49,7 @@ public class TenantFilter extends OncePerRequestFilter {
                 handleTokenAuthentication(studentToken);
 
             } else {
-                // PATH C: Staff/Org via Session (Already populated by Spring Session)
+                // PATH C: Student/Staff/Org via Session (Already populated by Spring Session)
                 handleSessionAuthentication();
             }
 
