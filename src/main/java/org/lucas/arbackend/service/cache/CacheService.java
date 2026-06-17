@@ -2,6 +2,7 @@ package org.lucas.arbackend.service.cache;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lucas.arbackend.dto.security.StudentTokenResponse;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 
@@ -12,11 +13,16 @@ public class CacheService {
 
     private final CacheManager cacheManager;
 
-//    public StudentTokenResponse studentToken(String key, StudentTokenResponse value) {
-//        var cache = cacheManager.getCache("student_token");
-//        if (cache != null)
-//            cache.put(key, value);
-//    }
+    public StudentTokenResponse getActiveStudentToken(String studentNumber) {
+        var cache = cacheManager.getCache("student_token");
+        return (cache != null) ? cache.get(studentNumber, StudentTokenResponse.class) : null;
+    }
+
+    public void evictActiveStudentToken(String studentNumber) {
+        var cache = cacheManager.getCache("student_token");
+        if (cache != null)
+            cache.evict(studentNumber);
+    }
 
     public void updateCache(String cacheName, String key, Object value) {
         var cache = cacheManager.getCache(cacheName);

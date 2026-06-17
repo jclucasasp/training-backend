@@ -129,8 +129,14 @@ public class StudentService {
         return createStudentToken(studentNumber, student, org.getSubscription().getStatus().equals(1));
 
     }
-
+    // TODO: Send the student token to Cloudflare R2 bucket. Also need to create a delete request for when the token expires
     private StudentTokenResponse createStudentToken(String studentNumber, Student student, boolean subscriptionStatus) {
+
+        var cache = cacheService.getActiveStudentToken(studentNumber);
+        if (cache != null) {
+            return cache;
+        }
+
         String sessionToken = UUID.randomUUID().toString().replaceAll("-","");
         StudentTokenResponse response = StudentTokenResponse.builder()
                 .orgId(student.getOrganisation().getId())
@@ -142,7 +148,7 @@ public class StudentService {
                 .isSubscriptionActive(subscriptionStatus)
                 .build();
 
-        cacheService.updateCache("student_token", sessionToken, response);
+        cacheService.updateCache("student_token", studentNumber, response);
 
         return response;
     }
@@ -150,7 +156,8 @@ public class StudentService {
     public void removeStudent(String studentNumber) {
         Student student = studentRepo.findByOrganisationIdAndStudentNumber(tenantProvider.get(), studentNumber)
                         .orElseThrow(() -> new EntityNotFoundException("Student not found"));
-
+        cacheService.evictAuthUser(student.getEmail());
+        cacheService.evictActiveStudentToken(studentNumber);
         studentRepo.delete(student);
     }
 
@@ -292,9 +299,10 @@ public class StudentService {
     // 3. RESUME & QUIZ SUBMISSION
     // ==========================================
     @Transactional(readOnly = true)
-    public CourseResponse getResumeDetails(String studentNumber, String courseSlug) {
+    public StudentTokenResponse getResumeDetails(String studentNumber, String courseSlug) {
         StudentEnrollment enrollment = findEnrollment(studentNumber, courseSlug);
-        return courseMapper.maptoCourseResponse(enrollment.getCourse());
+
+        return cacheService.getActiveStudentToken(studentNumber);
     }
 
     @Transactional(readOnly = true)
