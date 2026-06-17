@@ -61,7 +61,7 @@ public class CacheConfig implements CachingConfigurer {
 
         // Other cache
         cacheConfigurations.put("api_key", defaultConfig.entryTtl(Duration.ofHours(24)));
-        cacheConfigurations.put("student_token", defaultConfig.entryTtl(Duration.ofHours(24)));
+        cacheConfigurations.put("student_token", defaultConfig.entryTtl(Duration.ofHours(8)));
 //        cacheConfigurations.put("active_subscriptions", defaultConfig.entryTtl(Duration.ofDays(30)));
 
         return RedisCacheManager.builder(connectionFactory)

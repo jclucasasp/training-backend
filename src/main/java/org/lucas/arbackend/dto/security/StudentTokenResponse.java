@@ -27,7 +27,7 @@ public class StudentTokenResponse implements Serializable {
     private String studentToken;
 
     @Schema(description = "The unique identifier for the student/employee", example = "STU-100465")
-    private Long studentNumber;
+    private String studentNumber;
 
     @Schema(description = "The first name of the student", example = "Steward")
     private String studentName;

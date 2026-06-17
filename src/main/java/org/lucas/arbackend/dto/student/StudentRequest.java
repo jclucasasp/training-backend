@@ -31,6 +31,6 @@ public class StudentRequest {
     private String password;
 
 //    @NotBlank(message = "URL slug is required", groups = ValidatedLabel.OnCreate.class)
-    @Schema(description = "A unique web-safe lowercase hyphenated string token used for descriptive profile routing paths", example = "cloud-architecture-foundations", requiredMode = Schema.RequiredMode.REQUIRED)
-    private String slug;
+//    @Schema(description = "A unique web-safe lowercase hyphenated string token used for descriptive profile routing paths", example = "cloud-architecture-foundations", requiredMode = Schema.RequiredMode.REQUIRED)
+//    private String slug;
 }

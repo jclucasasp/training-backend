@@ -23,7 +23,7 @@ import org.springframework.data.web.PagedModel;
                 ),
                 description = "OpenAPI documentation for the Multi-Tenant AR Backend",
                 title = "AR Backend API",
-                version = "1.0",
+                version = "1.1",
                 license = @License(
                         name = "Proprietary",
                         url = "https://your-website.com/license"

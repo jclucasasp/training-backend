@@ -98,7 +98,7 @@ public class StudentService {
     // 1. ENROLLMENT LOGIC (UPSERT Student)
     // ==========================================
 
-    public CourseResponse enrollStudent(String studentNumber, StudentRequest request) {
+    public StudentTokenResponse enrollStudent(String studentNumber, String slug) {
 
         // Verify Organisation
         Organisation org = findOrganisation();
@@ -107,14 +107,10 @@ public class StudentService {
 
         // Find or Create student within this Org
         Student student = studentRepo.findByOrganisationIdAndStudentNumber(org.getId(), studentNumber)
-                .orElseGet(() -> {
-                    Student newStudent = new Student();
-                    studentMapper.updateStudent(request, newStudent, ctx);
-                    return studentRepo.save(newStudent);
-                });
+                .orElseThrow(() -> new EntityNotFoundException("Student not found"));
 
         // Check if course exists
-        Course course = courseRepo.findByOrganisationIdAndSlug(org.getId(), request.getSlug())
+        Course course = courseRepo.findByOrganisationIdAndSlug(org.getId(), slug)
                 .orElseThrow(() -> new EntityNotFoundException("Course not found"));
 
         // Create Enrollment
@@ -130,21 +126,25 @@ public class StudentService {
                         }
                 );
 
-        return courseMapper.maptoCourseResponse(course);
+        return createStudentToken(studentNumber, student, org.getSubscription().getStatus().equals(1));
 
     }
 
-    private void createStudentToken(String studentNumber, StudentRequest studentRequest, boolean subscriptionStatus) {
+    private StudentTokenResponse createStudentToken(String studentNumber, Student student, boolean subscriptionStatus) {
         String sessionToken = UUID.randomUUID().toString().replaceAll("-","");
         StudentTokenResponse response = StudentTokenResponse.builder()
+                .orgId(student.getOrganisation().getId())
+                .studentNumber(studentNumber)
                 .studentToken(sessionToken)
-                .studentName(studentRequest.getFirstName())
-                .studentLastname(studentRequest.getLastName())
+                .studentName(student.getFirstName())
+                .studentLastname(student.getLastName())
                 .createdAt(LocalDateTime.now())
                 .isSubscriptionActive(subscriptionStatus)
                 .build();
 
-        cacheService.updateCache(studentNumber, sessionToken, response);
+        cacheService.updateCache("student_token", sessionToken, response);
+
+        return response;
     }
 
     public void removeStudent(String studentNumber) {

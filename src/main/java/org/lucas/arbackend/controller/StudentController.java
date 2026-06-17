@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.lucas.arbackend.dto.course.CourseResponse;
 import org.lucas.arbackend.dto.quiz.QuizAttemptResponse;
+import org.lucas.arbackend.dto.security.StudentTokenResponse;
 import org.lucas.arbackend.dto.student.EnrollmentResponse;
 import org.lucas.arbackend.dto.student.ProgressUpdateRequest;
 import org.lucas.arbackend.dto.student.StudentRequest;
@@ -70,11 +71,12 @@ public class StudentController {
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
-    @PostMapping("{studentNumber}/enroll")
-    public ResponseEntity<CourseResponse> enroll(
+    @PostMapping("{studentNumber}/enroll/{slug}")
+    public ResponseEntity<StudentTokenResponse> enroll(
             @Parameter(description = "Student number") @PathVariable String studentNumber,
-            @Validated(ValidatedLabel.OnCreate.class) @RequestBody StudentRequest request) {
-        return ResponseEntity.ok(studentService.enrollStudent(studentNumber, request));
+            @Parameter(description = "Slug of the course to enroll the student in") @PathVariable String slug
+            ) {
+        return ResponseEntity.ok(studentService.enrollStudent(studentNumber, slug));
     }
 
     @Operation(
