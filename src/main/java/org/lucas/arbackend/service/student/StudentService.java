@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.lucas.arbackend.dto.course.CourseResponse;
 import org.lucas.arbackend.dto.quiz.QuizAttemptResponse;
 import org.lucas.arbackend.dto.security.StudentTokenResponse;
 import org.lucas.arbackend.dto.student.EnrollmentResponse;
@@ -21,7 +20,6 @@ import org.lucas.arbackend.entity.security.RoleTypes;
 import org.lucas.arbackend.entity.student.Student;
 import org.lucas.arbackend.entity.student.StudentEnrollment;
 import org.lucas.arbackend.entity.student.StudentProgress;
-import org.lucas.arbackend.mapper.CourseMapper;
 import org.lucas.arbackend.mapper.StudentMapper;
 import org.lucas.arbackend.mapper.context.MappingContext;
 import org.lucas.arbackend.repository.course.ChapterSectionRepository;
@@ -69,7 +67,6 @@ public class StudentService {
     private final ObjectMapper objectMapper;
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepo;
-    private final CourseMapper courseMapper;
     private final CacheService cacheService;
 
     public StudentResponse createStudent(String studentNumber, StudentRequest request) {
@@ -103,8 +100,6 @@ public class StudentService {
         // Verify Organisation
         Organisation org = findOrganisation();
 
-        MappingContext ctx = new MappingContext(org, null, null);
-
         // Find or Create student within this Org
         Student student = studentRepo.findByOrganisationIdAndStudentNumber(org.getId(), studentNumber)
                 .orElseThrow(() -> new EntityNotFoundException("Student not found"));
@@ -131,6 +126,10 @@ public class StudentService {
     }
     // TODO: Send the student token to Cloudflare R2 bucket. Also need to create a delete request for when the token expires
     private StudentTokenResponse createStudentToken(String studentNumber, Student student, boolean subscriptionStatus) {
+
+        if (!subscriptionStatus) {
+            throw new IllegalStateException("Subscription not active");
+        }
 
         var cache = cacheService.getActiveStudentToken(studentNumber);
         if (cache != null) {
@@ -352,14 +351,6 @@ public class StudentService {
                 .answers(parsedAnswers)
                 .build();
     }
-
-//    private String convertToJson(Object answers) {
-//        try {
-//            return objectMapper.writeValueAsString(answers);
-//        } catch (JsonProcessingException e) {
-//            return "[]";
-//        }
-//    }
 
     private Organisation findOrganisation() {
         return orgRepo.findById(tenantProvider.get())
