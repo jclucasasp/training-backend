@@ -154,7 +154,7 @@ public class StudentController {
     })
     @GetMapping("/{studentNumber}/resume/{courseSlug}")
     @PreAuthorize("hasAuthority('STUDENT')")
-    public ResponseEntity<CourseResponse> resumeCourse(
+    public ResponseEntity<StudentTokenResponse> resumeCourse(
             @Parameter(description = "The student's unique number") @PathVariable String studentNumber,
             @Parameter(description = "The URL slug of the course") @PathVariable String courseSlug) {
         return ResponseEntity.ok(studentService.getResumeDetails(studentNumber, courseSlug));

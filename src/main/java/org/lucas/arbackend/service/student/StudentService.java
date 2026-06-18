@@ -298,11 +298,14 @@ public class StudentService {
     // ==========================================
     // 3. RESUME & QUIZ SUBMISSION
     // ==========================================
-    @Transactional(readOnly = true)
     public StudentTokenResponse getResumeDetails(String studentNumber, String courseSlug) {
         StudentEnrollment enrollment = findEnrollment(studentNumber, courseSlug);
+        StudentTokenResponse tokenResponse =  cacheService.getActiveStudentToken(studentNumber);
+        if (tokenResponse == null) {
+            tokenResponse = createStudentToken(studentNumber, enrollment.getStudent(), enrollment.getOrganisation().getSubscription().getStatus().equals(1));
+        }
 
-        return cacheService.getActiveStudentToken(studentNumber);
+        return tokenResponse;
     }
 
     @Transactional(readOnly = true)
