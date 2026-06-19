@@ -1,6 +1,10 @@
 package org.lucas.arbackend.util;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lucas.arbackend.config.RabbitConfig;
+import org.lucas.arbackend.dto.EmailMessageDto;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
@@ -8,11 +12,13 @@ import java.util.*;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class OTPService {
     private final Random random = new SecureRandom();
     private final Map<String, String> otpHashMap = new HashMap<>();
+    private final RabbitTemplate rabbitTemplate;
 
-    public void otpTimer(String email) {
+    public void otpTimer(String email, String fullName) {
         if (otpHashMap.get(email) != null) {
             log.info("OTP already exist, doing nothing...");
             return;
@@ -22,6 +28,18 @@ public class OTPService {
 
         log.info("OTP Timer started for user: [{}]", email);
         otpHashMap.putIfAbsent(email,otp);
+
+        EmailMessageDto emailJob = EmailMessageDto.builder()
+                .toEmail(email)
+                .fullName(fullName)
+                .otp(otp)
+                .build();
+
+        rabbitTemplate.convertAndSend(
+                RabbitConfig.EMAIL_EXCHANGE,
+                RabbitConfig.EMAIL_ROUTING_KEY,
+                emailJob
+        );
 
         Timer timer = new Timer(email);
 
