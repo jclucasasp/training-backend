@@ -42,7 +42,6 @@ public class OTPService {
         );
 
         Timer timer = new Timer(email);
-
         TimerTask task = new TimerTask() {
             @Override
             public void run() {

@@ -39,12 +39,12 @@ services:
     environment:
       - 'RABBITMQ_DEFAULT_USER=guest'
       - 'RABBITMQ_DEFAULT_PASS=guest'
-      - 'RABBITMQ_DEFAULT_VHOST=myvhost'
+#      - 'RABBITMQ_DEFAULT_VHOST=myvhost'
     ports:
       - '5672:5672'
       - '15672:15672'
     volumes:
-      - 'rabbitmq_data:/var/lib/rabitmq'
+      - 'rabbitmq_data:/var/lib/rabbitmq'
 
   redis:
     image: 'redis:8.4-alpine'

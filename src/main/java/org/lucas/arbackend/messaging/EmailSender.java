@@ -20,7 +20,7 @@ public class EmailSender {
     @Value("${spring.mail.username}")
     String fromEmail;
 
-    public HttpStatusCode sendEmail(String toEmail, String fullName, String otp) {
+    public void sendEmail(String toEmail, String fullName, String otp) {
         String htmlTemplate = null;
         String subject = null;
 
@@ -48,11 +48,10 @@ public class EmailSender {
             mailSender.send(mimeMailMessage);
         } catch (MessagingException m) {
             log.error("Failed to send email to [{}]", toEmail, m);
-            return HttpStatusCode.valueOf(500);
+//            return HttpStatusCode.valueOf(500);
         }
         log.info("Email send successfully to [{}]", toEmail);
-
-        return HttpStatusCode.valueOf(200);
+//        return HttpStatusCode.valueOf(200);
     }
 
     private String getWelcomeTemplate() {
