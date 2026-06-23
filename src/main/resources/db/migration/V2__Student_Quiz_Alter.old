@@ -13,6 +13,7 @@ CREATE TABLE quiz (
     ended_at DATETIME NULL,
     CONSTRAINT fk_quiz_course_ref FOREIGN KEY (quiz_course_id) REFERENCES course(cou_id),
     CONSTRAINT fk_quiz_org_ref FOREIGN KEY (quiz_org_id) REFERENCES organisation(org_id)
+    UNIQUE INDEX idx_unique_quiz_title (quiz_course_id, quiz_title)
 ) ENGINE=InnoDB;
 
 DROP TABLE IF EXISTS chapter_quizzes;
@@ -96,5 +97,8 @@ CREATE TABLE IF NOT EXISTS student_progress (
     CONSTRAINT fk_stp_section_ref FOREIGN KEY (stp_section_id) REFERENCES chapter_section(chs_id),
     UNIQUE INDEX idx_unique_stp (stp_student_enrollment_id, stp_section_id)
 ) ENGINE=InnoDB;
+
+ALTER TABLE student ADD COLUMN stu_email VARCHAR(255) UNIQUE AFTER stu_last_name, ADD COLUMN stu_password VARCHAR(255) AFTER stu_email, ADD COLUMN stu_role_id BIGINT(20) AFTER stu_password;
+ALTER TABLE chapter_section Add COLUMN chs_scene_config LONGTEXT DEFAULT '{}' AFTER chs_resource_media_type;
 
 SET FOREIGN_KEY_CHECKS = 1;

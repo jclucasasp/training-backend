@@ -1,1 +1,0 @@
-ALTER TABLE student ADD COLUMN stu_email VARCHAR(255) UNIQUE AFTER stu_last_name, ADD COLUMN stu_password VARCHAR(255) AFTER stu_email, ADD COLUMN stu_role_id BIGINT(20) AFTER stu_password;
