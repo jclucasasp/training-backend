@@ -3,6 +3,8 @@ package org.lucas.arbackend.service.organisation;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lucas.arbackend.config.RabbitConfig;
+import org.lucas.arbackend.dto.EmailMessageDto;
 import org.lucas.arbackend.dto.organisation.OrganisationRequest;
 import org.lucas.arbackend.dto.organisation.OrganisationResponse;
 import org.lucas.arbackend.dto.security.ApiKeyResponse;
@@ -18,7 +20,9 @@ import org.lucas.arbackend.repository.security.RoleRepository;
 import org.lucas.arbackend.service.cache.CacheService;
 import org.lucas.arbackend.service.security.ApiKeyService;
 import org.lucas.arbackend.util.CustomUserDetails;
+import org.lucas.arbackend.util.OTPService;
 import org.lucas.arbackend.util.tenant.TenantProvider;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -40,6 +44,8 @@ public class OrganisationService {
 
     private final ApiKeyService apiKeyService;
     private final CacheService cacheService;
+    private final OTPService otpService;
+    private final RabbitTemplate rabbitTemplate;
 
     private final OrganisationMapper orgMapper;
 
@@ -90,6 +96,13 @@ public class OrganisationService {
         CustomUserDetails newUser = new CustomUserDetails(org.getId(), org.getEmail(), "", org.getId(), org.getRole().getRoleName().name());
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(newUser, null, newUser.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
+
+        EmailMessageDto messageDto = EmailMessageDto.builder()
+                .fullName(org.getProfile().getOrgName())
+                .toEmail(org.getEmail())
+                .build();
+
+        rabbitTemplate.convertAndSend(RabbitConfig.EMAIL_EXCHANGE, RabbitConfig.EMAIL_ROUTING_KEY, messageDto);
 
         return orgMapper.mapToOrgResponse(savedOrg, apiKeyResponse.getRawKey());
 

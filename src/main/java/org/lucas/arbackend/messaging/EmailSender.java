@@ -27,12 +27,12 @@ public class EmailSender {
         if (otp != null) {
             subject = "LuminoEd - Password reset OTP";
             htmlTemplate = getOtpTemplate()
-                    .replace("{{fullName}}", fullName)
-                    .replace("{{otp}}", otp);
+                    .replace("{{FULL_NAME}}", fullName)
+                    .replace("{{OTP}}", otp);
         } else {
             subject = "LuminoEd - Welcome aboard";
             htmlTemplate = getWelcomeTemplate()
-                    .replace("{{fullName}}", fullName);
+                    .replace("{{FULL_NAME}}", fullName);
         }
         log.info("Sending email to: [{}] - [{}] - Name: [{}]", toEmail, otp != null ? "OTP"  : "Welcome", fullName);
 
@@ -48,10 +48,9 @@ public class EmailSender {
             mailSender.send(mimeMailMessage);
         } catch (MessagingException m) {
             log.error("Failed to send email to [{}]", toEmail, m);
-//            return HttpStatusCode.valueOf(500);
+            throw new RuntimeException("Failed to send email to [{}]", m);
         }
         log.info("Email send successfully to [{}]", toEmail);
-//        return HttpStatusCode.valueOf(200);
     }
 
     private String getWelcomeTemplate() {

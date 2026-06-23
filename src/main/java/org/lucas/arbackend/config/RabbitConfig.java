@@ -1,7 +1,6 @@
 package org.lucas.arbackend.config;
 
-import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.core.TopicExchange;
+import org.springframework.amqp.core.*;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Bean;
@@ -20,14 +19,17 @@ public class RabbitConfig {
     }
 
     @Bean
-    public TopicExchange emailExchange() {
-        return new TopicExchange(EMAIL_EXCHANGE);
+    public DirectExchange directExchange() {
+        return new DirectExchange(EMAIL_EXCHANGE, true, false);
     }
 
-//    @Bean
-//    public TopicExchange emailRoutingKey() {
-//        return new TopicExchange(EMAIL_ROUTING_KEY);
-//    }
+    @Bean
+    public Binding emailBinding(Queue emailQueue, DirectExchange emailExchange) {
+        return BindingBuilder.
+                bind(emailQueue)
+                .to(emailExchange)
+                .with(EMAIL_ROUTING_KEY);
+    }
 
     @Bean
     public MessageConverter jsonMessageConverter() {
