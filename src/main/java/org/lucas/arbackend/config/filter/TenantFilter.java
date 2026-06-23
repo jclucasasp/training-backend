@@ -38,16 +38,11 @@ public class TenantFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String apiKeyHeader = request.getHeader("X-API-KEY");
-        String studentToken = request.getHeader("X-STUDENT-TOKEN");
 
         try {
             if (apiKeyHeader != null) {
                 // PATH A: Student signup via API Key
                 handleApiKeyAuthentication(apiKeyHeader);
-            } else if (studentToken != null) {
-                // PATH B: Student via temp student token
-                handleTokenAuthentication(studentToken);
-
             } else {
                 // PATH C: Student/Staff/Org via Session (Already populated by Spring Session)
                 handleSessionAuthentication();

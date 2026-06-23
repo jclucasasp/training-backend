@@ -2,6 +2,9 @@ package org.lucas.arbackend.entity.quiz;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+import org.lucas.arbackend.entity.BaseEntity;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.student.Student;
 import org.lucas.arbackend.util.tenant.TenantEntity;
@@ -11,8 +14,10 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "student_quiz_attempt")
+@SQLDelete(sql = "UPDATE student_quiz_attempt SET ended_at = CURRENT_TIMESTAMP WHERE sqa_id = :id")
+@SQLRestriction("ended_at IS NULL")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-public class StudentQuizAttempt implements TenantEntity {
+public class StudentQuizAttempt extends BaseEntity implements TenantEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "sqa_id")

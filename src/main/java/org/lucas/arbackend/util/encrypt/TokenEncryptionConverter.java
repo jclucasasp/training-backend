@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 @Converter
 public class TokenEncryptionConverter implements AttributeConverter<String, String> {
 
-    @Value("${encryption.key")
+    @Value("${encryption.key}")
     private String encryptionKey;
 
     @Override

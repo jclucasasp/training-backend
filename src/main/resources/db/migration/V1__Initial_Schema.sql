@@ -363,6 +363,9 @@ CREATE TABLE IF NOT EXISTS student_quiz_attempt (
     sqa_submitted_answers_json JSON,
     sqa_started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     sqa_completed_at DATETIME NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    ended_at TIMESTAMP,
     CONSTRAINT fk_sqa_org FOREIGN KEY (sqa_org_id) REFERENCES organisation(org_id),
     CONSTRAINT fk_sqa_student FOREIGN KEY (sqa_student_id) REFERENCES student(stu_id),
     CONSTRAINT fk_sqa_quiz FOREIGN KEY (sqa_quiz_id) REFERENCES quiz(quiz_id)

@@ -86,7 +86,7 @@ public class CourseController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDetailsResponse.class))),
     })
     @PreAuthorize("hasAuthority('ORG_ADMIN') or (hasAuthority('COURSE_EDITOR') and @courseService.isOwner(#courseId, principal.id))")
-    @PutMapping("{courseId}/update")
+    @PutMapping("/{courseId}/update")
     public ResponseEntity<CourseResponse> updateCourse(@PathVariable Long courseId, @Valid @RequestBody CourseRequest request) {
         return ResponseEntity.ok(courseService.updateCourse(courseId, request));
     }

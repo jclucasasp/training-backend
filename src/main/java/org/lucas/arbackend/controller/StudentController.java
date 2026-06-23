@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.lucas.arbackend.dto.course.CourseResponse;
 import org.lucas.arbackend.dto.quiz.QuizAttemptResponse;
 import org.lucas.arbackend.dto.security.StudentTokenResponse;
 import org.lucas.arbackend.dto.student.EnrollmentResponse;
@@ -53,7 +52,7 @@ public class StudentController {
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
-    public ResponseEntity<StudentResponse> addStaff(
+    public ResponseEntity<StudentResponse> addStudent(
             @Parameter (description = "Student number") @PathVariable String studentNumber,
             @Validated(ValidatedLabel.OnCreate.class
             ) @RequestBody StudentRequest request) {

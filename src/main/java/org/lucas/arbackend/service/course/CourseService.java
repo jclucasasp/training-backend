@@ -150,8 +150,9 @@ public class CourseService {
         }
 
         course.getChapters().clear();
-        chapterRepo.flush();
-        quizRepo.flush();
+        // TODO: Test and if anything fails, uncomment the below two lines. It can cause a partial save and if the whole transaction fails, the changes would be saved...
+//        chapterRepo.flush();
+//        quizRepo.flush();
 
         AtomicInteger index = new AtomicInteger();
         for (CourseChapterRequest dto : chaptersRequest) {
