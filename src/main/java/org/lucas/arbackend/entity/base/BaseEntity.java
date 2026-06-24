@@ -1,4 +1,4 @@
-package org.lucas.arbackend.entity;
+package org.lucas.arbackend.entity.base;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;

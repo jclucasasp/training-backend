@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
-import org.lucas.arbackend.entity.BaseEntity;
-import org.lucas.arbackend.entity.PlanTypes;
+import org.lucas.arbackend.entity.base.BaseEntity;
+import org.lucas.arbackend.entity.Organisation.PlanTypes;
 import org.lucas.arbackend.util.encrypt.TokenEncryptionConverter;
 
 import java.math.BigDecimal;

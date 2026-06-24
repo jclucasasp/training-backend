@@ -6,8 +6,7 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
-import org.lucas.arbackend.entity.BaseEntity;
+import org.lucas.arbackend.entity.base.BaseEntity;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity

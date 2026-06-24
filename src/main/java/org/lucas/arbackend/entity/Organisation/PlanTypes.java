@@ -1,4 +1,4 @@
-package org.lucas.arbackend.entity;
+package org.lucas.arbackend.entity.Organisation;
 
 public enum PlanTypes {
     MONTHLY,

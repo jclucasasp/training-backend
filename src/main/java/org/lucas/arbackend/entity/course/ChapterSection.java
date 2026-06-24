@@ -6,7 +6,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.type.SqlTypes;
-import org.lucas.arbackend.entity.BaseEntity;
+import org.lucas.arbackend.entity.base.BaseEntity;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.course.misc.Attachment;
 import org.lucas.arbackend.entity.course.misc.SceneConfig;

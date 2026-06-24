@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
-import org.lucas.arbackend.entity.ContactBaseEntity;
+import org.lucas.arbackend.entity.base.ContactBaseEntity;
 import org.lucas.arbackend.entity.security.Role;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 

@@ -1,4 +1,4 @@
-package org.lucas.arbackend.messaging;
+package org.lucas.arbackend.service.messaging;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +19,7 @@ public class EmailConsumer {
         log.info("Processing background email job for user: [{}] - Mode: [{}]", message.getToEmail(), message.getOtp() != null ? "OTP" : "Welcome");
 
         try {
-            emailSender.sendEmail(message.getToEmail(), message.getFullName(), message.getOtp());
+            emailSender.sendEmail(message.getToEmail(), message.getFullName(), message.getOtp(), message.getCustomEmailType());
         } catch (Exception e) {
             log.error("Critical failure during background email dispatch to [{}]", message.getToEmail(), e);
         }

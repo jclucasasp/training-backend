@@ -14,7 +14,7 @@ import org.lucas.arbackend.dto.payfast.PayFastSubscriptionDto;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.Organisation.OrganisationSubscription;
 import org.lucas.arbackend.entity.Organisation.SubscriptionPlan;
-import org.lucas.arbackend.entity.PlanTypes;
+import org.lucas.arbackend.entity.Organisation.PlanTypes;
 import org.lucas.arbackend.entity.payment.FailureCode;
 import org.lucas.arbackend.entity.payment.PaymentLog;
 import org.lucas.arbackend.entity.payment.PaymentStatus;

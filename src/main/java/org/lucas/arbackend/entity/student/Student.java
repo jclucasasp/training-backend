@@ -6,12 +6,10 @@ import jakarta.validation.constraints.Email;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
-import org.lucas.arbackend.entity.BaseEntity;
+import org.lucas.arbackend.entity.base.BaseEntity;
 import org.lucas.arbackend.entity.Organisation.Organisation;
-import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.quiz.StudentQuiz;
 import org.lucas.arbackend.entity.security.Role;
-import org.lucas.arbackend.entity.security.RoleTypes;
 import org.lucas.arbackend.util.tenant.TenantEntity;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 

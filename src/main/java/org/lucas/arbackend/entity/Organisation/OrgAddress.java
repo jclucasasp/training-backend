@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
-import org.lucas.arbackend.entity.BaseEntity;
+import org.lucas.arbackend.entity.base.BaseEntity;
 
 @Entity
 @Table(name = "address")

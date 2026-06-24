@@ -18,6 +18,7 @@ import org.lucas.arbackend.repository.organisation.SubscriptionPlanRepository;
 import org.lucas.arbackend.repository.security.ApiKeyRepository;
 import org.lucas.arbackend.repository.security.RoleRepository;
 import org.lucas.arbackend.service.cache.CacheService;
+import org.lucas.arbackend.service.messaging.CustomEmailType;
 import org.lucas.arbackend.service.security.ApiKeyService;
 import org.lucas.arbackend.util.CustomUserDetails;
 import org.lucas.arbackend.util.OTPService;
@@ -99,6 +100,7 @@ public class OrganisationService {
 
         EmailMessageDto messageDto = EmailMessageDto.builder()
                 .fullName(org.getProfile().getOrgName())
+                .customEmailType(CustomEmailType.SUBSCRIPTION_REMINDER)
                 .toEmail(org.getEmail())
                 .build();
 

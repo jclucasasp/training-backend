@@ -1,9 +1,8 @@
-package org.lucas.arbackend.entity;
+package org.lucas.arbackend.entity.base;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.Setter;
 

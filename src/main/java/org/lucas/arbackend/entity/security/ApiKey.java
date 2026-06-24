@@ -3,7 +3,7 @@ package org.lucas.arbackend.entity.security;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-import org.lucas.arbackend.entity.BaseEntity;
+import org.lucas.arbackend.entity.base.BaseEntity;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 
 @Entity
