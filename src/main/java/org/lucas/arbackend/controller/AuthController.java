@@ -8,15 +8,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.lucas.arbackend.dto.security.LoginRequest;
+import org.lucas.arbackend.service.security.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -25,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthenticationManager manager;
+    private final AuthService authService;
 
     @Operation(summary = "User Login", description = "Authenticates user and starts a Redis session")
     @ApiResponses(value = {
@@ -56,4 +55,14 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Password Reset", description = "Generates an OTP and email it to the provided email if it exists")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Password Reset"),
+            @ApiResponse(responseCode = "401", description = "Invalid credentials")
+    })
+    @PostMapping("/password-reset/{email}")
+    public ResponseEntity<Void> passwordReset(@PathVariable String email) {
+        authService.sendResetPasswordEmail(email);
+        return ResponseEntity.ok().build();
+    }
 }
