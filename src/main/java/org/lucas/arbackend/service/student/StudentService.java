@@ -33,6 +33,8 @@ import org.lucas.arbackend.repository.student.StudentEnrollmentRepository;
 import org.lucas.arbackend.repository.student.StudentProgressRepository;
 import org.lucas.arbackend.repository.student.StudentRepository;
 import org.lucas.arbackend.service.cache.CacheService;
+import org.lucas.arbackend.service.messaging.CustomEmailType;
+import org.lucas.arbackend.service.messaging.EmailProducer;
 import org.lucas.arbackend.util.tenant.TenantProvider;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -68,6 +70,7 @@ public class StudentService {
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepo;
     private final CacheService cacheService;
+    private final EmailProducer emailProducer;
 
     public StudentResponse createStudent(String studentNumber, StudentRequest request) {
 
@@ -82,11 +85,15 @@ public class StudentService {
         String encodedPassword = passwordEncoder.encode(request.getPassword());
         request.setPassword(encodedPassword);
         // Create Student
-        Student student = new Student();
-        student.setStudentNumber(studentNumber);
-        student.setRole(roleRepo.findByRoleName(RoleTypes.STUDENT));
-        student.setOrganisation(org);
+        Student student = Student.builder()
+                .studentNumber(studentNumber)
+                .role(roleRepo.findByRoleName(RoleTypes.STUDENT))
+                .organisation(org)
+                .build();
         studentMapper.updateStudent(request, student, ctx);
+
+        String fullName = String.join(" ", student.getFirstName(), student.getLastName());
+        emailProducer.queueEmail(fullName, student.getEmail(), null, CustomEmailType.WELCOME);
 
         return studentMapper.mapToStudentResponse(studentRepo.save(student));
     }

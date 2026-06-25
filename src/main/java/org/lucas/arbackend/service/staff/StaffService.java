@@ -4,6 +4,8 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
+import org.lucas.arbackend.config.RabbitConfig;
+import org.lucas.arbackend.dto.EmailMessageDto;
 import org.lucas.arbackend.dto.organisation.StaffRequest;
 import org.lucas.arbackend.dto.organisation.StaffResponse;
 import org.lucas.arbackend.entity.Organisation.Organisation;
@@ -15,7 +17,10 @@ import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.StaffRepository;
 import org.lucas.arbackend.repository.security.RoleRepository;
 import org.lucas.arbackend.service.cache.CacheService;
+import org.lucas.arbackend.service.messaging.CustomEmailType;
+import org.lucas.arbackend.service.messaging.EmailProducer;
 import org.lucas.arbackend.util.tenant.TenantProvider;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -37,29 +42,49 @@ public class StaffService {
     private final PasswordEncoder passwordEncoder;
     private final CacheService cacheService;
     private final TenantProvider tenantProvider;
+    private final EmailProducer emailProducer;
     private final StaffMapper staffMapper;
 
+/**
+ * Creates a new staff member with the provided details.
+ * The result of this operation is cached using the email address as the key.
+ *
+ * @param request The staff request containing details for the new staff member
+ * @return StaffResponse containing the details of the newly created staff member
+ */
     @Cacheable(value = "staff_user", key = "#request.getEmail()")
     public StaffResponse createStaff(StaffRequest request) {
 
+    // Check if email is already registered
         if (staffRepo.findByEmail(request.getEmail()).isPresent()) {
             throw new IllegalStateException("Email already registered");
         }
 
+    // Retrieve the organisation
         Organisation org = findOrganisation();
 
+    // Find the role based on the role name from the request
         Role role = roleRepo.findByRoleName(request.getRole());
 
+    // Create new staff entity
         Staff staff = new Staff();
         staffMapper.updateStaff(request, staff);
 
+    // Set password (encoded) and role
         staff.setPassword(passwordEncoder.encode(request.getPassword()));
         staff.setRole(role);
 
+    // Set the organisation for the staff member
         staff.setOrganisation(org);
 
+    // Save the staff member to the database
         Staff savedStaff = staffRepo.save(staff);
 
+    // Send welcome email to the newly created staff member
+        String fullName = String.join(" ", staff.getFirstName(), staff.getLastName());
+        emailProducer.queueEmail(fullName, staff.getEmail(), null, CustomEmailType.WELCOME);
+
+    // Map the saved staff entity to response and return
         return staffMapper.maptoStaffResponse(savedStaff);
     }
 

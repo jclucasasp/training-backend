@@ -10,8 +10,6 @@ import org.apache.coyote.BadRequestException;
 import org.jspecify.annotations.NonNull;
 import org.lucas.arbackend.dto.security.ApiKeyResponse;
 import org.lucas.arbackend.entity.security.RoleTypes;
-import org.lucas.arbackend.entity.student.Student;
-import org.lucas.arbackend.repository.student.StudentRepository;
 import org.lucas.arbackend.service.security.AuthLookupService;
 import org.lucas.arbackend.util.CustomUserDetails;
 import org.lucas.arbackend.util.tenant.TenantContext;
@@ -21,6 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 
