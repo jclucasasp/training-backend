@@ -37,12 +37,6 @@ public class CustomUserDetailsService implements UserDetailsService {
         // Retrieve authentication data from cache using the provided email
        CacheDto auth = authLookupService.getAuthCacheDto(email);
 
-//        // Check if the user's subscription is active
-//       if (!auth.getIsSubscriptionActive()) {
-//            // Throw exception if subscription is not active
-//           throw new DisabledException("Subscription not active");
-//       }
-
         // Create and return a CustomUserDetails object with the retrieved authentication data
        return new CustomUserDetails(
                auth.getId(),

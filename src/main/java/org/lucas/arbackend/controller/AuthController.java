@@ -14,6 +14,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -55,14 +56,25 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "Password Reset", description = "Generates an OTP and email it to the provided email if it exists")
+    @Operation(summary = "OTP Generation", description = "Generates an OTP and email it to the provided email if it exists")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Password Reset"),
+            @ApiResponse(responseCode = "200", description = "OTP generated and emailed"),
             @ApiResponse(responseCode = "401", description = "Invalid credentials")
     })
-    @PostMapping("/password-reset/{email}")
-    public ResponseEntity<Void> passwordReset(@PathVariable String email) {
-        authService.sendResetPasswordEmail(email);
+    @PostMapping("/otp/{email}")
+    public ResponseEntity<Void> otp(@PathVariable String email) {
+        authService.sendOtp(email);
         return ResponseEntity.ok().build();
     }
+     @Operation(summary = "OTP Generation", description = "Generates an OTP and email it to the provided email if it exists")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OTP generated and emailed"),
+            @ApiResponse(responseCode = "401", description = "Invalid credentials")
+    })
+     @PostMapping("/reset-password/{otp}")
+    public ResponseEntity<Void> passwordReset(@PathVariable String otp, @Validated @RequestBody LoginRequest loginRequest) {
+        authService.changePassword(loginRequest.getEmail(), otp, loginRequest.getPassword());
+        return ResponseEntity.ok().build();
+     }
+
 }

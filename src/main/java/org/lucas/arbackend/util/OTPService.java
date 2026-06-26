@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lucas.arbackend.config.RabbitConfig;
 import org.lucas.arbackend.dto.EmailMessageDto;
+import org.lucas.arbackend.service.messaging.CustomEmailType;
+import org.lucas.arbackend.service.messaging.EmailProducer;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +18,7 @@ import java.util.*;
 public class OTPService {
     private final Random random = new SecureRandom();
     private final Map<String, String> otpHashMap = new HashMap<>();
-    private final RabbitTemplate rabbitTemplate;
+    private final EmailProducer emailProducer;
 
     public void otpTimer(String email, String fullName) {
         if (otpHashMap.get(email) != null) {
@@ -35,11 +37,7 @@ public class OTPService {
                 .otp(otp)
                 .build();
 
-        rabbitTemplate.convertAndSend(
-                RabbitConfig.EMAIL_EXCHANGE,
-                RabbitConfig.EMAIL_ROUTING_KEY,
-                emailJob
-        );
+        emailProducer.queueEmail(fullName, email, otp, CustomEmailType.RESET);
 
         Timer timer = new Timer(email);
         TimerTask task = new TimerTask() {
