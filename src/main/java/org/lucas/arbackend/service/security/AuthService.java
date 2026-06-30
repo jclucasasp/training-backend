@@ -12,8 +12,6 @@ import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.StaffRepository;
 import org.lucas.arbackend.repository.student.StudentRepository;
 import org.lucas.arbackend.service.cache.CacheService;
-import org.lucas.arbackend.service.messaging.CustomEmailType;
-import org.lucas.arbackend.service.messaging.EmailProducer;
 import org.lucas.arbackend.util.OTPService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,7 +22,6 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private final PasswordEncoder passwordEncoder;
-    private final EmailProducer emailProducer;
     private final AuthLookupService findByEmail;
     private final OTPService otpService;
     private final StudentRepository studentRepo;
@@ -85,9 +82,6 @@ public class AuthService {
                         .orElseThrow(() -> new EntityNotFoundException("Staff not found"));
                 staff.setPassword(encodedPassword);
                 staffRepo.save(staff);
-            }
-            default -> {
-                throw new IllegalArgumentException("Unknown or missing role type: " + entityFound.getRoleName());
             }
         }
 

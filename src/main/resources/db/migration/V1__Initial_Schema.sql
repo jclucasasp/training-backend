@@ -415,3 +415,58 @@ CREATE TABLE IF NOT EXISTS course_question_reply (
     -- Ensure a reply has an author (either staff or student, but not neither)
     CONSTRAINT chk_reply_author CHECK (cqr_student_id IS NOT NULL OR cqr_staff_id IS NOT NULL)
 ) ENGINE=InnoDB;
+
+-- ==========================================
+-- 8. VR TRAINING TELEMETRY
+-- ==========================================
+
+CREATE TABLE IF NOT EXISTS vr_session (
+    vrs_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    vrs_org_id BIGINT NOT NULL,
+    vrs_student_id BIGINT NOT NULL,
+    vrs_section_id BIGINT NOT NULL,
+    vrs_device_id VARCHAR(100),
+    vrs_headset_model VARCHAR(50),
+    vrs_started_at DATETIME NOT NULL,
+    vrs_ended_at DATETIME NULL,
+    vrs_duration_seconds INT,
+    vrs_comfort_rating TINYINT,
+    vrs_motion_sickness_reported BOOLEAN DEFAULT FALSE,
+    vrs_session_quality_score DECIMAL(3,2),
+    vrs_avg_fps DECIMAL(4,1),
+    vrs_frame_drop_count INT DEFAULT 0,
+    vrs_tracking_loss_count INT DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
+    ended_at DATETIME NULL,
+    CONSTRAINT fk_vrs_org FOREIGN KEY (vrs_org_id) REFERENCES organisation(org_id),
+    CONSTRAINT fk_vrs_student FOREIGN KEY (vrs_student_id) REFERENCES student(stu_id),
+    CONSTRAINT fk_vrs_section FOREIGN KEY (vrs_section_id) REFERENCES chapter_section(chs_id),
+    INDEX idx_vrs_student_time (vrs_student_id, vrs_started_at),
+    INDEX idx_vrs_org_active (vrs_org_id, vrs_ended_at)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS vr_event (
+    vre_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    vre_org_id BIGINT NOT NULL,
+    vre_session_id BIGINT NOT NULL,
+    vre_event_type VARCHAR(30) NOT NULL,
+    vre_timestamp DATETIME NOT NULL,
+    vre_position_x DECIMAL(10,4),
+    vre_position_y DECIMAL(10,4),
+    vre_position_z DECIMAL(10,4),
+    vre_rotation_x DECIMAL(10,4),
+    vre_rotation_y DECIMAL(10,4),
+    vre_rotation_z DECIMAL(10,4),
+    vre_target_object_id VARCHAR(100),
+    vre_duration_ms INT,
+    vre_metadata VARCHAR(2000),
+    vre_hand VARCHAR(10),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
+    ended_at DATETIME NULL,
+    CONSTRAINT fk_vre_org FOREIGN KEY (vre_org_id) REFERENCES organisation(org_id),
+    CONSTRAINT fk_vre_session FOREIGN KEY (vre_session_id) REFERENCES vr_session(vrs_id),
+    INDEX idx_vre_session_time (vre_session_id, vre_timestamp),
+    INDEX idx_vre_type_target (vre_event_type, vre_target_object_id)
+) ENGINE=InnoDB;
