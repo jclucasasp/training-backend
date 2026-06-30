@@ -27,7 +27,7 @@ public class VRSession extends BaseEntity implements TenantEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "vrs_student_id", nullable = false)
+    @JoinColumn(name = "vrs_student_number", nullable = false)
     private Student student;
 
     @ManyToOne
@@ -70,6 +70,21 @@ public class VRSession extends BaseEntity implements TenantEntity {
 
     @Column(name = "vrs_tracking_loss_count")
     private Integer trackingLossCount;
+
+     @Column(name = "vrs_interaction_count")
+    private Integer interactionCount;
+
+    @Column(name = "vrs_hint_request_count")
+    private Integer hintRequestCount;
+
+    @Column(name = "vrs_failure_count")
+    private Integer failureCount;
+
+    @Column(name = "vrs_completion_condition_met")
+    private Boolean completionConditionMet;
+
+    @Column(name = "vrs_completion_time_ms")
+    private Long completionTimeMs;
 
     @Override
     public Organisation getOrganisation() {

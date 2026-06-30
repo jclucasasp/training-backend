@@ -436,6 +436,11 @@ CREATE TABLE IF NOT EXISTS vr_session (
     vrs_avg_fps DECIMAL(4,1),
     vrs_frame_drop_count INT DEFAULT 0,
     vrs_tracking_loss_count INT DEFAULT 0,
+    vrs_interaction_count INT DEFAULT 0,
+    vrs_hint_request_count INT DEFAULT 0,
+    vrs_failure_count INT DEFAULT 0,
+    vrs_completion_condition_met BOOLEAN DEFAULT FALSE,
+    vrs_completion_time_ms BIGINT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
     ended_at DATETIME NULL,
@@ -443,7 +448,8 @@ CREATE TABLE IF NOT EXISTS vr_session (
     CONSTRAINT fk_vrs_student FOREIGN KEY (vrs_student_id) REFERENCES student(stu_id),
     CONSTRAINT fk_vrs_section FOREIGN KEY (vrs_section_id) REFERENCES chapter_section(chs_id),
     INDEX idx_vrs_student_time (vrs_student_id, vrs_started_at),
-    INDEX idx_vrs_org_active (vrs_org_id, vrs_ended_at)
+    INDEX idx_vrs_org_active (vrs_org_id, vrs_ended_at),
+    INDEX idx_vrs_section (vrs_section_id, vrs_started_at)
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS vr_event (
@@ -462,11 +468,13 @@ CREATE TABLE IF NOT EXISTS vr_event (
     vre_duration_ms INT,
     vre_metadata VARCHAR(2000),
     vre_hand VARCHAR(10),
+    vre_sequence_number BIGINT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
     ended_at DATETIME NULL,
     CONSTRAINT fk_vre_org FOREIGN KEY (vre_org_id) REFERENCES organisation(org_id),
     CONSTRAINT fk_vre_session FOREIGN KEY (vre_session_id) REFERENCES vr_session(vrs_id),
     INDEX idx_vre_session_time (vre_session_id, vre_timestamp),
-    INDEX idx_vre_type_target (vre_event_type, vre_target_object_id)
+    INDEX idx_vre_type_target (vre_event_type, vre_target_object_id),
+    INDEX idx_vre_org_time (vre_org_id, vre_timestamp)
 ) ENGINE=InnoDB;
