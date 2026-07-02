@@ -7,7 +7,6 @@ import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.base.BaseEntity;
 import org.lucas.arbackend.entity.course.ChapterSection;
-import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.student.Student;
 import org.lucas.arbackend.util.tenant.TenantEntity;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;

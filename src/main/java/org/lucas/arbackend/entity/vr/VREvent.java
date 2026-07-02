@@ -64,6 +64,9 @@ public class VREvent extends BaseEntity implements TenantEntity {
     @Enumerated(EnumType.STRING)
     private VRHandType hand;
 
+    @Column(name = "vre_sequence_number")
+    private Long sequenceNumber;
+
     @Override
     public Organisation getOrganisation() {
         return this.organisation;

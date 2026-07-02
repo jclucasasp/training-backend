@@ -178,7 +178,7 @@ public class StudentService {
         Student student = findStudent(org.getId(), studentNumber);
 
         // 2. Resolve the Section first (needed for both Enrollment lookup and Progress)
-        ChapterSection chapterSection = sectionRepo.findWithContext(courseId, chapterId, sectionId)
+        ChapterSection chapterSection = sectionRepo.findWithContext(courseId, chapterId, org.getId(), sectionId)
                 .orElseThrow(() -> new EntityNotFoundException("Section not found"));
 
         Course course = chapterSection.getChapter().getCourse();
