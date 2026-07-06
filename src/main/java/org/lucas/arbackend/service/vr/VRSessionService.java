@@ -45,8 +45,9 @@ public class VRSessionService {
     // SESSION LIFECYCLE
     // ==========================================
 
-    public VRSessionResponse startSession(String studentNumber, VRSessionStartRequest request) {
+    public VRSessionResponse startSession(VRSessionStartRequest request) {
         Organisation org = tenantProvider.getOrg();
+        String studentNumber = request.getStudentNumber();
 
         Student student = studentRepo.findByOrganisationIdAndStudentNumber(org.getId(), studentNumber)
                 .orElseThrow(() -> new EntityNotFoundException("No student found with number: " + studentNumber));

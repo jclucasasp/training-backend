@@ -10,6 +10,10 @@ import org.lucas.arbackend.util.ValidatedLabel;
 @Schema(name = "VRSessionStartRequest", description = "Payload to initiate a new VR training session")
 public class VRSessionStartRequest {
 
+    @NotNull(message = "Student number is required", groups = ValidatedLabel.OnCreate.class)
+    @Schema(description = "The number of the student/trainee", example = "STU-123456789")
+    private String studentNumber;
+
     @NotNull(message = "Course ID is required", groups = ValidatedLabel.OnCreate.class)
     @Schema(description = "The course ID", example = "101", requiredMode = Schema.RequiredMode.REQUIRED)
     private Long courseId;
