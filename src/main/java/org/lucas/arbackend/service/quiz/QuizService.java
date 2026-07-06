@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.BadRequestException;
 import org.lucas.arbackend.dto.quiz.*;
 import org.lucas.arbackend.entity.Organisation.Staff;
 import org.lucas.arbackend.entity.course.Chapter;
@@ -19,7 +18,6 @@ import org.lucas.arbackend.repository.course.ChapterQuizRepository;
 import org.lucas.arbackend.repository.course.ChapterRepository;
 import org.lucas.arbackend.repository.course.CourseRepository;
 import org.lucas.arbackend.repository.course.StudentQuizRepository;
-import org.lucas.arbackend.repository.quiz.QuizQuestionRepository;
 import org.lucas.arbackend.repository.quiz.QuizRepository;
 import org.lucas.arbackend.repository.quiz.StudentQuizAttemptRepository;
 import org.lucas.arbackend.repository.student.StudentRepository;
@@ -31,7 +29,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -43,7 +44,6 @@ public class QuizService {
     private final StudentQuizRepository studentQuizRepo;
     private final StudentRepository studentRepo;
     private final TenantProvider tenantProvider;
-    private final ChapterRepository chapterRepo;
     private final ChapterQuizRepository chapterQuizRepo;
     private final CourseRepository courseRepo;
     private final ObjectMapper objectMapper;

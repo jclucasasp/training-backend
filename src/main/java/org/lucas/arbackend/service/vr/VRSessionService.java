@@ -14,7 +14,6 @@ import org.lucas.arbackend.entity.vr.VREvent;
 import org.lucas.arbackend.entity.vr.VRSession;
 import org.lucas.arbackend.mapper.VRSessionMapper;
 import org.lucas.arbackend.repository.course.ChapterSectionRepository;
-import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.student.StudentRepository;
 import org.lucas.arbackend.repository.vr.VREventRepository;
 import org.lucas.arbackend.repository.vr.VRSessionRepository;
@@ -27,7 +26,6 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -40,22 +38,19 @@ public class VRSessionService {
     private final VREventRepository eventRepo;
     private  final StudentRepository studentRepo;
     private final ChapterSectionRepository sectionRepo;
-    private final OrganisationRepository orgRepo;
     private final TenantProvider tenantProvider;
     private final VRSessionMapper mapper;
 
     public VRSessionResponse startSession(String studentNumber, VRSessionStartRequest request) {
-        Long orgId = tenantProvider.get();
-        Organisation org = orgRepo.findById(orgId)
-                .orElseThrow(() -> new EntityNotFoundException("No organisation found with ID: " + orgId));
+        Organisation org = tenantProvider.getOrg();
 
-        Student student = studentRepo.findByOrganisationIdAndStudentNumber(orgId, studentNumber)
+        Student student = studentRepo.findByOrganisationIdAndStudentNumber(org.getId(), studentNumber)
                 .orElseThrow(() -> new EntityNotFoundException("No student found with number: " + studentNumber));
 
-        ChapterSection section = sectionRepo.findWithContext(request.getCourseId(), request.getChapterId(), orgId, request.getSectionId())
+        ChapterSection section = sectionRepo.findWithContext(request.getCourseId(), request.getChapterId(), org.getId(), request.getSectionId())
                 .orElseThrow(() -> new EntityNotFoundException("No section found with ID: " + request.getSectionId()));
 
-        List<VRSession> activeSession = sessionRepo.findAllByStudentStudentNumberAndOrganisationId(student.getStudentNumber(), orgId);
+        List<VRSession> activeSession = sessionRepo.findAllByStudentStudentNumberAndOrganisationId(student.getStudentNumber(), org.getId());
         if (!activeSession.isEmpty()) {
             log.warn("Student [{}] has [{}] active session, ending it before starting a new one", student.getStudentNumber(), activeSession.size());
             activeSession.forEach(this::forceEndSession);
@@ -135,11 +130,9 @@ public class VRSessionService {
     }
 
     public void batchRecordingEvents(Long sessionId, List<VREventRequest> events) {
-        Long orgId = tenantProvider.get();
-        Organisation org = orgRepo.findById(orgId)
-                .orElseThrow(() -> new EntityNotFoundException("No organisation found with ID: " + orgId));
+        Organisation org = tenantProvider.getOrg();
 
-        VRSession session = sessionRepo.findByIdAndOrganisationId(sessionId, orgId)
+        VRSession session = sessionRepo.findByIdAndOrganisationId(sessionId, org.getId())
                 .orElseThrow(() -> new EntityNotFoundException("No session found with ID: " + sessionId));
 
         List<VREvent> entities = events.stream().map(req -> VREvent.builder()

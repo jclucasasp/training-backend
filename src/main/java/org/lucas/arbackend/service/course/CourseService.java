@@ -36,7 +36,6 @@ import java.util.stream.Collectors;
 public class CourseService {
 
     private final CourseRepository courseRepo;
-    private final OrganisationRepository orgRepo;
     private final TenantProvider tenantProvider;
     private final CourseMapper courseMapper;
     private final StaffRepository staffRepo;
@@ -231,10 +230,7 @@ private void updateChapterSections(Chapter chapter, List<ChapterSectionRequest> 
 
     @Transactional(readOnly = true)
     private Organisation findOrganisation() {
-        Long orgId = tenantProvider.get();
-
-        return orgRepo.findById(tenantProvider.get())
-                .orElseThrow(() -> new EntityNotFoundException("No organisation found for tenant id: [" + orgId +"]"));
+        return tenantProvider.getOrg();
     }
 
     @Transactional(readOnly = true)

@@ -3,9 +3,6 @@ package org.lucas.arbackend.service.staff;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.BadRequestException;
-import org.lucas.arbackend.config.RabbitConfig;
-import org.lucas.arbackend.dto.EmailMessageDto;
 import org.lucas.arbackend.dto.organisation.StaffRequest;
 import org.lucas.arbackend.dto.organisation.StaffResponse;
 import org.lucas.arbackend.entity.Organisation.Organisation;
@@ -13,14 +10,12 @@ import org.lucas.arbackend.entity.Organisation.Staff;
 import org.lucas.arbackend.entity.security.Role;
 import org.lucas.arbackend.entity.security.RoleTypes;
 import org.lucas.arbackend.mapper.StaffMapper;
-import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.StaffRepository;
 import org.lucas.arbackend.repository.security.RoleRepository;
 import org.lucas.arbackend.service.cache.CacheService;
 import org.lucas.arbackend.service.messaging.CustomEmailType;
 import org.lucas.arbackend.service.messaging.EmailProducer;
 import org.lucas.arbackend.util.tenant.TenantProvider;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -38,7 +33,6 @@ public class StaffService {
 
     private final StaffRepository staffRepo;
     private final RoleRepository roleRepo;
-    private final OrganisationRepository orgRepo;
     private final PasswordEncoder passwordEncoder;
     private final CacheService cacheService;
     private final TenantProvider tenantProvider;
@@ -126,7 +120,7 @@ public class StaffService {
     }
 
     @CachePut(value = "staff_user", key = "#result.email")
-    public StaffResponse updateStaffRole(Long staffId, RoleTypes role) throws BadRequestException {
+    public StaffResponse updateStaffRole(Long staffId, RoleTypes role) {
 
         if (staffId == null) {
             throw new IllegalStateException("Must provide a valid organisation id and staff id");
@@ -163,10 +157,7 @@ public class StaffService {
     }
 
     private Organisation findOrganisation() {
-        Long orgId = tenantProvider.get();
-
-        return orgRepo.findById(tenantProvider.get())
-                .orElseThrow(() -> new EntityNotFoundException("No organisation found for tenant id: [" + orgId +"]"));
+        return tenantProvider.getOrg();
     }
 
 }

@@ -132,11 +132,10 @@ public class OrganisationService {
  * @param req The request object containing updated organization information
  * @return OrganisationResponse containing the updated organization data
  */
-    // TODO: Implement a function to update the OrganisationSubscription entity
     public OrganisationResponse updateProfile(OrganisationRequest req) {
 
     // Retrieve the organization entity
-        Organisation org = findOrganisation();
+        Organisation org = tenantProvider.getOrg();
 
     // Get the profile and address entities from the organization
         Profile profile = org.getProfile();
@@ -168,7 +167,7 @@ public class OrganisationService {
     @Transactional(readOnly = true)
     public OrganisationResponse getOrganisationDetails() {
 
-        Organisation org = findOrganisation();
+        Organisation org = tenantProvider.getOrg();
         return orgMapper.mapToOrgResponse(org);
     }
 
@@ -179,13 +178,6 @@ public class OrganisationService {
 
         cacheService.evictAuthUser(org.getEmail());
         orgRepo.delete(org);
-    }
-
-    private Organisation findOrganisation() {
-        Long orgId = tenantProvider.get();
-
-        return orgRepo.findById(tenantProvider.get())
-                .orElseThrow(() -> new EntityNotFoundException("No organisation found for tenant id: [" + orgId + "]"));
     }
 
 }

@@ -25,7 +25,6 @@ import org.lucas.arbackend.mapper.context.MappingContext;
 import org.lucas.arbackend.repository.course.ChapterSectionRepository;
 import org.lucas.arbackend.repository.course.CourseRepository;
 import org.lucas.arbackend.repository.course.StudentQuizRepository;
-import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.quiz.QuizRepository;
 import org.lucas.arbackend.repository.quiz.StudentQuizAttemptRepository;
 import org.lucas.arbackend.repository.security.RoleRepository;
@@ -58,7 +57,6 @@ public class StudentService {
     private final StudentRepository studentRepo;
     private final StudentEnrollmentRepository enrollmentRepo;
     private final StudentProgressRepository progressRepo;
-    private final OrganisationRepository orgRepo;
     private final CourseRepository courseRepo;
     private final ChapterSectionRepository sectionRepo;
     private final TenantProvider tenantProvider;
@@ -360,8 +358,7 @@ public class StudentService {
     }
 
     private Organisation findOrganisation() {
-        return orgRepo.findById(tenantProvider.get())
-                .orElseThrow(() -> new EntityNotFoundException("Organisation not found"));
+        return tenantProvider.getOrg();
     }
 
     private StudentEnrollment findEnrollment(String studentNumber, String courseSlug){
