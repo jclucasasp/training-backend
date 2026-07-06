@@ -3,10 +3,7 @@ package org.lucas.arbackend.service.vr;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.lucas.arbackend.dto.vr.VREventRequest;
-import org.lucas.arbackend.dto.vr.VRSessionEndRequest;
-import org.lucas.arbackend.dto.vr.VRSessionResponse;
-import org.lucas.arbackend.dto.vr.VRSessionStartRequest;
+import org.lucas.arbackend.dto.vr.*;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.course.ChapterSection;
 import org.lucas.arbackend.entity.student.Student;
@@ -18,6 +15,9 @@ import org.lucas.arbackend.repository.student.StudentRepository;
 import org.lucas.arbackend.repository.vr.VREventRepository;
 import org.lucas.arbackend.repository.vr.VRSessionRepository;
 import org.lucas.arbackend.util.tenant.TenantProvider;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,7 +39,11 @@ public class VRSessionService {
     private  final StudentRepository studentRepo;
     private final ChapterSectionRepository sectionRepo;
     private final TenantProvider tenantProvider;
-    private final VRSessionMapper mapper;
+    private final VRSessionMapper sessionMapper;
+
+    // ==========================================
+    // SESSION LIFECYCLE
+    // ==========================================
 
     public VRSessionResponse startSession(String studentNumber, VRSessionStartRequest request) {
         Organisation org = tenantProvider.getOrg();
@@ -72,7 +76,7 @@ public class VRSessionService {
                 .build();
 
         log.info("VR Session started: [{}] for student [{}], chapter section [{}]", session.getId(), student.getStudentNumber(), section.getTitle());
-        return mapper.toResponse(sessionRepo.save(session));
+        return sessionMapper.toResponse(sessionRepo.save(session));
     }
 
     public void forceEndSession(VRSession session) {
@@ -129,13 +133,18 @@ public class VRSessionService {
         return score.max(BigDecimal.ZERO).min(BigDecimal.ONE).setScale(2, RoundingMode.HALF_UP);
     }
 
+    // ==========================================
+    // EVENT RECORDING
+    // ==========================================
+
     public void batchRecordingEvents(Long sessionId, List<VREventRequest> events) {
         Organisation org = tenantProvider.getOrg();
 
         VRSession session = sessionRepo.findByIdAndOrganisationId(sessionId, org.getId())
                 .orElseThrow(() -> new EntityNotFoundException("No session found with ID: " + sessionId));
 
-        List<VREvent> entities = events.stream().map(req -> VREvent.builder()
+        List<VREvent> entities = events.stream()
+                .map(req -> VREvent.builder()
                 .session(session)
                 .organisation(org)
                 .eventType(req.getEventType())
@@ -155,5 +164,66 @@ public class VRSessionService {
 
         eventRepo.saveAll(entities);
         log.debug("Recorded {} events for session {}", entities.size(), sessionId);
+    }
+
+    // ==========================================
+    // QUERY OPERATIONS
+    // ==========================================
+
+    @Transactional(readOnly = true)
+    @Cacheable(value = "vr_session", key = "#sessionId", unless = "#result == null")
+    public VRSessionResponse getSession(Long sessionId) {
+        VRSession session = sessionRepo.findByIdAndOrganisationId(sessionId, tenantProvider.get())
+                .orElseThrow(() -> new EntityNotFoundException("No session found with ID: " + sessionId));
+        return sessionMapper.toResponse(session);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<VRSessionResponse> getStudentSessions(String StudentNumber, Pageable pageable) {
+        return sessionRepo.findAllByStudentStudentNumberAndOrganisationId(StudentNumber, tenantProvider.get(), pageable)
+                .map(sessionMapper::toResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<VRSessionResponse> getAllSessions(Pageable pageable) {
+        return sessionRepo.findAllByOrganisationId(tenantProvider.get(), pageable)
+                .map(sessionMapper::toResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<VREventResponse> getSessionEvents(Long sessionId, Pageable pageable) {
+        VRSession session = sessionRepo.findByIdAndOrganisationId(sessionId, tenantProvider.get())
+                .orElseThrow(() -> new EntityNotFoundException("No session found with ID: " + sessionId));
+
+        return eventRepo.findAllBySessionIdAndOrganisationId(sessionId, tenantProvider.get(), pageable)
+                .map(sessionMapper::toEventResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public List<VREventResponse> getEventsByType(Long sessionId, String eventType) {
+        return eventRepo.findAllBySessionIdAndOrganisationIdAndEventTypeOrderByTimestampAsc(
+                        sessionId, tenantProvider.get(), eventType)
+                .stream()
+                .map(sessionMapper::toEventResponse)
+                .collect(Collectors.toList());
+    }
+
+    // ==========================================
+    // ANALYTICS HELPERS
+    // ==========================================
+
+    @Transactional(readOnly = true)
+    public VRStudentAnalyticsResponse getStudentAnalytics(String studentNumber) {
+        Long orgId = tenantProvider.get();
+        long totalSessions = sessionRepo.countCompletedSessions(studentNumber, orgId);
+        Double avgQuality = sessionRepo.calculateAverageQualityScore(studentNumber, orgId);
+        long motionSicknessCount = sessionRepo.countMotionSicknessReports(studentNumber, orgId);
+
+        return VRStudentAnalyticsResponse.builder()
+                .studentNumber(studentNumber)
+                .averageQualityScore(avgQuality != null ? BigDecimal.valueOf(avgQuality) : null)
+                .motionSicknessReports(motionSicknessCount)
+                .totalCompletedSessions(totalSessions)
+                .build();
     }
 }
