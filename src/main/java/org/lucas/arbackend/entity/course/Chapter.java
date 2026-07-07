@@ -27,7 +27,7 @@ public class Chapter extends BaseEntity implements TenantEntity {
     @JoinColumn(name = "cha_org_id")
     Organisation organisation;
 
-    @Column(name = "cha_name", unique = true, nullable = false)
+    @Column(name = "cha_name", nullable = false)
     private String name;
 
     @Column(name = "cha_summary", nullable = false, columnDefinition = "TEXT")

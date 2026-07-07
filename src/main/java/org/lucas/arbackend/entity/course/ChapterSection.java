@@ -35,7 +35,7 @@ public class ChapterSection extends BaseEntity implements TenantEntity {
     @JoinColumn(name = "chs_chapter_id")
     private Chapter chapter;
 
-    @Column(name = "chs_title", unique = true, nullable = false)
+    @Column(name = "chs_title", nullable = false)
     private String title;
 
     @Column(name = "chs_content", nullable = false, columnDefinition = "TEXT")

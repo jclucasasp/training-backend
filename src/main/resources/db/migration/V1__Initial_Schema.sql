@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS organisation (
     contact_number VARCHAR(15) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     org_password VARCHAR(255) NOT NULL,
-    org_role_id TINYINT(1) DEFAULT 1,
+    org_role_id BIGINT DEFAULT 1,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
     ended_at DATETIME NULL,
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS organisation (
 CREATE TABLE IF NOT EXISTS organisation_subscription (
     osu_org_id BIGINT NOT NULL PRIMARY KEY,
     osu_plan_id BIGINT NOT NULL,
-    osu_subscription_amount DOUBLE NOT NULL,
+    osu_subscription_amount DECIMAL(19,2) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
     ended_at DATETIME NULL,
@@ -203,8 +203,7 @@ CREATE TABLE IF NOT EXISTS chapter_section (
     updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
     ended_at DATETIME NULL,
     CONSTRAINT fk_chs_org FOREIGN KEY (chs_org_id) REFERENCES organisation(org_id),
-    CONSTRAINT fk_chs_chapter FOREIGN KEY (chs_chapter_id) REFERENCES chapter(cha_id),
-    UNIQUE INDEX idx_unique_section_title (chs_chapter_id, chs_title)
+    CONSTRAINT fk_chs_chapter FOREIGN KEY (chs_chapter_id) REFERENCES chapter(cha_id)
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS attachment (

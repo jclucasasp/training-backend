@@ -24,6 +24,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Slf4j
 @Service
@@ -96,6 +97,10 @@ public class StaffService {
                 throw new IllegalStateException("Must provide a valid organisation id and staff id");
         }
 
+        if (request.getPassword().isBlank()) {
+            throw new IllegalStateException("Password cannot be blank");
+        }
+
         Staff staff = staffRepo.findById(staffId)
                 .orElseThrow(() -> new EntityNotFoundException("Staff not found"));
 
@@ -103,18 +108,17 @@ public class StaffService {
             throw new AccessDeniedException("You are not allowed to update this staff member");
         }
 
-        staffMapper.updateStaff(request, staff);
-        staff.setPassword(request.getPassword() == null ? staff.getPassword() : passwordEncoder.encode(request.getPassword()));
+        staff.setPassword(passwordEncoder.encode(request.getPassword()));
 
         if (request.getEmail() != null) {
             cacheService.evictAuthUser(staff.getEmail());
         }
 
+        staffMapper.updateStaff(request, staff);
         StaffResponse staffResponse = staffMapper.maptoStaffResponse(staff);
 
+        staffRepo.saveAndFlush(staff);
         cacheService.updateCache("staff_user", staff.getEmail(), staffResponse);
-
-        staffRepo.save(staff);
 
         return staffResponse;
     }
