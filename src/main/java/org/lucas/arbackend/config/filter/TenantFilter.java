@@ -18,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -39,7 +40,7 @@ public class TenantFilter extends OncePerRequestFilter {
         String apiKeyHeader = request.getHeader("X-API-KEY");
 
         try {
-            if (apiKeyHeader != null) {
+            if (StringUtils.hasText(apiKeyHeader)) {
                 // PATH A: Student signup via API Key
                 handleApiKeyAuthentication(apiKeyHeader);
             } else {
