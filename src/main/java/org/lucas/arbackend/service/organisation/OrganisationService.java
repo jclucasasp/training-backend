@@ -109,7 +109,7 @@ public class OrganisationService {
         Organisation savedOrg = orgRepo.save(org);
 
     // Create and authenticate the new user
-        CustomUserDetails newUser = new CustomUserDetails(org.getId(), org.getEmail(), "", org.getId(), org.getRole().getRoleName().name());
+        CustomUserDetails newUser = new CustomUserDetails(org.getId(), org.getEmail(),null, org.getPassword(), org.getId(), org.getRole().getRoleName().name());
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(newUser, null, newUser.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
 

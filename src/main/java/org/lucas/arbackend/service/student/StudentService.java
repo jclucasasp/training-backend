@@ -74,7 +74,6 @@ public class StudentService {
     private final RoleRepository roleRepo;
     private final CacheService cacheService;
     private final EmailProducer emailProducer;
-    private final SecurityContext securityContext;
 
     public StudentResponse createStudent(String studentNumber, StudentRequest request) {
 
