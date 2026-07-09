@@ -21,8 +21,12 @@ import org.lucas.arbackend.repository.course.StudentQuizRepository;
 import org.lucas.arbackend.repository.quiz.QuizRepository;
 import org.lucas.arbackend.repository.quiz.StudentQuizAttemptRepository;
 import org.lucas.arbackend.repository.student.StudentRepository;
+import org.lucas.arbackend.service.student.StudentService;
+import org.lucas.arbackend.util.CustomUserDetails;
 import org.lucas.arbackend.util.tenant.TenantProvider;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -230,7 +234,7 @@ public class QuizService {
     // ==========================================
 
     public QuizResultResponse submitAndGradeQuiz(Long quizId, QuizSubmissionRequest submission) {
-
+        authenticateStudent(submission.getStudentNumber());
         StudentQuiz studentQuiz = findStudentQuiz(submission.getStudentNumber(), quizId);
         Quiz quiz = studentQuiz.getQuiz();
 
@@ -346,9 +350,8 @@ public class QuizService {
             chapter.getChapterQuizzes().add(link);
         }
 
-//    }
-
     private StudentQuiz findStudentQuiz(String studentNumber, Long quizId) {
+        authenticateStudent(studentNumber);
         Student student = studentRepo.findByOrganisationIdAndStudentNumber(tenantProvider.get(), studentNumber)
                 .orElseThrow(() -> new EntityNotFoundException("Student not found"));
 
@@ -365,5 +368,23 @@ public class QuizService {
             throw new RuntimeException("Failed to serialise quiz answers", e);
         }
         return valueAsString;
+    }
+
+    private void authenticateStudent(String studentNumber) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new AccessDeniedException("User is not authenticated");
+        }
+
+        if (auth.getPrincipal() instanceof CustomUserDetails userDetails) {
+            String cachedStudentNumber = userDetails.getStudentNumber();
+
+            if (!cachedStudentNumber.equals(studentNumber)) {
+                throw new AccessDeniedException("Student number does not match logged in student number");
+            }
+        } else {
+            throw new AccessDeniedException("Invalid authentication principal identity");
+        }
     }
 }
