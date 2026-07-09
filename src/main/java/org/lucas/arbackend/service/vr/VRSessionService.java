@@ -3,6 +3,7 @@ package org.lucas.arbackend.service.vr;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lucas.arbackend.config.RabbitConfig;
 import org.lucas.arbackend.dto.vr.*;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.course.ChapterSection;
@@ -14,7 +15,11 @@ import org.lucas.arbackend.repository.course.ChapterSectionRepository;
 import org.lucas.arbackend.repository.student.StudentRepository;
 import org.lucas.arbackend.repository.vr.VREventRepository;
 import org.lucas.arbackend.repository.vr.VRSessionRepository;
+import org.lucas.arbackend.util.tenant.TenantContext;
 import org.lucas.arbackend.util.tenant.TenantProvider;
+import org.springframework.amqp.AmqpRejectAndDontRequeueException;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -40,6 +45,8 @@ public class VRSessionService {
     private final ChapterSectionRepository sectionRepo;
     private final TenantProvider tenantProvider;
     private final VRSessionMapper sessionMapper;
+
+    private final RabbitTemplate rabbitTemplate;
 
     // ==========================================
     // SESSION LIFECYCLE
@@ -135,36 +142,73 @@ public class VRSessionService {
     }
 
     // ==========================================
-    // EVENT RECORDING
+    // EVENT RECORDING (PRODUCER & CONSUMER)
     // ==========================================
 
+    /**
+     * PRODUCER ENTRYPOINT: Captures context from the API request thread,
+     * offloads payload to RabbitMQ instantly, and unblocks the headset immediately.
+     */
     public void batchRecordingEvents(Long sessionId, List<VREventRequest> events) {
+        if (events == null || events.isEmpty()) {
+            return;
+        }
+
         Organisation org = tenantProvider.getOrg();
 
-        VRSession session = sessionRepo.findByIdAndOrganisationId(sessionId, org.getId())
-                .orElseThrow(() -> new EntityNotFoundException("No session found with ID: " + sessionId));
+        log.debug("Offloading {} VR telemetry events to RabbitMQ for session {}", events.size(), sessionId);
+        VRTelemetryPayloadDto payloadDto = new VRTelemetryPayloadDto(sessionId, org.getId(), events);
+        rabbitTemplate.convertAndSend(
+                RabbitConfig.VR_TELEMETRY_EXCHANGE,
+                RabbitConfig.VR_TELEMETRY_ROUTING_KEY,
+                payloadDto
+        );
+    }
 
-        List<VREvent> entities = events.stream()
-                .map(req -> VREvent.builder()
-                .session(session)
-                .organisation(org)
-                .eventType(req.getEventType())
-                .timestamp(req.getTimestamp())
-                .positionX(req.getPositionX())
-                .positionY(req.getPositionY())
-                .positionZ(req.getPositionZ())
-                .rotationX(req.getRotationX())
-                .rotationY(req.getRotationY())
-                .rotationZ(req.getRotationZ())
-                .targetObjectId(req.getTargetObjectId())
-                .durationInMilliseconds(req.getDurationMs())
-                .metadataJson(req.getMetadataJson())
-                .hand(req.getHand())
-                .sequenceNumber(req.getSequenceNumber())
-                .build()).collect(Collectors.toList());
+      /**
+     * ASYNCHRONOUS WORKER CONSUMER: Processes telemetry data streams sequentially
+     * without choking up live client response loops.
+     */
+    @RabbitListener(queues = RabbitConfig.VR_TELEMETRY_QUEUE)
+    public void consumeVRTelemetry(VRTelemetryPayloadDto payloadDto) {
+        log.debug("RabbitMQ worker processing telemetry block for VR Session: {}", payloadDto.getSessionId());
 
-        eventRepo.saveAll(entities);
-        log.debug("Recorded {} events for session {}", entities.size(), sessionId);
+        try {
+            TenantContext.setCurrentTenant(payloadDto.getOrgId());
+            Organisation org = tenantProvider.getOrg();
+            VRSession session = sessionRepo.findByIdAndOrganisationId(payloadDto.getSessionId(), org.getId())
+                    .orElseThrow(() -> new EntityNotFoundException("No session found with ID: " + payloadDto.getSessionId()));
+
+            List<VREvent> entities = payloadDto.getEvents().stream()
+                    .map(req -> VREvent.builder()
+                            .session(session)
+                            .organisation(org)
+                            .eventType(req.getEventType())
+                            .timestamp(req.getTimestamp())
+                            .positionX(req.getPositionX())
+                            .positionY(req.getPositionY())
+                            .positionZ(req.getPositionZ())
+                            .rotationX(req.getRotationX())
+                            .rotationY(req.getRotationY())
+                            .rotationZ(req.getRotationZ())
+                            .targetObjectId(req.getTargetObjectId())
+                            .durationInMilliseconds(req.getDurationMs())
+                            .metadataJson(req.getMetadataJson())
+                            .hand(req.getHand())
+                            .sequenceNumber(req.getSequenceNumber())
+                            .build()).collect(Collectors.toList());
+
+            eventRepo.saveAll(entities);
+            log.info("Successfully written batch of {} events for VR Session {}", entities.size(), payloadDto.getSessionId());
+        } catch (Exception e) {
+            log.error("Fatal exception encountered while inserting VR telemetry block inside consumer", e);
+            // Throwing an AmqpRejectAndDontRequeueException prevents toxic/unparseable messages
+            // from loop-locking the backend worker threads indefinitely.
+            throw new AmqpRejectAndDontRequeueException("Rejecting corrupted telemetry message block.", e);
+        } finally {
+            // 5. CRITICAL: Clear the thread local storage to prevent thread-pool memory leaks
+            TenantContext.clear();
+        }
     }
 
     // ==========================================

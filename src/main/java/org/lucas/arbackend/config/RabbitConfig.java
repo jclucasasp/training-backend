@@ -19,6 +19,10 @@ public class RabbitConfig {
     public static final String PAYFAST_ITN_EXCHANGE = "payfast-itn-exchange";
     public static final String PAYFAST_ITN_ROUTING_KEY = "payfast-itn-routing-key";
 
+    public static final String VR_TELEMETRY_QUEUE = "vr-telemetry-queue";
+    public static final String VR_TELEMETRY_EXCHANGE = "vr-telemetry-exchange";
+    public static final String VR_TELEMETRY_ROUTING_KEY = "vr-telemetry-routing-key";
+
     @Bean
     public Queue emailQueue() {
         return new Queue(EMAIL_QUEUE, true);
@@ -59,6 +63,26 @@ public class RabbitConfig {
                 .bind(payfastItnQueue)
                 .to(payfastItnExchange)
                 .with(PAYFAST_ITN_ROUTING_KEY);
+    }
+
+    @Bean
+    public Queue vrTelemetryQueue() {
+        return new Queue(VR_TELEMETRY_QUEUE, true);
+    }
+
+    @Bean
+    public DirectExchange vrTelemetryExchange() {
+        return new DirectExchange(VR_TELEMETRY_EXCHANGE, true, false);
+    }
+
+    @Bean
+    public Binding vrTelemetryBinding(
+            @Qualifier("vrTelemetryQueue") Queue vrTelemetryQueue,
+            @Qualifier("vrTelemetryExchange") DirectExchange vrTelemetryExchange) {
+        return BindingBuilder
+                .bind(vrTelemetryQueue)
+                .to(vrTelemetryExchange)
+                .with(VR_TELEMETRY_ROUTING_KEY);
     }
 
     @Bean
