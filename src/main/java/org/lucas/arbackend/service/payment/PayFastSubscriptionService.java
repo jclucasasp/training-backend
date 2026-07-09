@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.InternalException;
+import org.lucas.arbackend.config.RabbitConfig;
 import org.lucas.arbackend.dto.payfast.PayFastSubUpdateReqDto;
 import org.lucas.arbackend.dto.payfast.PayFastSubUpdateResDto;
 import org.lucas.arbackend.dto.payfast.PayFastSubscriptionDto;
@@ -28,6 +29,9 @@ import org.lucas.arbackend.repository.payment.PaymentLogRepository;
 import org.lucas.arbackend.repository.security.RoleRepository;
 import org.lucas.arbackend.service.cache.CacheService;
 import org.lucas.arbackend.util.tenant.TenantProvider;
+import org.springframework.amqp.AmqpRejectAndDontRequeueException;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -67,6 +71,7 @@ public class PayFastSubscriptionService {
 
     private final RestClient restClient = RestClient.builder().baseUrl("https://api.payfast.co.za").build();
     private final ObjectMapper mapper = getObjectMapper();
+    private final RabbitTemplate rabbitTemplate;
 
     @Value("${payfast.pass-phrase}")
     private String PASSPHRASE;
@@ -100,6 +105,20 @@ public class PayFastSubscriptionService {
             params.put(paramName, paramValue != null ? paramValue : "");
         }
 
+        log.info("Received PayFast ITN webhook callback. Offloading payload to queue for token : [{}]", params.get("token"));
+        rabbitTemplate.convertAndSend(
+                RabbitConfig.PAYFAST_ITN_QUEUE,
+                RabbitConfig.PAYFAST_ITN_ROUTING_KEY,
+                params
+        );
+        // Immediately respond with a 200 OK back to PayFast to satisfy their network timeouts
+        return "OK";
+    }
+
+    @RabbitListener(queues = RabbitConfig.PAYFAST_ITN_QUEUE)
+    public void consumeItnMessage(Map<String, String> params) {
+        log.info("Received PayFast ITN webhook callback. Processing payload : [{}]", params);
+
         try {
             // Use the correct PayFast key 'payment_status'
             PaymentStatus paymentStatus;
@@ -131,7 +150,7 @@ public class PayFastSubscriptionService {
                 paymentLog.setSubscriptionStatus(SubscriptionStatus.valueOf(params.get("payment_status")));
                 paymentLog.setEndedAt(LocalDateTime.now());
                 logRepo.saveAndFlush(paymentLog);
-                return "OK";
+                return; // Early return for void asynchronous consumer method
             }
 
             PlanTypes planTerm = null;
@@ -201,12 +220,11 @@ public class PayFastSubscriptionService {
                     .build());
 
         } catch (Exception e) {
-            log.error("Critical ITN Error", e);
-            // Return 500 so PayFast retries
-            throw new RuntimeException(e);
+            log.error("Critical Exception processing asynchronous PayFast ITN queue message", e);
+            // Re-throwing an AmqpRejectAndDontRequeueException prevents a corrupted message
+            // (poison-pill) from infinitely cycling and locking your worker loops.
+            throw new AmqpRejectAndDontRequeueException("Rejecting corrupt or unparseable webhook message payload", e);
         }
-
-        return "OK";
     }
 
     public PayFastSubUpdateResDto updateSubscription(PayFastSubUpdateReqDto updateParams) {
