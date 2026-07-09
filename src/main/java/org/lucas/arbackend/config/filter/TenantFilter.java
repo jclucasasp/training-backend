@@ -8,17 +8,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
 import org.jspecify.annotations.NonNull;
-import org.lucas.arbackend.dto.security.ApiKeyResponse;
-import org.lucas.arbackend.entity.security.RoleTypes;
 import org.lucas.arbackend.service.security.AuthLookupService;
 import org.lucas.arbackend.util.CustomUserDetails;
 import org.lucas.arbackend.util.tenant.TenantContext;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -40,13 +36,14 @@ public class TenantFilter extends OncePerRequestFilter {
         String apiKeyHeader = request.getHeader("X-API-KEY");
 
         try {
-            if (StringUtils.hasText(apiKeyHeader)) {
-                // PATH A: Student signup via API Key
-                handleApiKeyAuthentication(apiKeyHeader);
-            } else {
-                // PATH C: Student/Staff/Org via Session (Already populated by Spring Session)
-                handleSessionAuthentication();
-            }
+//            if (StringUtils.hasText(apiKeyHeader)) {
+//                // PATH A: Student signup via API Key
+//                handleApiKeyAuthentication(apiKeyHeader);
+//            } else {
+//                // PATH C: Student/Staff/Org via Session (Already populated by Spring Session)
+//                handleSessionAuthentication();
+//            }
+            handleSessionAuthentication();
 
             filterChain.doFilter(request, response);
         } finally {
@@ -59,32 +56,32 @@ public class TenantFilter extends OncePerRequestFilter {
 
     }
 
-    private void handleApiKeyAuthentication(String apiKeyHeader) throws BadRequestException, AccessDeniedException {
-        if (apiKeyHeader.length() < 12) throw new BadRequestException("Malformed API Key");
-
-        String prefix = apiKeyHeader.substring(0, 12);
-
-        ApiKeyResponse apiKey = authLookupService.getApiKey(prefix);
-
-        if (!encoder.matches(apiKeyHeader, apiKey.getHashedKey())) {
-            log.warn("Invalid API Key: {} for organisation: {}", apiKeyHeader, apiKey.getOrgId());
-            throw new AccessDeniedException("Invalid API Key");
-        }
-
-        if (!apiKey.getIsSubscriptionActive()) {
-            log.warn("Subscription for org {} has expired", apiKey.getOrgId());
-            throw new AccessDeniedException("Subscription has expired");
-        }
-
-        Long orgId = apiKey.getOrgId();
-        TenantContext.setCurrentTenant(orgId);
-
-        // Manually set Student in SecurityContext so @PreAuthorize works
-        CustomUserDetails student = new CustomUserDetails(null,"API_KEY_" + prefix, "", orgId, RoleTypes.STUDENT.name());
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(student, null, student.getAuthorities())
-        );
-    }
+//    private void handleApiKeyAuthentication(String apiKeyHeader) throws BadRequestException, AccessDeniedException {
+//        if (apiKeyHeader.length() < 12) throw new BadRequestException("Malformed API Key");
+//
+//        String prefix = apiKeyHeader.substring(0, 12);
+//
+//        ApiKeyResponse apiKey = authLookupService.getApiKey(prefix);
+//
+//        if (!encoder.matches(apiKeyHeader, apiKey.getHashedKey())) {
+//            log.warn("Invalid API Key: {} for organisation: {}", apiKeyHeader, apiKey.getOrgId());
+//            throw new AccessDeniedException("Invalid API Key");
+//        }
+//
+//        if (!apiKey.getIsSubscriptionActive()) {
+//            log.warn("Subscription for org {} has expired", apiKey.getOrgId());
+//            throw new AccessDeniedException("Subscription has expired");
+//        }
+//
+//        Long orgId = apiKey.getOrgId();
+//        TenantContext.setCurrentTenant(orgId);
+//
+//        // Manually set Student in SecurityContext so @PreAuthorize works
+//        CustomUserDetails student = new CustomUserDetails(null,"API_KEY_" + prefix, "", orgId, RoleTypes.STUDENT.name());
+//        SecurityContextHolder.getContext().setAuthentication(
+//                new UsernamePasswordAuthenticationToken(student, null, student.getAuthorities())
+//        );
+//    }
 
     private void handleSessionAuthentication() {
         // Gets it from Redis Session

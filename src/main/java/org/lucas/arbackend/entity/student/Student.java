@@ -8,6 +8,7 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.base.BaseEntity;
 import org.lucas.arbackend.entity.Organisation.Organisation;
+import org.lucas.arbackend.entity.base.ContactBaseEntity;
 import org.lucas.arbackend.entity.quiz.StudentQuiz;
 import org.lucas.arbackend.entity.security.Role;
 import org.lucas.arbackend.util.tenant.TenantEntity;
@@ -24,7 +25,7 @@ import java.util.Set;
 @SQLRestriction("ended_at IS NULL")
 @EntityListeners(AuditingEntityListener.class)
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-public class Student extends BaseEntity implements TenantEntity {
+public class Student extends ContactBaseEntity implements TenantEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "stu_id")
     private Long id;
@@ -36,17 +37,7 @@ public class Student extends BaseEntity implements TenantEntity {
     @Column(name = "stu_student_number", nullable = false)
     private String studentNumber;
 
-    @Column(name = "stu_first_name", nullable = true)
-    private String firstName;
-
-    @Column(name = "stu_last_name", nullable = true)
-    private String lastName;
-
-    @Column(name = "stu_email", nullable = true)
-    @Email
-    private String email;
-
-    @Column(name = "stu_password", nullable = true)
+    @Column(name = "stu_password")
     private String password;
 
     @OneToOne(fetch = FetchType.EAGER)

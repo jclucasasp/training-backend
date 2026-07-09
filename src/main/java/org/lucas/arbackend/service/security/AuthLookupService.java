@@ -3,7 +3,6 @@ package org.lucas.arbackend.service.security;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.BadRequestException;
 import org.lucas.arbackend.dto.CacheDto;
 import org.lucas.arbackend.dto.security.ApiKeyResponse;
 import org.lucas.arbackend.entity.Organisation.OrganisationSubscription;
@@ -60,6 +59,7 @@ public class AuthLookupService {
                             org.getRole().getRoleName().name(),
                             org.getId(),
                             apiKey,
+                            null,
                             isSubscriptionActive
                     );
                 })
@@ -80,6 +80,7 @@ public class AuthLookupService {
                                             staff.getRole().getRoleName().name(),
                                             staff.getOrganisation().getId(),
                                             apiKey,
+                                            null,
                                             isSubscriptionActive
                                     );
                         })
@@ -97,10 +98,11 @@ public class AuthLookupService {
                                                     student.getPassword(),
                                                     student.getFirstName(),
                                                     student.getLastName(),
-                                                    "",
+                                                    student.getContactNumber(),
                                                     student.getRole().getRoleName().name(),
                                                     student.getOrganisation().getId(),
                                                     apiKey,
+                                                    student.getStudentNumber(),
                                                     isSubscriptionActive
                                             );
                                 })
@@ -116,10 +118,9 @@ public class AuthLookupService {
      *
      * @param prefix The prefix of the API key to retrieve
      * @return ApiKeyResponse containing the API key information and subscription status
-     * @throws BadRequestException if there's an error with the request
      */
     @Cacheable(value = "api_key", key = "#prefix", unless = "#result == null")
-    public ApiKeyResponse getApiKey(String prefix) throws BadRequestException {
+    public ApiKeyResponse getApiKey(String prefix) {
 
         // Find API key by prefix or throw exception if not found
         ApiKey apiKey = apiKeyRepo.findByPrefix(prefix).orElseThrow(() -> new EntityNotFoundException("API Key not found: " + prefix));

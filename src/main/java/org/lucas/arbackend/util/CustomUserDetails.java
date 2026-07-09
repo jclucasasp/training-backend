@@ -16,13 +16,15 @@ public class CustomUserDetails extends User implements Serializable {
     private final Long id;
     private final Long orgId;
     private final String email;
+    private final String studentNumber;
     private final String roleName;
 
-    public CustomUserDetails(Long id, String email, String password, Long orgId, String roleName) {
+    public CustomUserDetails(Long id, String email, String studentNumber, String password, Long orgId, String roleName) {
         super(email, password, List.of(new SimpleGrantedAuthority(roleName)));
         this.id = id;
         this.orgId = orgId;
         this.email = email;
+        this.studentNumber = studentNumber;
         this.roleName = roleName;
     }
 }

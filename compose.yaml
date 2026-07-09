@@ -12,11 +12,6 @@ services:
       - '3306:3306'
     volumes:
       - 'mariadb_data:/var/lib/mysql'
-    deploy:
-      resources:
-        limits:
-          cpus: "0.25"
-          memory: 256M
 
   adminer:
     image: adminer:latest
@@ -26,11 +21,6 @@ services:
     ports:
       - "8081:8080" # Map host 8081 to Adminer's 8080
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: "0.1"
-          memory: 64M
 
   rabbitmq:
     image: 'rabbitmq:4.0-management'
@@ -54,10 +44,6 @@ services:
       - '6379:6379'
     volumes:
       - 'redis_data:/data'
-    deploy:
-      resources:
-        limits:
-          cpus: "0.20"
 
 volumes:
   mariadb_data:

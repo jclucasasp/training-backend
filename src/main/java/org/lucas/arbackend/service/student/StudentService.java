@@ -34,9 +34,14 @@ import org.lucas.arbackend.repository.student.StudentRepository;
 import org.lucas.arbackend.service.cache.CacheService;
 import org.lucas.arbackend.service.messaging.CustomEmailType;
 import org.lucas.arbackend.service.messaging.EmailProducer;
+import org.lucas.arbackend.util.CustomUserDetails;
 import org.lucas.arbackend.util.tenant.TenantProvider;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,6 +74,7 @@ public class StudentService {
     private final RoleRepository roleRepo;
     private final CacheService cacheService;
     private final EmailProducer emailProducer;
+    private final SecurityContext securityContext;
 
     public StudentResponse createStudent(String studentNumber, StudentRequest request) {
 
@@ -172,7 +178,7 @@ public class StudentService {
     public void updateProgress(String studentNumber, Long courseId, Long chapterId, Long sectionId) {
         // 1. Context Resolution (Org & Student)
         Organisation org = findOrganisation();
-
+        authenticateStudent(studentNumber);
         Student student = findStudent(org.getId(), studentNumber);
 
         // 2. Resolve the Section first (needed for both Enrollment lookup and Progress)
@@ -275,7 +281,8 @@ public class StudentService {
     // TODO: Check if all the sections have been completed on the frontend and give a warning if not
     // Need to loop through all the sections and check if they have been completed
     public void registerStudentForQuiz(String studentNumber, Long quizId) {
-        Organisation org = findOrganisation();
+        Organisation org = tenantProvider.getOrg();
+        authenticateStudent(studentNumber);
 
         Student student = findStudent(org.getId(), studentNumber);
 
@@ -303,6 +310,7 @@ public class StudentService {
     // 3. RESUME & QUIZ SUBMISSION
     // ==========================================
     public StudentTokenResponse getResumeDetails(String studentNumber, String courseSlug) {
+        authenticateStudent(studentNumber);
         StudentEnrollment enrollment = findEnrollment(studentNumber, courseSlug);
         StudentTokenResponse tokenResponse =  cacheService.getActiveStudentToken(studentNumber);
         if (tokenResponse == null) {
@@ -315,6 +323,8 @@ public class StudentService {
     @Transactional(readOnly = true)
     public List<EnrollmentResponse> getStudentDashboard(String studentNumber) {
         Long orgId = tenantProvider.get();
+        authenticateStudent(studentNumber);
+
         return enrollmentRepo.findAllByStudentNumber(orgId, studentNumber)
                 .stream()
                 .map(e -> EnrollmentResponse.builder()
@@ -380,6 +390,24 @@ public class StudentService {
     private Quiz findQuiz(Long quizId, Long orgId) {
         return quizRepo.findByIdAndOrganisationId(quizId, orgId)
                 .orElseThrow(() -> new EntityNotFoundException("Quiz not found or belongs to another organisation"));
+    }
+
+    private void authenticateStudent(String studentNumber) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new AccessDeniedException("User is not authenticated");
+        }
+
+        if (auth.getPrincipal() instanceof CustomUserDetails userDetails) {
+            String cachedStudentNumber = userDetails.getStudentNumber();
+
+            if (!cachedStudentNumber.equals(studentNumber)) {
+                throw new AccessDeniedException("Student number does not match logged in student number");
+            }
+        } else {
+            throw new AccessDeniedException("Invalid authentication principal identity");
+        }
     }
 
 }

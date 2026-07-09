@@ -24,5 +24,6 @@ public class CacheDto implements Serializable {
     private String roleName;
     private Long orgId;
     private String apiKey;
+    private String studentNumber;
     private Boolean isSubscriptionActive;
 }

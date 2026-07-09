@@ -40,10 +40,11 @@ public class CustomUserDetailsService implements UserDetailsService {
         // Create and return a CustomUserDetails object with the retrieved authentication data
        return new CustomUserDetails(
                auth.getId(),
-                auth.getEmail(),
-                auth.getPassword(),
-                auth.getOrgId(),
-                auth.getRoleName()
+               auth.getEmail(),
+               auth.getStudentNumber(),
+               auth.getPassword(),
+               auth.getOrgId(),
+               auth.getRoleName()
        );
 
     }

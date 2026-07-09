@@ -1,6 +1,5 @@
 package org.lucas.arbackend.repository.student;
 
-import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.student.Student;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,4 +24,6 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     List<Student> findAllByEnrolledCourses(@Param("orgId") Long orgId, @Param("courseId") Long courseId);
 
         Optional<Student> findByEmail(String email);
+
+    Optional<Student> findByOrganisationIdAndEmail(Long orgId, String email);
 }
