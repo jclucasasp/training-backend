@@ -1,4 +1,4 @@
-package org.lucas.arbackend.dto.vr;
+package org.lucas.arbackend.dto.vr.session;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;

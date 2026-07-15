@@ -3,6 +3,7 @@ package org.lucas.arbackend.dto.vr;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.lucas.arbackend.dto.vr.event.VREventRequest;
 
 import java.io.Serial;
 import java.io.Serializable;
