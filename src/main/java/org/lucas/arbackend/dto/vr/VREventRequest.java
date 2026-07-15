@@ -4,8 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
-import org.lucas.arbackend.entity.vr.VREventType;
-import org.lucas.arbackend.entity.vr.VRHandType;
+import org.lucas.arbackend.entity.vr.event.VREventType;
+import org.lucas.arbackend.entity.vr.event.VRHandType;
 import org.lucas.arbackend.util.ValidatedLabel;
 
 import java.math.BigDecimal;

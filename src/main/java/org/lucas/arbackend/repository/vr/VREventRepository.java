@@ -1,6 +1,6 @@
 package org.lucas.arbackend.repository.vr;
 
-import org.lucas.arbackend.entity.vr.VREvent;
+import org.lucas.arbackend.entity.vr.event.VREvent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,10 +1,11 @@
-package org.lucas.arbackend.entity.vr;
+package org.lucas.arbackend.entity.vr.event;
 
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.base.BaseEntity;
+import org.lucas.arbackend.entity.vr.VRSession;
 import org.lucas.arbackend.util.tenant.TenantEntity;
 
 import java.math.BigDecimal;
@@ -19,52 +20,52 @@ public class VREvent extends BaseEntity implements TenantEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn (name = "vre_session_id", nullable = false)
+    @JoinColumn (name = "vr_eve_session_id", nullable = false)
     private VRSession session;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "vre_org_id", nullable = false)
+    @JoinColumn(name = "vr_eve_org_id", nullable = false)
     private Organisation organisation;
 
-    @Column(name = "vre_event_type", nullable = false)
+    @Column(name = "vr_eve_event_type", nullable = false)
     @Enumerated(EnumType.STRING)
     private VREventType eventType; // GAZE, INTERACT, GRAB, TELEPORT, COLLISION, COMPLETION_CONDITION_MET
 
-    @Column(name = "vre_timestamp", nullable = false)
+    @Column(name = "vr_eve_timestamp", nullable = false)
     private LocalDateTime timestamp; // Event time (not session time, for precision)
 
-    @Column(name = "vre_position_x", precision = 10, scale = 4)
+    @Column(name = "vr_eve_position_x", precision = 10, scale = 4)
     private BigDecimal positionX;
 
-    @Column(name = "vre_position_y", precision = 10, scale = 4)
+    @Column(name = "vr_eve_position_y", precision = 10, scale = 4)
     private BigDecimal positionY;
 
-    @Column(name = "vre_position_z", precision = 10, scale = 4)
+    @Column(name = "vr_eve_position_z", precision = 10, scale = 4)
     private BigDecimal positionZ;
 
-    @Column(name = "vre_rotation_x", precision = 10, scale = 4)
+    @Column(name = "vr_eve_rotation_x", precision = 10, scale = 4)
     private BigDecimal rotationX;
 
-    @Column(name = "vre_rotation_y", precision = 10, scale = 4)
+    @Column(name = "vr_eve_rotation_y", precision = 10, scale = 4)
     private BigDecimal rotationY;
 
-    @Column(name = "vre_rotation_z", precision = 10, scale = 4)
+    @Column(name = "vr_eve_rotation_z", precision = 10, scale = 4)
     private BigDecimal rotationZ;
 
-    @Column(name = "vre_target_object_id", length = 100)
+    @Column(name = "vr_eve_target_object_id", length = 100)
     private String targetObjectId;  // Matches SceneObject.objectId from your SceneConfig
 
-    @Column(name = "vre_duration_ms")
+    @Column(name = "vr_eve_duration_ms")
     private Integer durationInMilliseconds;
 
-    @Column(name = "vre_metadata")
+    @Column(name = "vr_eve_metadata")
     private String metadataJson;
 
-    @Column(name = "vre_hand")
+    @Column(name = "vr_eve_hand")
     @Enumerated(EnumType.STRING)
     private VRHandType hand;
 
-    @Column(name = "vre_sequence_number")
+    @Column(name = "vr_eve_sequence_number")
     private Long sequenceNumber;
 
     @Override

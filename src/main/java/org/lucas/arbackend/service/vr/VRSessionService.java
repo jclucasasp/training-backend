@@ -8,7 +8,7 @@ import org.lucas.arbackend.dto.vr.*;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.course.ChapterSection;
 import org.lucas.arbackend.entity.student.Student;
-import org.lucas.arbackend.entity.vr.VREvent;
+import org.lucas.arbackend.entity.vr.event.VREvent;
 import org.lucas.arbackend.entity.vr.VRSession;
 import org.lucas.arbackend.mapper.VRSessionMapper;
 import org.lucas.arbackend.repository.course.ChapterSectionRepository;

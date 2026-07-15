@@ -22,67 +22,67 @@ import java.time.LocalDateTime;
 @Getter @Setter @AllArgsConstructor @NoArgsConstructor @Builder
 public class VRSession extends BaseEntity implements TenantEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "vrs_id")
+    @Column(name = "vr_ses_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "vrs_student_number", nullable = false)
+    @JoinColumn(name = "vr_ses_student_number", nullable = false)
     private Student student;
 
     @ManyToOne
-    @JoinColumn(name = "vrs_section_id", nullable = false)
+    @JoinColumn(name = "vr_ses_section_id", nullable = false)
     private ChapterSection chapterSection;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "vrs_org_id", nullable = false)
+    @JoinColumn(name = "vr_ses_org_id", nullable = false)
     private Organisation organisation;
 
-    @Column(name = "vrs_device_id")
+    @Column(name = "vr_ses_device_id")
     private String deviceId;
 
-    @Column(name = "vrs_headset_model")
+    @Column(name = "vr_ses_headset_model")
     private String headsetModel;
 
-    @Column(name = "vrs_stared_at", nullable = false)
+    @Column(name = "vr_ses_stared_at", nullable = false)
     private LocalDateTime startedAt;
 
-    @Column(name = "vrs_ended_at")
+    @Column(name = "vr_ses_ended_at")
     private LocalDateTime endedAt;
 
-    @Column(name = "vrs_duration_seconds")
+    @Column(name = "vr_ses_duration_seconds")
     private Integer durationSeconds;
 
-    @Column(name = "vrs_comfort_rating")
+    @Column(name = "vr_ses_comfort_rating")
     private Integer comfortRating;
 
-    @Column(name = "vrs_motion_sickness_reported")
+    @Column(name = "vr_ses_motion_sickness_reported")
     private Boolean motionSicknessReported;
 
-    @Column(name = "vrs_session_quality_score", precision = 3, scale = 2)
+    @Column(name = "vr_ses_session_quality_score", precision = 3, scale = 2)
     private BigDecimal sessionQualityScore;
 
-    @Column(name = "vrs_avg_fps", precision = 4, scale = 1)
+    @Column(name = "vr_ses_avg_fps", precision = 4, scale = 1)
     private BigDecimal avgFps;
 
-    @Column(name = "vrs_frame_drop_count")
+    @Column(name = "vr_ses_frame_drop_count")
     private Integer frameDropCount;
 
-    @Column(name = "vrs_tracking_loss_count")
+    @Column(name = "vr_ses_tracking_loss_count")
     private Integer trackingLossCount;
 
-     @Column(name = "vrs_interaction_count")
+     @Column(name = "vr_ses_interaction_count")
     private Integer interactionCount;
 
-    @Column(name = "vrs_hint_request_count")
+    @Column(name = "vr_ses_hint_request_count")
     private Integer hintRequestCount;
 
-    @Column(name = "vrs_failure_count")
+    @Column(name = "vr_ses_failure_count")
     private Integer failureCount;
 
-    @Column(name = "vrs_completion_condition_met")
+    @Column(name = "vr_ses_completion_condition_met")
     private Boolean completionConditionMet;
 
-    @Column(name = "vrs_completion_time_ms")
+    @Column(name = "vr_ses_completion_time_ms")
     private Long completionTimeMs;
 
     @Override

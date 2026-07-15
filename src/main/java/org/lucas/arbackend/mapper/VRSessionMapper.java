@@ -2,7 +2,7 @@ package org.lucas.arbackend.mapper;
 
 import org.lucas.arbackend.dto.vr.VREventResponse;
 import org.lucas.arbackend.dto.vr.VRSessionResponse;
-import org.lucas.arbackend.entity.vr.VREvent;
+import org.lucas.arbackend.entity.vr.event.VREvent;
 import org.lucas.arbackend.entity.vr.VRSession;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
