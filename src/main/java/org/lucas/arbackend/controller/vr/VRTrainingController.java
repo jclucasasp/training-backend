@@ -28,7 +28,7 @@ import java.util.List;
 @RestController
 @RequestMapping(path = "/api/v1/vr/sessions")
 @RequiredArgsConstructor
-@Tag(name = "9. VR Training", description = "VR session telemetry and replay data")
+@Tag(name = "09. VR Training", description = "VR session telemetry and replay data")
 public class VRTrainingController {
     private final VRSessionService sessionService;
 
@@ -46,7 +46,7 @@ public class VRTrainingController {
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
     @PreAuthorize("hasAuthority('STUDENT')")
-    @PostMapping("/")
+    @PostMapping
     public ResponseEntity<VRSessionResponse> startSession(
             @Validated @RequestBody VRSessionStartRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -161,7 +161,7 @@ public class VRTrainingController {
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
     @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR', 'SUPPORT')")
-    @GetMapping("/")
+    @GetMapping
     public ResponseEntity<Page<VRSessionResponse>> getAllSessions(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {

@@ -2,6 +2,8 @@ package org.lucas.arbackend.repository.vr;
 
 import jakarta.validation.constraints.NotNull;
 import org.lucas.arbackend.entity.vr.scene.VRSceneVersion;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -14,7 +16,9 @@ import java.util.Optional;
 // Find all versions by scene ID
 @Repository
 public interface VRSceneVersionRepository extends JpaRepository<VRSceneVersion, Long> {
-    List<VRSceneVersion> findAllBySceneId(Long sceneId);
+    Page<VRSceneVersion> findAllBySceneId(Long sceneId, Pageable pageable);
+
+    Optional<VRSceneVersion> findBySceneIdAndIsActiveTrue(Long sceneId);
 
     // This method uses a custom JPQL query to update the database
     // It sets the isActive flag to false for all versions of a specific scene
@@ -23,6 +27,4 @@ public interface VRSceneVersionRepository extends JpaRepository<VRSceneVersion, 
     @Modifying // Method to deactivate all versions for a given scene ID
     @Query("UPDATE VRSceneVersion v SET v.isActive = false WHERE v.scene.id = :sceneId")
     void deactivateAllVersionsForScene(@Param("sceneId") Long sceneId);
-
-        Optional<VRSceneVersion> findByIdAndSceneId(Long sceneVersionId, Long sceneId);
     }

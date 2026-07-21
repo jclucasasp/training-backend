@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/chapterQuizzes")
 @RequiredArgsConstructor
-@Tag(name = "6. Quiz Management", description = "Endpoints for creating, fetching, and submitting course chapterQuizzes")
+@Tag(name = "06. Quiz Management", description = "Endpoints for creating, fetching, and submitting course chapterQuizzes")
 public class QuizController {
 
     private final QuizService quizService;

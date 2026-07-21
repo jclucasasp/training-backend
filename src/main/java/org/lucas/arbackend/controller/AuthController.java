@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
-@Tag(name = "1. Auth", description = "Handle user login and sets the session in Redis")
+@Tag(name = "01. Auth", description = "Handle user login and sets the session in Redis")
 public class AuthController {
 
     private final AuthenticationManager manager;

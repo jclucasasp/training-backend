@@ -25,7 +25,7 @@ import java.util.List;
 @RequestMapping("/api/v1/payments")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "8. PayFast Payment Management", description = "PayFast payment management")
+@Tag(name = "08. PayFast Payment Management", description = "PayFast payment management")
 public class PayFastController {
 
     private final PayFastSubscriptionService subscriptionService;

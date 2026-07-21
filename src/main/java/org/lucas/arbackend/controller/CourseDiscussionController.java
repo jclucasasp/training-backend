@@ -22,7 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/discussions")
 @RequiredArgsConstructor
-@Tag(name = "5. Course Discussions", description = "Endpoints for course-specific Q&A between students and staff")
+@Tag(name = "05. Course Discussions", description = "Endpoints for course-specific Q&A between students and staff")
 public class CourseDiscussionController {
      private final CourseDiscussionService discussionService;
 
