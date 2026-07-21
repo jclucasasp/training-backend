@@ -10,6 +10,7 @@ import org.lucas.arbackend.entity.base.BaseEntity;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.course.misc.Attachment;
 import org.lucas.arbackend.entity.course.misc.SceneConfig;
+import org.lucas.arbackend.entity.vr.scene.VRScene;
 import org.lucas.arbackend.util.tenant.TenantEntity;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -34,6 +35,10 @@ public class ChapterSection extends BaseEntity implements TenantEntity {
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "chs_chapter_id")
     private Chapter chapter;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "chs_vr_scene_id")
+    private VRScene vrScene;
 
     @Column(name = "chs_title", nullable = false)
     private String title;

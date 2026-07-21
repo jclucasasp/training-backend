@@ -2,6 +2,8 @@ package org.lucas.arbackend.dto.vr.asset;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
 import org.lucas.arbackend.entity.vr.asset.VRPlatformType;
 
 import java.io.Serial;

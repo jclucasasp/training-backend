@@ -8,6 +8,9 @@ import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.base.BaseEntity;
 import org.lucas.arbackend.util.tenant.TenantEntity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @AllArgsConstructor @NoArgsConstructor
 @Getter @Setter @Builder
@@ -29,6 +32,10 @@ public class VRAsset extends BaseEntity implements TenantEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "vr_asset_type")
     VRAssetType assetType;
+
+    @OneToMany(mappedBy = "asset", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<VRAssetVariant> variants = new ArrayList<>();
 
     @Override
     public Organisation getOrganisation() {

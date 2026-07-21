@@ -34,6 +34,7 @@ public interface CourseMapper {
     @Mapping(target = "id", ignore = true)
 
     @Mapping(target = "durationInMinutes", source = "durationInMinutes")
+    @Mapping(target = "vrScene.id", source ="vrSceneId")
     void updateChapterSection(ChapterSectionRequest dto, @MappingTarget ChapterSection entity, @Context MappingContext ctx);
 
     @Mapping(target = "id", ignore = true)
@@ -61,6 +62,7 @@ public interface CourseMapper {
     // (MapStruct handles this automatically if field names match, but you can be explicit)
     @Mapping(target = "content", source = "content")
     @Mapping(target = "sceneConfig", source = "sceneConfig")
+    @Mapping(target = "vrSceneId", source ="vrScene.id")
     ChapterSectionResponse mapToSectionResponse(ChapterSection section);
 
     @AfterMapping

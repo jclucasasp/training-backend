@@ -8,6 +8,8 @@ import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.base.BaseEntity;
 import org.lucas.arbackend.entity.course.ChapterSection;
 import org.lucas.arbackend.entity.student.Student;
+import org.lucas.arbackend.entity.vr.scene.VRScene;
+import org.lucas.arbackend.entity.vr.scene.VRSceneVersion;
 import org.lucas.arbackend.util.tenant.TenantEntity;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -36,6 +38,10 @@ public class VRSession extends BaseEntity implements TenantEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vr_ses_org_id", nullable = false)
     private Organisation organisation;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vr_ses_scene_version_id", nullable = true)
+    private VRSceneVersion sceneVersion;
 
     @Column(name = "vr_ses_device_id")
     private String deviceId;

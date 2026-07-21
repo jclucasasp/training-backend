@@ -1,4 +1,4 @@
-package org.lucas.arbackend.controller;
+package org.lucas.arbackend.controller.vr;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping(path = "/api/v1/vr")
+@RequestMapping(path = "/api/v1/vr/sessions")
 @RequiredArgsConstructor
 @Tag(name = "9. VR Training", description = "VR session telemetry and replay data")
 public class VRTrainingController {
@@ -46,7 +46,7 @@ public class VRTrainingController {
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
     @PreAuthorize("hasAuthority('STUDENT')")
-    @PostMapping("/sessions")
+    @PostMapping("/")
     public ResponseEntity<VRSessionResponse> startSession(
             @Validated @RequestBody VRSessionStartRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -68,7 +68,7 @@ public class VRTrainingController {
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
     @PreAuthorize("hasAuthority('STUDENT')")
-    @PatchMapping("/sessions/{sessionId}")
+    @PatchMapping("/{sessionId}")
     public ResponseEntity<Void> endSession(
             @PathVariable Long sessionId,
             @Validated @RequestBody VRSessionEndRequest request
@@ -87,7 +87,7 @@ public class VRTrainingController {
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
     @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR', 'SUPPORT', 'STUDENT')")
-    @GetMapping("/sessions/{sessionId}")
+    @GetMapping("/{sessionId}")
     public ResponseEntity<VRSessionResponse> getSession(@PathVariable Long sessionId) {
         return ResponseEntity.ok(sessionService.getSession(sessionId));
     }
@@ -107,7 +107,7 @@ public class VRTrainingController {
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
     @PreAuthorize("hasAuthority('STUDENT')")
-    @PostMapping("/sessions/{sessionId}/events")
+    @PostMapping("/{sessionId}/events")
     public ResponseEntity<Void> recordEvents(
             @PathVariable Long sessionId,
             @Validated @RequestBody List<VREventRequest> events
@@ -126,7 +126,7 @@ public class VRTrainingController {
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
     @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR', 'SUPPORT', 'STUDENT')")
-    @GetMapping("/sessions/{sessionId}/events")
+    @GetMapping("/{sessionId}/events")
      public ResponseEntity<Page<VREventResponse>> getSessionEvents(
             @PathVariable Long sessionId,
             @RequestParam(defaultValue = "0") int page,
@@ -161,7 +161,7 @@ public class VRTrainingController {
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
     })
     @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR', 'SUPPORT')")
-    @GetMapping("/sessions")
+    @GetMapping("/")
     public ResponseEntity<Page<VRSessionResponse>> getAllSessions(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {

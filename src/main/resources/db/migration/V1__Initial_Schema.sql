@@ -169,6 +169,33 @@ CREATE TABLE IF NOT EXISTS course (
     INDEX idx_course_tenant (cou_org_id, cou_id)
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS vr_scene(
+    vr_sce_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    vr_sce_org_id BIGINT NOT NULL,
+    vr_sce_title VARCHAR(100) NOT NULL,
+    vr_sce_description TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
+    ended_at DATETIME NULL,
+    CONSTRAINT fk_vr_sce_org FOREIGN KEY (vr_sce_org_id) REFERENCES organisation(org_id),
+    INDEX idx_vr_sce_org (vr_sce_org_id, vr_sce_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS vr_scene_version(
+    vr_sce_ver_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    vr_sce_id BIGINT NOT NULL,
+    vr_sce_version_tag VARCHAR(50) NOT NULL,
+    vr_sce_change_log TEXT,
+    vr_sce_is_active BOOLEAN DEFAULT FALSE,
+    vr_sce_environmental_file_url VARCHAR(200),
+    vr_sce_hierarchy_json LONGTEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
+    ended_at DATETIME NULL,
+    CONSTRAINT fk_vr_sce_ver_sce FOREIGN KEY (vr_sce_id) REFERENCES vr_scene(vr_sce_id),
+    INDEX idx_vr_sce_ver_sce (vr_sce_id, vr_sce_ver_id)
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS chapter (
     cha_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     cha_org_id BIGINT NOT NULL,
@@ -189,6 +216,7 @@ CREATE TABLE IF NOT EXISTS chapter_section (
     chs_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     chs_org_id BIGINT NOT NULL,
     chs_chapter_id BIGINT NOT NULL,
+    chs_vr_scene_id BIGINT NULL,
     chs_title VARCHAR(255) NOT NULL,
     chs_content TEXT,
     chs_is_preview TINYINT(1) DEFAULT 0,
@@ -203,7 +231,8 @@ CREATE TABLE IF NOT EXISTS chapter_section (
     updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
     ended_at DATETIME NULL,
     CONSTRAINT fk_chs_org FOREIGN KEY (chs_org_id) REFERENCES organisation(org_id),
-    CONSTRAINT fk_chs_chapter FOREIGN KEY (chs_chapter_id) REFERENCES chapter(cha_id)
+    CONSTRAINT fk_chs_chapter FOREIGN KEY (chs_chapter_id) REFERENCES chapter(cha_id),
+    CONSTRAINT fk_chs_vr_scene FOREIGN KEY (chs_vr_scene_id) REFERENCES vr_scene(vr_sce_id)
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS attachment (
@@ -423,6 +452,7 @@ CREATE TABLE IF NOT EXISTS course_question_reply (
 CREATE TABLE IF NOT EXISTS vr_session (
     vr_ses_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     vr_ses_org_id BIGINT NOT NULL,
+    vr_ses_scene_version_id BIGINT NOT NULL,
     vr_ses_student_id BIGINT NOT NULL,
     vr_ses_section_id BIGINT NOT NULL,
     vr_ses_device_id VARCHAR(100),
@@ -447,9 +477,11 @@ CREATE TABLE IF NOT EXISTS vr_session (
     CONSTRAINT fk_vr_ses_org FOREIGN KEY (vr_ses_org_id) REFERENCES organisation(org_id),
     CONSTRAINT fk_vr_ses_student FOREIGN KEY (vr_ses_student_id) REFERENCES student(stu_id),
     CONSTRAINT fk_vr_ses_section FOREIGN KEY (vr_ses_section_id) REFERENCES chapter_section(chs_id),
+    CONSTRAINT fk_vr_ses_scene_version FOREIGN KEY (vr_ses_scene_version_id) REFERENCES vr_scene_version(vr_sce_ver_id),
     INDEX idx_vr_ses_student_time (vr_ses_student_id, vr_ses_started_at),
     INDEX idx_vr_ses_org_active (vr_ses_org_id, vr_ses_ended_at),
-    INDEX idx_vr_ses_section (vr_ses_section_id, vr_ses_started_at)
+    INDEX idx_vr_ses_section (vr_ses_section_id, vr_ses_started_at),
+    INDEX idx_vr_ses_scene_version (vr_ses_scene_version_id, vr_ses_started_at)
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS vr_event (
@@ -477,33 +509,6 @@ CREATE TABLE IF NOT EXISTS vr_event (
     INDEX idx_vr_eve_session_time (vr_eve_session_id, vr_eve_timestamp),
     INDEX idx_vr_eve_type_target (vr_eve_event_type, vr_eve_target_object_id),
     INDEX idx_vr_eve_org_time (vr_eve_org_id, vr_eve_timestamp)
-) ENGINE=InnoDB;
-
-CREATE TABLE IF NOT EXISTS vr_scene(
-    vr_sce_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    vr_sce_org_id BIGINT NOT NULL,
-    vr_sce_title VARCHAR(100) NOT NULL,
-    vr_sce_description TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
-    ended_at DATETIME NULL,
-    CONSTRAINT fk_vr_sce_org FOREIGN KEY (vr_sce_org_id) REFERENCES organisation(org_id),
-    INDEX idx_vr_sce_org (vr_sce_org_id, vr_sce_id)
-) ENGINE=InnoDB;
-
-CREATE TABLE IF NOT EXISTS vr_scene_version(
-    vr_sce_ver_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    vr_sce_id BIGINT NOT NULL,
-    vr_sce_version_tag VARCHAR(50) NOT NULL,
-    vr_sce_change_log TEXT,
-    vr_sce_is_active BOOLEAN DEFAULT FALSE,
-    vr_sce_environmental_file_url VARCHAR(200),
-    vr_sce_hierarchy_json LONGTEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
-    ended_at DATETIME NULL,
-    CONSTRAINT fk_vr_sce_ver_sce FOREIGN KEY (vr_sce_id) REFERENCES vr_scene(vr_sce_id),
-    INDEX idx_vr_sce_ver_sce (vr_sce_id, vr_sce_ver_id)
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS vr_asset(

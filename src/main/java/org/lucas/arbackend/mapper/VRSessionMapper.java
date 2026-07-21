@@ -14,6 +14,7 @@ public interface VRSessionMapper {
     @Mapping(target = "studentName", expression = "java(session.getStudent().getFirstName() + ' ' + session.getStudent().getLastName())")
     @Mapping(target = "sectionId", source = "chapterSection.id")
     @Mapping(target = "sectionTitle", source = "chapterSection.title")
+    @Mapping(target = "sceneVersionId", source = "sceneVersion.id")
     VRSessionResponse toResponse(VRSession session);
 
     @Mapping(target = "sessionId", source = "session.id")

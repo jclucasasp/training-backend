@@ -23,4 +23,5 @@ public interface ChapterSectionRepository extends JpaRepository<ChapterSection, 
         @Param("sectionId") Long sectionId
     );
 
+    Optional<ChapterSection> findByIdAndOrganisationId(Long sectionId, Long orgId);
 }

@@ -15,10 +15,12 @@ import org.lucas.arbackend.entity.course.ChapterSection;
 import org.lucas.arbackend.entity.student.Student;
 import org.lucas.arbackend.entity.vr.event.VREvent;
 import org.lucas.arbackend.entity.vr.VRSession;
+import org.lucas.arbackend.entity.vr.scene.VRSceneVersion;
 import org.lucas.arbackend.mapper.VRSessionMapper;
 import org.lucas.arbackend.repository.course.ChapterSectionRepository;
 import org.lucas.arbackend.repository.student.StudentRepository;
 import org.lucas.arbackend.repository.vr.VREventRepository;
+import org.lucas.arbackend.repository.vr.VRSceneVersionRepository;
 import org.lucas.arbackend.repository.vr.VRSessionRepository;
 import org.lucas.arbackend.util.tenant.TenantContext;
 import org.lucas.arbackend.util.tenant.TenantProvider;
@@ -46,6 +48,7 @@ public class VRSessionService {
 
     private final VRSessionRepository sessionRepo;
     private final VREventRepository eventRepo;
+    private final VRSceneVersionRepository sceneVersionRepo;
     private  final StudentRepository studentRepo;
     private final ChapterSectionRepository sectionRepo;
     private final TenantProvider tenantProvider;
@@ -67,6 +70,12 @@ public class VRSessionService {
         ChapterSection section = sectionRepo.findWithContext(request.getCourseId(), request.getChapterId(), org.getId(), request.getSectionId())
                 .orElseThrow(() -> new EntityNotFoundException("No section found with ID: " + request.getSectionId()));
 
+        VRSceneVersion sceneVersion = null;
+        if (request.getSceneVersionId() != null) {
+            sceneVersion = sceneVersionRepo.findById(request.getSceneVersionId())
+                    .orElseThrow(() -> new EntityNotFoundException("No scene version found with ID: " + request.getSceneVersionId()));
+        }
+
         List<VRSession> activeSession = sessionRepo.findAllByStudentStudentNumberAndOrganisationId(student.getStudentNumber(), org.getId());
         if (!activeSession.isEmpty()) {
             log.warn("Student [{}] has [{}] active session, ending it before starting a new one", student.getStudentNumber(), activeSession.size());
@@ -78,6 +87,7 @@ public class VRSessionService {
                 .student(student)
                 .chapterSection(section)
                 .organisation(org)
+                .sceneVersion(sceneVersion)
                 .deviceId(request.getDeviceId())
                 .headsetModel(request.getHeadsetModel())
                 .startedAt(LocalDateTime.now())

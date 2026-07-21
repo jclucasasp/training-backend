@@ -32,6 +32,9 @@ public record VRSessionResponse(
     @Schema(description = "Headset model", example = "Quest 3")
     String headsetModel,
 
+    @Schema(description = "The version of the current scene", example = "1")
+    Long sceneVersionId,
+
     @Schema(description = "Session start time", example = "2026-06-23T14:30:00")
     LocalDateTime startedAt,
 

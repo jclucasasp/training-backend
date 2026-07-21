@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import org.lucas.arbackend.dto.course.attachment.AttachmentResponse;
 import org.lucas.arbackend.entity.course.misc.SceneConfig;
+import org.lucas.arbackend.entity.vr.scene.VRScene;
+import org.lucas.arbackend.entity.vr.scene.VRSceneVersion;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -38,6 +40,9 @@ public record ChapterSectionResponse (
 
         @Schema(description = "The 3D scene configuration", example = "https://www.resource.com/scene.json")
         SceneConfig sceneConfig,
+
+        @Schema(description = "The 3D scene identifier", example = "V2.03")
+        Long vrSceneId,
 
         @Schema(description = "Meta tags coupled to this section record", example = "intro, history")
         String tags,

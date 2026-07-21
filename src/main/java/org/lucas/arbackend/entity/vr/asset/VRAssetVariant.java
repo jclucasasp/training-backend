@@ -19,7 +19,7 @@ public class VRAssetVariant extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vr_asset_id")
-    private VRAsset vrAsset;
+    private VRAsset asset;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "vr_asset_var_platform", columnDefinition = "TEXT")

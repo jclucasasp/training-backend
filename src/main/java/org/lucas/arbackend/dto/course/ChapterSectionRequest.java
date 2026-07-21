@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import org.lucas.arbackend.dto.course.attachment.AttachmentRequest;
 import org.lucas.arbackend.entity.course.misc.SceneConfig;
+import org.lucas.arbackend.entity.vr.scene.VRScene;
 import org.lucas.arbackend.util.ValidatedLabel;
 
 import java.util.List;
@@ -44,6 +45,9 @@ public class ChapterSectionRequest {
 
     @Schema(description = "The configuration for the scene, eg objects, environment, etc")
     private SceneConfig sceneConfig;
+
+    @Schema(description = "The id of the current VR Scene", example = "196")
+    private Long vrSceneId;
 
     @NotNull(message = "Keywords for faster searching, eg Javascript, Anatomy, etc", groups = ValidatedLabel.OnCreate.class)
     @Schema(description = "Keywords for faster searching, eg Javascript, Anatomy, etc", example = "Javascript, Anatomy, etc", requiredMode = Schema.RequiredMode.REQUIRED)

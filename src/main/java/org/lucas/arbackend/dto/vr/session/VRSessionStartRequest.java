@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import org.lucas.arbackend.util.ValidatedLabel;
 
+// TODO: Add the scene Version ID to the request
 @Data @Builder
 @Schema(name = "VRSessionStartRequest", description = "Payload to initiate a new VR training session")
 public class VRSessionStartRequest {
@@ -28,6 +29,10 @@ public class VRSessionStartRequest {
 
     @Schema(description = "Device identifier (headset serial or UUID)", example = "Oculus-Quest3-A1B2C3D4")
     private String deviceId;
+
+    @NotNull(message = "The VR scene version ID is required")
+    @Schema(description = "The VR scene version id", example = "42", requiredMode = Schema.RequiredMode.REQUIRED)
+    private Long sceneVersionId;
 
     @Schema(description = "Headset model name", example = "Quest 3")
     private String headsetModel;
