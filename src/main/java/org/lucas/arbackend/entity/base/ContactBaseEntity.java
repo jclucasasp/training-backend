@@ -6,6 +6,21 @@ import jakarta.validation.constraints.Email;
 import lombok.Getter;
 import lombok.Setter;
 
+// Change this to @Embedded when needing to save a primary and secondary contact
+
+/*
+@EmbeddedCoumnNaming("primary_")
+@EmbeddedCoumnNaming("secondary_")
+
+How to override the attributes names inside your entity
+@Embedded
+@AttributeOverrides({
+  @AttributeOverride( name = "firstName", column = @Column(name = "contact_first_name")),
+  @AttributeOverride( name = "lastName", column = @Column(name = "contact_last_name")),
+  @AttributeOverride( name = "phone", column = @Column(name = "contact_phone"))
+})
+private ContactPerson contactPerson;
+ */
 @MappedSuperclass
 @Getter @Setter
 public abstract class ContactBaseEntity extends BaseEntity {

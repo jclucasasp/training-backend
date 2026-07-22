@@ -537,3 +537,46 @@ CREATE TABLE IF NOT EXISTS vr_asset_variant(
     CONSTRAINT fk_vr_asset_var_asset FOREIGN KEY (vr_asset_id) REFERENCES vr_asset(vr_asset_id),
     INDEX idx_vr_asset_var_asset (vr_asset_id, vr_asset_var_id)
 ) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS vr_competencies(
+    comp_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    comp_org_id BIGINT NOT NULL,
+    comp_name VARCHAR(100) NOT NULL,
+    comp_associated_scene_id BIGINT NOT NULL,
+    comp_description TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
+    ended_at DATETIME NULL,
+    CONSTRAINT fk_comp_org FOREIGN KEY (comp_org_id) REFERENCES organisation(org_id),
+    CONSTRAINT fk_comp_scene FOREIGN KEY (comp_associated_scene_id) REFERENCES vr_scene(vr_sce_id),
+    INDEX idx_comp_org (comp_org_id, comp_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS vr_competency_criteria(
+    comp_crit_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    comp_crit_comp_id BIGINT NOT NULL,
+    comp_crit_description TEXT NOT NULL,
+    comp_crit_metric_type VARCHAR(100) NOT NULL, -- ENUM('RANGE', 'BOOLEAN')
+    comp_crit_threshold_value TEXT NOT NULL, -- e.g., "<= 10.0" or "TRUE"
+    comp_crit_weight DOUBLE NOT NULL, -- Weighting factor for overall score calculation
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
+    ended_at DATETIME NULL,
+    CONSTRAINT fk_comp_crit_comp FOREIGN KEY (comp_crit_comp_id) REFERENCES vr_competencies(comp_id),
+    INDEX idx_comp_crit_comp (comp_crit_comp_id, comp_crit_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS vr_competency_assessments(
+    comp_asse_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    comp_asse_session_id BIGINT NOT NULL,
+    comp_asse_comp_id BIGINT NOT NULL,
+    comp_asse_score DOUBLE NOT NULL,
+    comp_asse_passed BOOLEAN NOT NULL,
+    comp_ass_assessed_by VARCHAR(50) NOT NULL, -- ENUM('USER', 'ADMIN', 'SYSTEM')
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
+    ended_at DATETIME NULL,
+    CONSTRAINT fk_comp_asse_session FOREIGN KEY (comp_asse_session_id) REFERENCES vr_session(vr_ses_id),
+    CONSTRAINT fk_comp_asse_comp FOREIGN KEY (comp_asse_comp_id) REFERENCES vr_competencies(comp_id),
+    INDEX idx_comp_asse_session (comp_asse_session_id, comp_asse_id)
+) ENGINE=InnoDB;
