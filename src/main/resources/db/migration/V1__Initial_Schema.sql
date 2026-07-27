@@ -131,7 +131,7 @@ CREATE TABLE IF NOT EXISTS payment_logs (
     pal_failure_code VARCHAR(150) DEFAULT NULL,
     pal_failure_details TEXT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIME ON UPDATE CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     ended_at TIMESTAMP DEFAULT NULL,
     -- Crucial for Idempotency: Prevents duplicate processing at the DB level
     CONSTRAINT uk_pf_payment_id UNIQUE (pal_pf_payment_id),
@@ -569,6 +569,7 @@ CREATE TABLE IF NOT EXISTS vr_competency_criteria(
 CREATE TABLE IF NOT EXISTS vr_competency_assessments(
     comp_asse_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     comp_asse_session_id BIGINT NOT NULL,
+    comp_asse_student_number VARCHAR(100) NOT NULL,
     comp_asse_comp_id BIGINT NOT NULL,
     comp_asse_score DOUBLE NOT NULL,
     comp_asse_passed BOOLEAN NOT NULL,
@@ -578,5 +579,7 @@ CREATE TABLE IF NOT EXISTS vr_competency_assessments(
     ended_at DATETIME NULL,
     CONSTRAINT fk_comp_asse_session FOREIGN KEY (comp_asse_session_id) REFERENCES vr_session(vr_ses_id),
     CONSTRAINT fk_comp_asse_comp FOREIGN KEY (comp_asse_comp_id) REFERENCES vr_competencies(comp_id),
-    INDEX idx_comp_asse_session (comp_asse_session_id, comp_asse_id)
+    INDEX idx_comp_asse_session (comp_asse_session_id, comp_asse_id),
+    INDEX idx_comp_asse_comp (comp_asse_comp_id, comp_asse_id),
+    INDEX idx_comp_asse_student_number (comp_asse_student_number, comp_asse_id)
 ) ENGINE=InnoDB;

@@ -32,7 +32,7 @@ public class Competency extends BaseEntity {
     private String description;
 
     @Column(name = "comp_associated_scene_id")
-    private String associatedSceneId;
+    private Long associatedSceneId;
 
     @OneToMany(mappedBy = "competency", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.lucas.arbackend.entity.base.BaseEntity;
+import org.lucas.arbackend.entity.student.Student;
 import org.lucas.arbackend.entity.vr.VRSession;
 import org.lucas.arbackend.entity.vr.competency.embedded.CriterionAssessmentResult;
 
@@ -17,7 +18,7 @@ import java.util.List;
 @AllArgsConstructor @NoArgsConstructor
 @SQLDelete(sql = "UPDATE competency_assessments SET ended_at = NOW() WHERE comp_assessment_id = ?")
 @SQLRestriction("ended_at IS NULL")
-@Table(name = "competency_assessments")
+@Table(name = "vr_competency_assessments")
 public class CompetencyAssessment extends BaseEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "comp_asse_id")
@@ -26,6 +27,10 @@ public class CompetencyAssessment extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "comp_asse_session_id", nullable = false)
     private VRSession session;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "comp_asse_student_number", nullable = false)
+    private Student student;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "comp_asse_comp_id", nullable = false)
