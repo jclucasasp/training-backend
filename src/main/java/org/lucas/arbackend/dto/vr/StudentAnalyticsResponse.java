@@ -8,8 +8,8 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Builder
-@Schema(name = "VRStudentAnalyticsResponse", description = "Aggregated VR training analytics for a student")
-public record VRStudentAnalyticsResponse(
+@Schema(name = "StudentAnalyticsResponse", description = "Aggregated VR training analytics for a student")
+public record StudentAnalyticsResponse(
     @Schema(description = "Student number", example = "STU-12345")
     String studentNumber,
 

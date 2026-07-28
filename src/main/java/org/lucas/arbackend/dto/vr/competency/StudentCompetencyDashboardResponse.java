@@ -16,7 +16,7 @@ public record StudentCompetencyDashboardResponse(
         @Schema(description = "The number of competencies passed", example = "8")
         Long totalPassed,
         @Schema(description = "The number of competencies failed", example = "2")
-        Double overallPassedRatePercentage,
+        Double overallPassRatePercentage,
         @Schema(description = "The most recent competency assessments")
         List<CompetencyAssessmentResponse> recentAssessments
 ) implements Serializable {

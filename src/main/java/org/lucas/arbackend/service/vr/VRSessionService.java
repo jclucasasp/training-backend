@@ -16,11 +16,11 @@ import org.lucas.arbackend.entity.student.Student;
 import org.lucas.arbackend.entity.vr.event.VREvent;
 import org.lucas.arbackend.entity.vr.VRSession;
 import org.lucas.arbackend.entity.vr.scene.VRSceneVersion;
-import org.lucas.arbackend.mapper.VRSessionMapper;
+import org.lucas.arbackend.mapper.vr.SessionMapper;
 import org.lucas.arbackend.repository.course.ChapterSectionRepository;
 import org.lucas.arbackend.repository.student.StudentRepository;
-import org.lucas.arbackend.repository.vr.VREventRepository;
-import org.lucas.arbackend.repository.vr.VRSceneVersionRepository;
+import org.lucas.arbackend.repository.vr.EventRepository;
+import org.lucas.arbackend.repository.vr.SceneVersionRepository;
 import org.lucas.arbackend.repository.vr.VRSessionRepository;
 import org.lucas.arbackend.util.tenant.TenantContext;
 import org.lucas.arbackend.util.tenant.TenantProvider;
@@ -47,12 +47,12 @@ import java.util.stream.Collectors;
 public class VRSessionService {
 
     private final VRSessionRepository sessionRepo;
-    private final VREventRepository eventRepo;
-    private final VRSceneVersionRepository sceneVersionRepo;
+    private final EventRepository eventRepo;
+    private final SceneVersionRepository sceneVersionRepo;
     private  final StudentRepository studentRepo;
     private final ChapterSectionRepository sectionRepo;
     private final TenantProvider tenantProvider;
-    private final VRSessionMapper sessionMapper;
+    private final SessionMapper sessionMapper;
 
     private final RabbitTemplate rabbitTemplate;
 
@@ -172,7 +172,7 @@ public class VRSessionService {
         Organisation org = tenantProvider.getOrg();
 
         log.debug("Offloading {} VR telemetry events to RabbitMQ for session {}", events.size(), sessionId);
-        VRTelemetryPayloadDto payloadDto = new VRTelemetryPayloadDto(sessionId, org.getId(), events);
+        TelemetryPayloadDto payloadDto = new TelemetryPayloadDto(sessionId, org.getId(), events);
         rabbitTemplate.convertAndSend(
                 RabbitConfig.VR_TELEMETRY_EXCHANGE,
                 RabbitConfig.VR_TELEMETRY_ROUTING_KEY,
@@ -185,7 +185,7 @@ public class VRSessionService {
      * without choking up live client response loops.
      */
     @RabbitListener(queues = RabbitConfig.VR_TELEMETRY_QUEUE)
-    public void consumeVRTelemetry(VRTelemetryPayloadDto payloadDto) {
+    public void consumeVRTelemetry(TelemetryPayloadDto payloadDto) {
         log.debug("RabbitMQ worker processing telemetry block for VR Session: {}", payloadDto.getSessionId());
 
         try {
@@ -273,13 +273,13 @@ public class VRSessionService {
     // ==========================================
 
     @Transactional(readOnly = true)
-    public VRStudentAnalyticsResponse getStudentAnalytics(String studentNumber) {
+    public StudentAnalyticsResponse getStudentAnalytics(String studentNumber) {
         Long orgId = tenantProvider.get();
         long totalSessions = sessionRepo.countCompletedSessions(studentNumber, orgId);
         Double avgQuality = sessionRepo.calculateAverageQualityScore(studentNumber, orgId);
         long motionSicknessCount = sessionRepo.countMotionSicknessReports(studentNumber, orgId);
 
-        return VRStudentAnalyticsResponse.builder()
+        return StudentAnalyticsResponse.builder()
                 .studentNumber(studentNumber)
                 .averageQualityScore(avgQuality != null ? BigDecimal.valueOf(avgQuality) : null)
                 .motionSicknessReports(motionSicknessCount)

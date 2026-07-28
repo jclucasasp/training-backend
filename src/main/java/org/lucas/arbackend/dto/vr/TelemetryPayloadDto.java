@@ -12,7 +12,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class VRTelemetryPayloadDto implements Serializable {
+public class TelemetryPayloadDto implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
     

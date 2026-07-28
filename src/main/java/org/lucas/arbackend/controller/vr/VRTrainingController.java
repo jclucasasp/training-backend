@@ -171,7 +171,7 @@ public class VRTrainingController {
     @Operation(summary = "Get Student VR Analytics", description = "Aggregated analytics for a student's VR training performance.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Analytics retrieved",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = VRStudentAnalyticsResponse.class))),
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = StudentAnalyticsResponse.class))),
             @ApiResponse(responseCode = "401", description = "Unauthorized",
                     content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
             @ApiResponse(responseCode = "403", description = "Forbidden",
@@ -179,7 +179,7 @@ public class VRTrainingController {
     })
     @PreAuthorize("hasAnyAuthority('ORG_ADMIN', 'COURSE_EDITOR', 'SUPPORT', 'STUDENT')")
     @GetMapping("/student/{studentNumber}/analytics")
-    public ResponseEntity<VRStudentAnalyticsResponse> getStudentAnalytics(
+    public ResponseEntity<StudentAnalyticsResponse> getStudentAnalytics(
             @PathVariable String studentNumber) {
         return ResponseEntity.ok(sessionService.getStudentAnalytics(studentNumber));
     }

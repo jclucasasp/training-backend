@@ -9,8 +9,8 @@ import org.lucas.arbackend.entity.vr.scene.VRScene;
 import org.lucas.arbackend.entity.vr.scene.VRSceneVersion;
 import org.lucas.arbackend.mapper.context.VRSceneMapper;
 import org.lucas.arbackend.repository.course.ChapterSectionRepository;
-import org.lucas.arbackend.repository.vr.VRSceneRepository;
-import org.lucas.arbackend.repository.vr.VRSceneVersionRepository;
+import org.lucas.arbackend.repository.vr.SceneRepository;
+import org.lucas.arbackend.repository.vr.SceneVersionRepository;
 import org.lucas.arbackend.util.tenant.TenantProvider;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,8 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class VRSceneService {
     private final ChapterSectionRepository sectionRepo;
-    private final VRSceneVersionRepository versionRepo;
-    private final VRSceneRepository sceneRepo;
+    private final SceneVersionRepository versionRepo;
+    private final SceneRepository sceneRepo;
     private final TenantProvider tenantProvider;
     private final VRSceneMapper sceneMapper;
 

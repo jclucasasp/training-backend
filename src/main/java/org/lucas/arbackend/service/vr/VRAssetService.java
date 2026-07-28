@@ -8,7 +8,7 @@ import org.lucas.arbackend.dto.vr.asset.VRVariantResponse;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.vr.asset.VRAsset;
 import org.lucas.arbackend.entity.vr.asset.VRAssetVariant;
-import org.lucas.arbackend.repository.vr.VRAssetRepository;
+import org.lucas.arbackend.repository.vr.AssetRepository;
 import org.lucas.arbackend.util.tenant.TenantProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class VRAssetService {
     private final TenantProvider tenantProvider;
-    private final VRAssetRepository assetRepo;
+    private final AssetRepository assetRepo;
 
     public VRAssetResponse registerAsset(VRAssetCreateRequest request) {
         Organisation org = tenantProvider.getOrg();

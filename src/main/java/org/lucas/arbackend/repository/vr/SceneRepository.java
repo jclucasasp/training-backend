@@ -6,11 +6,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface VRSceneRepository extends JpaRepository<VRScene, Long> {
+public interface SceneRepository extends JpaRepository<VRScene, Long> {
     Page<VRScene> findAllByOrganisationId(Long orgId, Pageable pageable);
 
     Optional<VRScene> findByIdAndOrganisationId(Long id, Long organisationId);

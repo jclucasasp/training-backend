@@ -1,6 +1,5 @@
 package org.lucas.arbackend.repository.vr;
 
-import jakarta.validation.constraints.NotNull;
 import org.lucas.arbackend.entity.vr.scene.VRSceneVersion;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,12 +9,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 // Find all versions by scene ID
 @Repository
-public interface VRSceneVersionRepository extends JpaRepository<VRSceneVersion, Long> {
+public interface SceneVersionRepository extends JpaRepository<VRSceneVersion, Long> {
     Page<VRSceneVersion> findAllBySceneId(Long sceneId, Pageable pageable);
 
     Optional<VRSceneVersion> findBySceneIdAndIsActiveTrue(Long sceneId);

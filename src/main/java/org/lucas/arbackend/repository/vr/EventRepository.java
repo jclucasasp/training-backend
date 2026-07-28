@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
-public interface VREventRepository extends JpaRepository<VREvent, Long> {
+public interface EventRepository extends JpaRepository<VREvent, Long> {
 
     Page<VREvent> findAllBySessionIdAndOrganisationId(Long sessionId, Long organisationId, Pageable pageable);
 

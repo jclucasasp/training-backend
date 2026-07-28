@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface VRAssetRepository extends JpaRepository<VRAsset, Long> {
+public interface AssetRepository extends JpaRepository<VRAsset, Long> {
     Optional<VRAsset> findByIdAndOrganisationId(Long id, Long organisationId);
 }

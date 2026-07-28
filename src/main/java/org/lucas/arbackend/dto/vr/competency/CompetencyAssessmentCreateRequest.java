@@ -13,8 +13,8 @@ import java.util.List;
 @Data @Builder
 @NoArgsConstructor @AllArgsConstructor
 public class CompetencyAssessmentCreateRequest {
-    @Schema(description = "The id of the competency to be assessed", example = "1")
-    @NotNull(message = "Competency id is required")
+    @Schema(description = "The id of the current session", example = "1")
+    @NotNull(message = "Session id is required")
     private Long sessionId;
 
     @Schema(description = "The final score of the competency assessment", example = "100")
