@@ -91,6 +91,13 @@ public class VRSession extends BaseEntity implements TenantEntity {
     @Column(name = "vr_ses_completion_time_ms")
     private Long completionTimeMs;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "vr_ses_status", nullable = false)
+    private VRSessionStatus status = VRSessionStatus.IN_PROGRESS;
+
+    @Column(name = "vr_ses_last_sequence_number")
+    private Long lastSequenceNumber;
+
     @Override
     public Organisation getOrganisation() {
         return this.organisation;

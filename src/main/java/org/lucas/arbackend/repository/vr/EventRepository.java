@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface EventRepository extends JpaRepository<VREvent, Long> {
@@ -37,4 +38,7 @@ public interface EventRepository extends JpaRepository<VREvent, Long> {
             @Param("sessionId") Long sessionId,
             @Param("orgId") Long orgId,
             @Param("eventType") String eventType);
+
+    @Query("SELECT MAX(e.sequenceNumber) FROM VREvent e WHERE e.session.id = :sessionId AND e.organisation.id = :orgId")
+    Optional<Integer> findMaxSequenceNumberBySessionIdAndOrganisationId(@Param("sessionId") Long sessionId, @Param("orgId") Long orgId);
 }

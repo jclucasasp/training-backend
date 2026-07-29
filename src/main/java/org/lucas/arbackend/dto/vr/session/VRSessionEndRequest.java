@@ -39,4 +39,7 @@ public class VRSessionEndRequest {
 
     @Schema(description = "Time to complete in milliseconds (null if not completed)", example = "185000")
     private Long completionTimeMs;
+
+    @Schema(description = "The sequence number of the final telemetry event sent by Unity", example = "1234567890")
+    private Long lastSequenceNumber;
 }

@@ -13,9 +13,11 @@ import org.lucas.arbackend.dto.vr.session.VRSessionStartRequest;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.course.ChapterSection;
 import org.lucas.arbackend.entity.student.Student;
+import org.lucas.arbackend.entity.vr.VRSessionStatus;
 import org.lucas.arbackend.entity.vr.event.VREvent;
 import org.lucas.arbackend.entity.vr.VRSession;
 import org.lucas.arbackend.entity.vr.scene.VRSceneVersion;
+import org.lucas.arbackend.mapper.context.MappingContext;
 import org.lucas.arbackend.mapper.vr.SessionMapper;
 import org.lucas.arbackend.repository.course.ChapterSectionRepository;
 import org.lucas.arbackend.repository.student.StudentRepository;
@@ -126,12 +128,30 @@ public class VRSessionService {
         session.setFailureCount(request.getFailureCount());
         session.setCompletionConditionMet(request.getCompletionConditionMet());
         session.setCompletionTimeMs(request.getCompletionTimeMs());
+        session.setLastSequenceNumber(request.getLastSequenceNumber());
+
+        Integer maxProcessedSeq = eventRepo.findMaxSequenceNumberBySessionIdAndOrganisationId(sessionId, orgId)
+                .orElse(0);
+
+        if (request.getLastSequenceNumber() != null && request.getLastSequenceNumber() > maxProcessedSeq) {
+            finalizeSessionEvaluation(session);
+        } else {
+            session.setStatus(VRSessionStatus.PENDING_EVALUATION);
+            sessionRepo.save(session);
+            log.info("VR Session [{}] marked PENDING_EVALUATION. Waiting for final sequence #{}",
+                    session.getId(), request.getLastSequenceNumber());
+        }
+
+    }
+
+    private void finalizeSessionEvaluation(VRSession session) {
 
         BigDecimal qualityScore = computeSessionQualityScore(session);
         session.setSessionQualityScore(qualityScore);
-
+        session.setStatus(VRSessionStatus.COMPLETED);
         sessionRepo.save(session);
-        log.info("VR Session ended: [{}] for student [{}] with a quality score of [{}]", session.getId(), session.getStudent(), qualityScore);
+        log.info("VR Session completed and evaluated: [{}] for student [{}] with a quality score of [{}]",
+            session.getId(), session.getStudent().getStudentNumber(), qualityScore);
     }
 
     private BigDecimal computeSessionQualityScore (VRSession session) {
@@ -191,27 +211,11 @@ public class VRSessionService {
         try {
             TenantContext.setCurrentTenant(payloadDto.getOrgId());
             Organisation org = tenantProvider.getOrg();
+            MappingContext ctx = new MappingContext(org, null, null);
             VRSession session = sessionRepo.findByIdAndOrganisationId(payloadDto.getSessionId(), org.getId())
                     .orElseThrow(() -> new EntityNotFoundException("No session found with ID: " + payloadDto.getSessionId()));
 
-            List<VREvent> entities = payloadDto.getEvents().stream()
-                    .map(req -> VREvent.builder()
-                            .session(session)
-                            .organisation(org)
-                            .eventType(req.getEventType())
-                            .timestamp(req.getTimestamp())
-                            .positionX(req.getPositionX())
-                            .positionY(req.getPositionY())
-                            .positionZ(req.getPositionZ())
-                            .rotationX(req.getRotationX())
-                            .rotationY(req.getRotationY())
-                            .rotationZ(req.getRotationZ())
-                            .targetObjectId(req.getTargetObjectId())
-                            .durationInMilliseconds(req.getDurationMs())
-                            .metadataJson(req.getMetadataJson())
-                            .hand(req.getHand())
-                            .sequenceNumber(req.getSequenceNumber())
-                            .build()).collect(Collectors.toList());
+            List<VREvent> entities = sessionMapper.toEventEntityList(payloadDto.getEvents(), session, ctx);
 
             eventRepo.saveAll(entities);
             log.info("Successfully written batch of {} events for VR Session {}", entities.size(), payloadDto.getSessionId());

@@ -471,6 +471,8 @@ CREATE TABLE IF NOT EXISTS vr_session (
     vr_ses_failure_count INT DEFAULT 0,
     vr_ses_completion_condition_met BOOLEAN DEFAULT FALSE,
     vr_ses_completion_time_ms BIGINT,
+    vr_ses_status VARCHAR(20) DEFAULT 'IN_PROGRESS', -- IN_PROGRESS, COMPLETED, FAILED
+    vr_ses_last_sequence_number BIGINT, -- Used to track the last event sequence number for a session
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
     ended_at DATETIME NULL,
