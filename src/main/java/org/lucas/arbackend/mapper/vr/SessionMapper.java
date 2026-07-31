@@ -30,7 +30,6 @@ public interface SessionMapper {
     @Mapping(target = "session", source = "session")
     @Mapping(target = "organisation", ignore = true)
     @Mapping(target = "durationInMilliseconds", source = "request.durationMs")
-    @Mapping(target = "createdAt", ignore = true)
     VREvent toEventEntity(VREventRequest request, VRSession session, @Context MappingContext ctx);
 
     default List<VREvent> toEventEntityList(List<VREventRequest> requestList, VRSession session, @Context MappingContext ctx) {
