@@ -224,7 +224,7 @@ CREATE TABLE IF NOT EXISTS chapter_section (
     chs_duration_minutes INT,
     chs_resource_url VARCHAR(255),
     chs_resource_media_type VARCHAR(100),
-    chs_scene_config LONGTEXT DEFAULT '{}',
+--    chs_scene_config LONGTEXT DEFAULT '{}',
     chs_tags VARCHAR(255),
     chs_order_index INT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

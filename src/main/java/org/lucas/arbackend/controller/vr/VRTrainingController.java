@@ -134,6 +134,7 @@ public class VRTrainingController {
         return ResponseEntity.ok(sessionService.getSessionEvents(sessionId, PageRequest.of(page, size)));
     }
 
+    @Operation(summary = "Get Student Sessions", description = "Paginated list of VR sessions for a student.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Sessions retrieved",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = VRSessionResponse.class))),

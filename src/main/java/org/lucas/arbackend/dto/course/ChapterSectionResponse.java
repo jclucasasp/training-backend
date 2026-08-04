@@ -3,6 +3,7 @@ package org.lucas.arbackend.dto.course;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import org.lucas.arbackend.dto.course.attachment.AttachmentResponse;
+import org.lucas.arbackend.dto.vr.scene.VRSceneResponse;
 import org.lucas.arbackend.entity.course.misc.SceneConfig;
 import org.lucas.arbackend.entity.vr.scene.VRScene;
 import org.lucas.arbackend.entity.vr.scene.VRSceneVersion;
@@ -38,11 +39,12 @@ public record ChapterSectionResponse (
         @Schema(description = "The medium categorization", example = "video")
         String resourceMediaType,
 
-        @Schema(description = "The 3D scene configuration", example = "https://www.resource.com/scene.json")
-        SceneConfig sceneConfig,
+//        @Schema(description = "The 3D scene configuration", example = "https://www.resource.com/scene.json")
+//        SceneConfig sceneConfig,
 
-        @Schema(description = "The 3D scene identifier", example = "V2.03")
-        Long vrSceneId,
+        @Schema(description = "The associated VR Scene")
+//        Long vrSceneId,
+        VRSceneResponse vrScene,
 
         @Schema(description = "Meta tags coupled to this section record", example = "intro, history")
         String tags,

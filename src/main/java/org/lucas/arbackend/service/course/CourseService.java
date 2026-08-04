@@ -4,6 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lucas.arbackend.dto.course.*;
+import org.lucas.arbackend.dto.vr.scene.VRSceneResponse;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.Organisation.Staff;
 import org.lucas.arbackend.entity.course.Chapter;
@@ -11,14 +12,18 @@ import org.lucas.arbackend.entity.course.ChapterSection;
 import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.course.misc.Attachment;
 import org.lucas.arbackend.entity.quiz.Quiz;
+import org.lucas.arbackend.entity.vr.scene.VRScene;
 import org.lucas.arbackend.mapper.CourseMapper;
 import org.lucas.arbackend.mapper.context.MappingContext;
+import org.lucas.arbackend.mapper.context.VRSceneMapper;
 import org.lucas.arbackend.repository.course.ChapterRepository;
 import org.lucas.arbackend.repository.course.CourseRepository;
 import org.lucas.arbackend.repository.quiz.QuizRepository;
 import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.StaffRepository;
+import org.lucas.arbackend.repository.vr.SceneRepository;
 import org.lucas.arbackend.service.quiz.QuizService;
+import org.lucas.arbackend.service.vr.VRSceneService;
 import org.lucas.arbackend.util.tenant.TenantProvider;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -41,7 +46,10 @@ public class CourseService {
     private final StaffRepository staffRepo;
     private final QuizRepository quizRepo;
     private final QuizService quizService;
+    private final VRSceneService sceneService;
+    private final VRSceneMapper sceneMapper;
     private final ChapterRepository chapterRepo;
+    private final SceneRepository sceneRepo;
 
     public CourseResponse createCourse(CourseRequest request) {
 
@@ -78,6 +86,11 @@ public class CourseService {
                         section.setChapter(chapter);
                         section.setOrderIndex(sectionIndex.getAndIncrement());
 
+                        if (sectionDto.getVrScene() != null) {
+                            VRSceneResponse scene = sceneService.createScene(sectionDto.getVrScene());
+                            section.setVrScene(sceneMapper.toEntity(scene));
+                        }
+
                         if (section.getAttachments() != null) {
                             section.getAttachments().forEach(attachment -> {
                                 attachment.setChapterSection(section);
@@ -89,8 +102,8 @@ public class CourseService {
                     }).toList();
 
                     // Calculate the total minutes for a chapter
-                    Integer totalChapterMinutes = getTotalDuration(sections);
-                    course.setTotalTimeInMinutes(totalChapterMinutes);
+//                    Integer totalChapterMinutes = getTotalDuration(sections);
+//                    course.setTotalTimeInMinutes(totalChapterMinutes);
 
                     chapter.setChapterSections(sections);
                 }
@@ -190,9 +203,20 @@ private void updateChapterSections(Chapter chapter, List<ChapterSectionRequest> 
                 .filter(s -> s.getId().equals(sectionDto.getId())).findFirst()
                 .orElseThrow(() -> new EntityNotFoundException("Section not found"))
                 : new ChapterSection();
+
         courseMapper.updateChapterSection(sectionDto, section, ctx);
         section.setChapter(chapter);
         section.setOrderIndex(index.getAndIncrement());
+
+        if (sectionDto.getVrScene() != null) {
+            if (section.getVrScene().getId() != null) {
+                VRSceneResponse updatedScene = sceneService.updateScene(section.getVrScene().getId(), sectionDto.getVrScene());
+                section.setVrScene(sceneMapper.toEntity(updatedScene));
+            } else {
+                VRSceneResponse newScene = sceneService.createScene(sectionDto.getVrScene());
+                section.setVrScene(sceneMapper.toEntity(newScene));
+            }
+        }
 
         if (sectionDto.getAttachments() != null) {
             log.info("DEBUG: Adding section attachments for chapter: [{}]", section.getChapter().getId());

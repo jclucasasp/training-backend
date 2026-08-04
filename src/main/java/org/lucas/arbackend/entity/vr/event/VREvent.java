@@ -2,7 +2,9 @@ package org.lucas.arbackend.entity.vr.event;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.type.SqlTypes;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.base.BaseEntity;
 import org.lucas.arbackend.entity.vr.VRSession;
@@ -58,6 +60,7 @@ public class VREvent extends BaseEntity implements TenantEntity {
     @Column(name = "vr_eve_duration_ms")
     private Integer durationInMilliseconds;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "vr_eve_metadata")
     private String metadataJson;
 

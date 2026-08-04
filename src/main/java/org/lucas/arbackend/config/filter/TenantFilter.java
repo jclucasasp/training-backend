@@ -20,7 +20,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 
-// TODO: Check for subscription expiration and create a worker to check once a day for expired subscriptions to update the db
 @Component
 @Slf4j
 @RequiredArgsConstructor

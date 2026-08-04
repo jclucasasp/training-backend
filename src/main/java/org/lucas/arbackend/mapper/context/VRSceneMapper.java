@@ -11,6 +11,8 @@ import org.mapstruct.Mapping;
 public interface VRSceneMapper {
     VRSceneResponse toResponse(VRScene scene);
 
+    VRScene toEntity(VRSceneResponse response);
+
     @Mapping(source = "scene.id", target = "sceneId")
     VRSceneVersionResponse toVersionResponse(VRSceneVersion version);
 }

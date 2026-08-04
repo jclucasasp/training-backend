@@ -61,9 +61,9 @@ public class ChapterSection extends BaseEntity implements TenantEntity {
     @Column(name = "chs_resource_media_type")
     private String resourceMediaType;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "chs_scene_config", columnDefinition = "LONGTEXT")
-    private SceneConfig sceneConfig;
+//    @JdbcTypeCode(SqlTypes.JSON)
+//    @Column(name = "chs_scene_config", columnDefinition = "LONGTEXT")
+//    private SceneConfig sceneConfig;
 
     @Column(name = "chs_tags", columnDefinition = "TEXT")
     private String tags;
