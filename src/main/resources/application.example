@@ -1,0 +1,113 @@
+spring:
+  application:
+    name: ar-backend
+
+  datasource:
+    url: jdbc:mariadb://mariadb:3306/ar_db?useSSL=false&serverTimezone=UTC
+    username:
+    password:
+    driver-class-name: org.mariadb.jdbc.Driver
+    hikari:
+      pool-name: arPool
+      maximum-pool-size: 10
+      minimum-idle: 5
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        format_sql: true
+        order_inserts: true
+        order_updates: true
+        jdbc:
+          batch_size: 50
+
+  rabbitmq:
+    host: rabbit_mq
+    port: 5672
+    username:
+    password:
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username:
+    password:
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  redirect:
+    payment_url: https://www.luminoed.co.za/checkout
+    login_url: https://www.luminoed.co.za/login
+    register_url: https://www.luminoed.co.za/register
+
+  flyway:
+    url: jdbc:mariadb://mariadb:3306/ar_db
+    user:
+    password:
+    locations: classpath:db/migration
+
+  data:
+    redis:
+      host: redis_cache
+      port: 6379
+
+  jackson:
+    date-format: "yyyy-MM-dd'T'HH:mm:ss"
+    time-zone: Africa/Johannesburg
+    parser:
+      allow-numeric-leading-zeros: true
+    serialization:
+      write-dates-as-timestamps: false
+
+  session:
+    story-type: redis
+    timeout: 24h
+    redis:
+      repository-type: INDEXED
+      namespace: ar:session
+      flush-mode: ON_SAVE
+
+springdoc:
+  packages-to-exclude:
+    - org.lucas.arbackend.entity
+  model-and-view-allowed: false
+  swagger-ui:
+    tags-sorter: alpha
+    operations-sorter: alpha
+
+logging:
+  level:
+    org.springframework.root: INFO
+    org.springframework.security: DEBUG
+    org.springframework.data.jpa: DEBUG
+    org.springframework.data.jpa.repository: DEBUG
+    org.springframework.data.rest.webmvc: DEBUG
+    org.springframework.cache: DEBUG
+    org.springframework.cache.interceptor: DEBUG
+    org.springframework.cache.annotation: DEBUG
+    org.springframework.cache.concurrent: DEBUG
+    org.springframework.cache.support: DEBUG
+    org.springframework.cache.aspectj: DEBUG
+    org.springframework.amqp: DEBUG
+    org.flywaydb: DEBUG
+
+Payfast:
+  testing: true
+  merchant-id:
+  merchant-key:
+  sandbox-url: https://sandbox.payfast.co.za/eng/process/
+  api-url: https://api.payfast.co.za
+  prod-url: https://www.payfast.co.za/eng/process/
+  pass-phrase:
+
+encryption:
+  key:
+
+server:
+  port: 8080
