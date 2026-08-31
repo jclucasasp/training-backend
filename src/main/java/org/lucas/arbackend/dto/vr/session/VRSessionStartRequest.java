@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import org.lucas.arbackend.util.ValidatedLabel;
 
-// TODO: Add the scene Version ID to the request
 @Data @Builder
 @Schema(name = "VRSessionStartRequest", description = "Payload to initiate a new VR training session")
 public class VRSessionStartRequest {

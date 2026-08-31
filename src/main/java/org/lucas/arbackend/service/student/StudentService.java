@@ -49,6 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -141,11 +142,6 @@ public class StudentService {
             throw new IllegalStateException("Subscription not active");
         }
 
-        var cache = cacheService.getActiveStudentToken(studentNumber);
-        if (cache != null) {
-            return cache;
-        }
-
         String sessionToken = UUID.randomUUID().toString().replaceAll("-","");
         StudentTokenResponse response = StudentTokenResponse.builder()
                 .orgId(student.getOrganisation().getId())
@@ -154,10 +150,12 @@ public class StudentService {
                 .studentName(student.getFirstName())
                 .studentLastname(student.getLastName())
                 .createdAt(LocalDateTime.now())
-                .isSubscriptionActive(subscriptionStatus)
+                .isSubscriptionActive(true)
                 .build();
 
         cacheService.updateCache("student_token", studentNumber, response);
+        log.info("Token [{}] created for student [{}]. Expires in 8 hours at [{}].", sessionToken, studentNumber,
+                (LocalDateTime.now().plusHours(8).format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"))));
 
         return response;
     }

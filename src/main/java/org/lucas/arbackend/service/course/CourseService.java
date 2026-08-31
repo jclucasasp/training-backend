@@ -3,7 +3,10 @@ package org.lucas.arbackend.service.course;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.lucas.arbackend.dto.course.*;
+import org.lucas.arbackend.dto.course.ChapterSectionRequest;
+import org.lucas.arbackend.dto.course.CourseChapterRequest;
+import org.lucas.arbackend.dto.course.CourseRequest;
+import org.lucas.arbackend.dto.course.CourseResponse;
 import org.lucas.arbackend.dto.vr.scene.VRSceneResponse;
 import org.lucas.arbackend.entity.Organisation.Organisation;
 import org.lucas.arbackend.entity.Organisation.Staff;
@@ -12,16 +15,13 @@ import org.lucas.arbackend.entity.course.ChapterSection;
 import org.lucas.arbackend.entity.course.Course;
 import org.lucas.arbackend.entity.course.misc.Attachment;
 import org.lucas.arbackend.entity.quiz.Quiz;
-import org.lucas.arbackend.entity.vr.scene.VRScene;
 import org.lucas.arbackend.mapper.CourseMapper;
 import org.lucas.arbackend.mapper.context.MappingContext;
 import org.lucas.arbackend.mapper.context.VRSceneMapper;
 import org.lucas.arbackend.repository.course.ChapterRepository;
 import org.lucas.arbackend.repository.course.CourseRepository;
-import org.lucas.arbackend.repository.quiz.QuizRepository;
-import org.lucas.arbackend.repository.organisation.OrganisationRepository;
 import org.lucas.arbackend.repository.organisation.StaffRepository;
-import org.lucas.arbackend.repository.vr.SceneRepository;
+import org.lucas.arbackend.repository.quiz.QuizRepository;
 import org.lucas.arbackend.service.quiz.QuizService;
 import org.lucas.arbackend.service.vr.VRSceneService;
 import org.lucas.arbackend.util.tenant.TenantProvider;
@@ -30,7 +30,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -49,7 +51,6 @@ public class CourseService {
     private final VRSceneService sceneService;
     private final VRSceneMapper sceneMapper;
     private final ChapterRepository chapterRepo;
-    private final SceneRepository sceneRepo;
 
     public CourseResponse createCourse(CourseRequest request) {
 

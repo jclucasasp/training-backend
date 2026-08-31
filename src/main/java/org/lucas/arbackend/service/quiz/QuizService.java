@@ -124,7 +124,6 @@ public class QuizService {
         linkToChapter(quiz, courseId, chapterId, tenantProvider.get());
         quizRepo.save(quiz);
     }
-    //TODO: Check the id of the quiz and the chapter to make sure it is not attached to every single chapter
     public void assignQuizToChapter(Quiz quiz, Chapter chapter) {
          log.info("Creating new audit link for quiz: [{}] to new chapter: [{}]", quiz.getId(), chapter.getId());
         if (quiz.getChapterQuizzes() != null) {
